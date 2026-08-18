@@ -23,7 +23,8 @@ export type View =
   | 'institution'
   | 'teacher'
   | 'doubt-solver'
-  | 'pyq-trends';
+  | 'pyq-trends'
+  | 'socratic-mentor';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 

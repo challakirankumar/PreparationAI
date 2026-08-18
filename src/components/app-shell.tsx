@@ -64,7 +64,8 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   {
     title: 'AI Agents',
     items: [
-      { id: 'mentor', label: 'AI Mentor', icon: MessageSquare },
+      { id: 'mentor', label: 'AI Mentor v1', icon: MessageSquare },
+      { id: 'socratic-mentor', label: 'Socratic Mentor v2', icon: GraduationCap },
       { id: 'doubt-solver', label: 'Doubt Solver', icon: Camera },
       { id: 'pyq-trends', label: 'PYQ Trends', icon: TrendingUp },
       { id: 'digital-twin', label: 'Digital Twin', icon: UserCog },

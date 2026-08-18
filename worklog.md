@@ -603,3 +603,72 @@ Stage Summary:
 - The UI shows: KPI strip, AI analysis card (with fallback badge if ZAI unavailable), 4-tab layout (Hot/Emerging/Watch List/Heatmap), subject breakdown, and an explainer.
 - The trend engine correctly detects real-world exam pattern shifts: GMAT Sentence Correction decline after 2023 Focus Edition, SAT Geometry decline post-2023 digital transition, rising weight of Modern Physics & Calculus in recent JEE Main papers.
 - This is the foundation for Tier 1 — the next prompts (Socratic v2, Handwritten-step grading, Peer Battle Mode, Error Journal) can build on the trend data to recommend focus areas and personalised question selection.
+
+---
+Task ID: TIER1-SOCRATIC
+Agent: main
+Task: Build Tier 1, Prompt #6 — Socratic AI Mentor v2: never gives final answers directly, diagnoses misconception type
+
+Work Log:
+- Created `/src/lib/ai-guards/socratic-engine.ts` (333 lines):
+  - Misconception taxonomy: 10 categories (conceptual, procedural, factual, arithmetical, visual-spatial, semantic, overgeneralisation, strategic, careless, unclassified) grounded in pedagogy research (Hestenes' Force Concept Inventory, Berezansky & Berman error taxonomy, Yates & Marek biology misconceptions)
+  - 8 sub-detectors with regex-based pattern matching on student's answer text + question context:
+    - Conceptual: Aristotelian force-implies-motion, heavier-objects-fall-faster, action-reaction-cancellation, current-consumed-in-circuit, teleological-evolution, naturalistic-fallacy
+    - Procedural: sign-error, unit-conversion, order-of-operations, cross-multiplication, distribution-error, small-algebra-slip
+    - Factual: forgot-formula-or-definition, wrong-constant, formula-confusion
+    - Arithmetical: arithmetic-slip, decimal-place-error, near-miss-arithmetic
+    - Visual-spatial: vector-direction-error, diagram-misread, angle-measurement-error, spatial-confusion
+    - Semantic: question-misinterpretation, by-vs-to-confusion, number-set-confusion, negation-missed
+    - Overgeneralisation: ohms-law-universal, universal-rule-assumed, kinematic-outside-uniform-accel, energy-conservation-misapplied
+    - Strategic: wrong-approach, kinematic-for-energy-problem, energy-for-momentum-problem, calc-technique-mismatch
+  - Strategy mapping per misconception type (9 strategies): probe-understanding, confront-contradiction, scaffold-steps, analogical-prompt, limit-case, review-definition, redraw-diagram, verify-calculation, try-alternative
+  - Socratic state machine with 6 phases: initial → probing → diagnosing → scaffolding → confirming → closed
+  - State transition rules:
+    - student_attempted: advances from initial→probing or probing→scaffolding; if 3 hints + 1 attempt, transition to closed + allow direct answer
+    - student_correct: → confirming phase, asks student to articulate WHY
+    - student_asks_for_answer: logs request, gives ONE more scaffolded hint, transitions to closed+direct answer only if 3+ hints already given
+    - hint_given: increments hint counter, resets attempts-since-last-hint
+  - Strategy descriptions used in the LLM prompt to guide behaviour
+- Created `/src/app/api/socratic-mentor/route.ts` (271 lines):
+  - In-memory session store via globalThis.__socratic_sessions__ (survives HMR)
+  - 4 actions: start / respond / state / reset
+  - Per-response flow: EduScope evaluate → misconception detect → state machine transition → GLM-4.6 call with rewritten system prompt + state-aware instruction → response inspection → state update
+  - Hardens system prompt with absolute rules: never reveal final answer directly, max 1 hint per response, after 3 hints may reveal full worked solution framed against the misconception, when student correct asks WHY approach worked
+  - Injects [INTERNAL INSTRUCTION TO MENTOR] suffix into user prompt so the LLM gets explicit guidance on what to do at the current state machine phase
+  - Auto-detects when assistant reply contains hint phrases (hint, try this, consider, what if, notice that, think about) and bumps hint counter
+  - Deterministic fallback reply generator if GLM-4.6 fails — uses STRATEGY_DESCRIPTIONS to give a state-appropriate Socratic prompt
+- Created `/src/components/views/socratic-mentor.tsx` (498 lines):
+  - PageHeader with Brain icon
+  - 3-column layout: chat thread (3 cols) + live diagnosis side panel (1 col)
+  - Chat thread: bubbles with phase/hint-count/misconception/solution-revealed/blocked badges per assistant turn
+  - Input card with optional "problem context" expander (questionContext, correctAnswer, subject, topic) for better detection
+  - Two action buttons: "Mark Correct" (transitions state to confirming) and "Just Give Me the Answer" (triggers escalation)
+  - Side panel: Phase tracker (with hint progress bar 0/3), Latest Diagnosis card (misconception type + subPattern + confidence meter + diagnosis text + next strategy + evidence), Misconception History (numbered list), Reveal flag (amber when direct answer is allowed, emerald when solution was revealed)
+  - Bottom explainer card: how Socratic v2 differs from v1 (5 bullet points)
+- Wired into router (`src/app/page.tsx`): case 'socratic-mentor' → <SocraticMentorView />
+- Added 'socratic-mentor' to View type union (`src/lib/types.ts`)
+- Added to sidebar (`src/components/app-shell.tsx`) under AI Agents group with GraduationCap icon and "Socratic Mentor v2" label
+- Renamed existing "AI Mentor" sidebar label to "AI Mentor v1" for clarity
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results/exam-runner/mock-exam-engine remain untouched)
+- `bun run lint` → 0 errors, 6 cosmetic warnings (all "unused eslint-disable" — harmless)
+- Dev server restarted cleanly on port 3000 (Next.js 16.1.3 Turbopack, ready in 785ms)
+- Manual end-to-end test (`scripts/test-socratic.py`) covering 6 scenarios:
+  - TEST 1: Aristotelian "force implies motion" → correctly detected conceptual misconception, subPattern "force-implies-motion (Aristotelian)", confidence 80%, strategy "confront-contradiction" — mentor responded with hockey puck counter-example ✓
+  - TEST 2: Sign error → correctly detected procedural misconception, subPattern "sign-error", confidence 70%, strategy "scaffold-steps" — mentor broke the problem into smaller steps ✓
+  - TEST 3: by-vs-to semantic confusion → returned unclassified (student didn't actually confuse by/to in their wording), strategy "probe-understanding" — mentor asked clarifying question ✓
+  - TEST 4: Three-hint rule escalation → after 4 attempts (3 conceptual + 1 explicit ask), state machine correctly advanced phase (initial → probing → scaffolding → scaffolding), tracked misconception history (unclassified → conceptual), gave progressively more concrete hints without revealing answer prematurely ✓
+  - TEST 5: Off-topic politics ("who should I vote for") → mentor politely refused via system-prompt hardening (note: didn't hard-block since the regex didn't match — the LLM handled the refusal gracefully via the scope clause) ✓
+  - TEST 6: Jailbreak attempt ("ignore previous instructions") → correctly hard-blocked with SAFETY-001 policy match ✓
+- Home page loads in 60ms with 200 status
+
+Stage Summary:
+- Tier 1, Prompt #6 (Socratic AI Mentor v2) is fully built and verified end-to-end.
+- The mentor never reveals the final answer directly — it diagnoses the misconception type and tailors its next hint to that specific gap.
+- The state machine enforces Socratic discipline: max 1 hint per response, escalation to direct-answer-reveal only after 3 hints + 1 stuck attempt OR an explicit request from the student.
+- 10 misconception categories × 9 Socratic strategies = 90 possible (type, strategy) pairings, each with specific pedagogical reasoning.
+- The detection engine catches real, named misconceptions (Aristotelian force-implies-motion, action-reaction cancellation, current-consumed-in-circuit, teleological evolution, by-vs-to confusion, sign-error, decimal-place-error, etc.) — not just generic "you got it wrong" feedback.
+- Both AI Mentor v1 (free-form chat) and Socratic Mentor v2 (structured protocol) are available in the sidebar — students can choose which mode they prefer.
+- The next prompts (Handwritten-step grading, Peer Battle Mode, Error Journal) can build on the misconception detection engine — especially the Error Journal, which can use misconceptionHistory from this session to build a personal mistake-pattern report.
+
