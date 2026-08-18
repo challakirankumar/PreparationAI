@@ -30,7 +30,8 @@ export type View =
   | 'error-journal'
   | 'parent-dashboard'
   | 'nudge-bot'
-  | 'league';
+  | 'league'
+  | 'voice-mentor';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 

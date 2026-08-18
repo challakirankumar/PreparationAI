@@ -35,6 +35,7 @@ import {
   BookX,
   Heart,
   MessageCircle,
+  Mic,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -68,6 +69,7 @@ const NAV_ITEM_KEYS: Record<View, StringKey | undefined> = {
   'parent-dashboard': 'nav.parentDashboard',
   'nudge-bot': undefined,  // no translation key — uses label "Nudge Bot"
   'league': undefined,     // no translation key — uses label "League"
+  'voice-mentor': undefined,  // no translation key — uses label "Voice Mentor"
   'institution': 'nav.institution',
   'teacher': 'nav.teacher',
   'guardrail': 'nav.guardrail',
@@ -118,6 +120,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { id: 'mentor', label: 'AI Mentor v1', icon: MessageSquare },
       { id: 'socratic-mentor', label: 'Socratic Mentor v2', icon: GraduationCap },
+      { id: 'voice-mentor', label: 'Voice Mentor', icon: Mic },
       { id: 'doubt-solver', label: 'Doubt Solver', icon: Camera },
       { id: 'handwritten-grader', label: 'Handwritten Grader', icon: PenTool },
       { id: 'pyq-trends', label: 'PYQ Trends', icon: TrendingUp },
