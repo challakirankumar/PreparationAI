@@ -672,3 +672,84 @@ Stage Summary:
 - Both AI Mentor v1 (free-form chat) and Socratic Mentor v2 (structured protocol) are available in the sidebar — students can choose which mode they prefer.
 - The next prompts (Handwritten-step grading, Peer Battle Mode, Error Journal) can build on the misconception detection engine — especially the Error Journal, which can use misconceptionHistory from this session to build a personal mistake-pattern report.
 
+
+---
+Task ID: TIER1-HANDWRITTEN
+Agent: main
+Task: Build Tier 1, Prompt #7 — Handwritten-step grading for subjective/board answers (not just MCQ)
+
+Work Log:
+- Created `/src/lib/grading/rubric.ts` (290 lines):
+  - GradingRubric interface: problemTitle, problemStatement, totalMarks, subject, topic, steps[], optional modelAnswer
+  - RubricStep interface: index, description, marks, keyConcepts[], commonMistakes[]
+  - StepGrade interface: rubricStepIndex, description, status (correct|partial|wrong|missing), awardedMarks, maxMarks, studentWork, feedback, conceptsPresent[], conceptsMissing[], mistakesIdentified[]
+  - GradingResult interface: totalAwardedMarks, totalMaxMarks, percentage, stepGrades[], overallFeedback, strengths[], improvements[], handwritingConfidence (high|medium|low), illegible, auditId, generatedAt
+  - STATUS_META: per-status colors + icons + bg classes for UI
+  - computeAwardedMarks(): correct→full, partial→half, wrong→0, missing→0
+  - aggregateStepGrades(): totals + percentage + auto-generated strengths/improvements list + tier-based overall feedback (excellent ≥90% / good ≥70% / decent ≥40% / significant gaps <40%)
+  - 3 sample rubrics pre-populated:
+    - sample-1: Projectile Motion range derivation (Physics, 5 marks, 5 steps: resolve components → time of flight → range formula → trig simplify → max angle)
+    - sample-2: Mole Concept stoichiometry (Chemistry, 4 marks, 4 steps: balanced equation → moles NaOH → stoichiometric ratio → mass NaCl)
+    - sample-3: Quadratic via discriminant (Math, 4 marks, 4 steps: identify a/b/c → discriminant → quadratic formula → both roots)
+  - buildGradingPrompt(): constructs the strict-JSON prompt for the VLM with rubric, model answer, expected output schema
+  - isGradingResult(): runtime validator for parsed JSON
+  - alignStepGrades(): fills missing steps if AI didn't grade all rubric steps; clamps awardedMarks to [0, maxMarks]
+- Created `/src/app/api/grade-handwritten/route.ts` (172 lines):
+  - GET: returns list of 3 sample rubrics (id, title, subject, topic, totalMarks, stepsCount, problemStatement)
+  - POST: accepts {imageDataUrl | imageUrl, rubric | rubricId, user, userId}
+    - Validates image presence + 8MB size cap
+    - Resolves rubric from request body OR rubricId (sample-1/2/3)
+    - Routes through EduScope (audit + system prompt hardening + response inspection)
+    - Calls zai.chat.completions.createVision with multimodal content (text + image_url)
+    - Parses strict-JSON response, aligns with rubric (fills missing steps, clamps marks)
+    - Aggregates into GradingResult with overall feedback, strengths, improvements
+    - Graceful fallback: if VLM fails or returns malformed JSON, returns `fallback=true` + `illegible=true` + per-step "manual review needed" feedback
+- Created `/src/components/views/handwritten-grader.tsx` (498 lines):
+  - PageHeader with PenTool icon
+  - 2-column layout: problem selection + image upload (left) | grading results (right)
+  - Problem selection card: radio toggle between "Use sample problem" (Select dropdown) and "Define my own problem" (custom rubric form: title, statement, model answer, subject, topic, total marks)
+  - Image upload card: gallery button, camera button (capture="environment"), clipboard paste support, 8MB cap, image preview with remove button
+  - GradingResultView:
+    - Hero card with score (gradient background by tier: emerald/blue/amber/rose) + handwriting confidence badge + fallback-mode indicator
+    - Overall feedback card
+    - Total score progress bar
+    - Step-by-step breakdown: each step in a colored card (correct=emerald, partial=amber, wrong=rose, missing=stone) with:
+      - Step index + status badge + description
+      - Awarded marks (e.g. "0.5/1")
+      - Marks-progress bar
+      - Student work paraphrase (italic, quoted)
+      - Specific feedback text
+      - Concepts present (green badges)
+      - Concepts missing (rose badges)
+      - Mistakes identified (amber bullet list with ⚠ icon)
+    - Strengths + Areas to Improve cards (2-column grid)
+    - Audit ID footer
+  - Bottom explainer: how step-wise grading works (rubric, VLM reads handwriting, 4 statuses, per-step feedback, EduScope audit)
+- Wired into router (`src/app/page.tsx`): case 'handwritten-grader' → <HandwrittenGraderView />
+- Added 'handwritten-grader' to View type union (`src/lib/types.ts`)
+- Added to sidebar (`src/components/app-shell.tsx`) under AI Agents group with PenTool icon and "Handwritten Grader" label
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results/exam-runner/mock-exam-engine remain untouched)
+- `bun run lint` → 0 errors, 6 cosmetic warnings (all "unused eslint-disable" — harmless)
+- Dev server restarted cleanly on port 3000 (Next.js 16.1.3 Turbopack, ready in 785ms)
+- Manual API smoke tests:
+  - GET /api/grade-handwritten → returns 3 sample rubrics with metadata ✓
+  - POST /api/grade-handwritten with sample image (synthetically generated handwritten-style JPEG with full solution) → returns properly-structured GradingResult with all fields populated ✓
+  - When VLM fails or returns malformed response → graceful fallback with `fallback=true`, `illegible=true`, per-step "manual review needed" feedback, no crash ✓
+  - EduScope audit ID returned (aud_msyl8prx_zx2wi4) ✓
+  - Home page loads in 46ms with 200 status ✓
+
+Stage Summary:
+- Tier 1, Prompt #7 (Handwritten-step grading) is fully built and verified end-to-end.
+- The system grades subjective (board-exam style) answers by:
+  1. Splitting the reference solution into discrete rubric steps with marks + key concepts + common mistakes
+  2. Using GLM-4.6 Vision API to read the student's handwritten solution from an uploaded image
+  3. Comparing each rubric step against what the student wrote
+  4. Scoring each step as correct (full marks) / partial (half marks) / wrong (0) / missing (0)
+  5. Aggregating into a final mark with per-step feedback, concepts present/missing, mistakes identified
+- Three pre-built sample rubrics cover Physics (projectile motion), Chemistry (stoichiometry), Mathematics (quadratic equation) — students can also define their own problem + model answer for ad-hoc grading.
+- The UI shows a tier-coloured hero card (Excellent/Good/Needs Work/Significant Gaps) with handwriting confidence badge, total score, per-step breakdown with paraphrased student work, and explicit concepts-present/missing/mistakes tags per step.
+- Error handling is defensive: if the VLM can't read handwriting or returns malformed JSON, the API returns fallback=true with illegible=true and per-step "manual review needed" feedback — the UI surfaces this clearly with amber fallback badge.
+- Next prompts (Peer Battle Mode, Error Journal) can build on this — especially the Error Journal, which can ingest the per-step mistakesIdentified[] from this grader to build a personal mistake-pattern report over time.
+

@@ -30,6 +30,7 @@ import {
   Building2,
   Camera,
   TrendingUp,
+  PenTool,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +68,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { id: 'mentor', label: 'AI Mentor v1', icon: MessageSquare },
       { id: 'socratic-mentor', label: 'Socratic Mentor v2', icon: GraduationCap },
       { id: 'doubt-solver', label: 'Doubt Solver', icon: Camera },
+      { id: 'handwritten-grader', label: 'Handwritten Grader', icon: PenTool },
       { id: 'pyq-trends', label: 'PYQ Trends', icon: TrendingUp },
       { id: 'digital-twin', label: 'Digital Twin', icon: UserCog },
       { id: 'success-simulator', label: 'Success Simulator', icon: Sparkles },

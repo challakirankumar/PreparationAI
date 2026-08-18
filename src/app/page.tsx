@@ -23,6 +23,7 @@ import { InstitutionDashboardView } from '@/components/views/institution-dashboa
 import { DoubtSolverView } from '@/components/views/doubt-solver';
 import { PyqTrendPredictorView } from '@/components/views/pyq-trend-predictor';
 import { SocraticMentorView } from '@/components/views/socratic-mentor';
+import { HandwrittenGraderView } from '@/components/views/handwritten-grader';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
 import type { View } from '@/lib/types';
 
@@ -74,6 +75,8 @@ function ViewRouter({ view }: { view: View }) {
       return <PyqTrendPredictorView />;
     case 'socratic-mentor':
       return <SocraticMentorView />;
+    case 'handwritten-grader':
+      return <HandwrittenGraderView />;
     default:
       return <Dashboard />;
   }
