@@ -4,6 +4,8 @@ import type {
   GeneratedExam, BehaviorAnalysis,
 } from '@/lib/types';
 import { getVideosForTopic, searchUrlForTopic, thumbnailUrl, type YoutubeVideo } from '@/lib/youtube-data';
+import { ingestBulk } from '@/lib/error-journal/store';
+import type { IngestInput } from '@/lib/error-journal/store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,6 +23,8 @@ export async function POST(request: Request) {
     const attemptNumber: number = body.attemptNumber || 1;
     const previousAttempt: ExamAttempt | null = body.previousAttempt || null;
     const clientDurationSec: number = body.totalDurationSec || 0;
+    const userId: string | undefined = body.userId;
+    const timeLimitSec: number | undefined = body.timeLimitSec ?? exam?.durationSec;
 
     if (!exam || !exam.questions) {
       return NextResponse.json({ error: 'exam payload required' }, { status: 400 });
@@ -209,6 +213,70 @@ export async function POST(request: Request) {
       attemptNumber,
       behavior: behaviour,
     };
+
+    // Auto-ingest wrong answers into the Error Journal (if userId provided)
+    if (userId && attempt) {
+      try {
+        const errorInputs: IngestInput[] = [];
+        for (const r of results) {
+          // Skip correct answers and unattempted (unattempted is handled by time_pressure classifier naturally)
+          if (r.correct) {
+            // Also feed correct answers into the auto-resolve checker (in a future enhancement)
+            continue;
+          }
+          // Find the original question
+          const q = exam.questions.find(qq => qq.id === r.questionId);
+          if (!q) continue;
+          // Find the student's answer
+          const ans = answers[q.id];
+          if (!ans) continue;
+          // Build a human-readable student answer
+          let studentAnswer: string | undefined;
+          let studentOptionIndex: number | undefined;
+          let studentNumeric: number | undefined;
+          if (ans.type === 'mcq' || ans.type === 'reading' || ans.type === 'listening') {
+            studentOptionIndex = ans.optionIndex;
+            studentAnswer = q.options?.[ans.optionIndex];
+          } else if (ans.type === 'msq') {
+            studentOptionIndex = ans.optionIndices[0];
+            studentAnswer = ans.optionIndices.map(i => q.options?.[i]).filter(Boolean).join(', ');
+          } else if (ans.type === 'numerical') {
+            studentNumeric = ans.value;
+            studentAnswer = String(ans.value);
+          } else if (ans.type === 'descriptive' || ans.type === 'writing' || ans.type === 'speaking') {
+            studentAnswer = ans.text;
+          } else if (ans.type === 'unanswered') {
+            studentAnswer = '(unanswered)';
+          }
+          errorInputs.push({
+            userId,
+            source: 'mock-exam',
+            sourceId: attempt.id,
+            examId: exam.examId,
+            subject: q.subject,
+            topic: q.topic,
+            difficulty: q.difficulty,
+            questionText: q.text,
+            questionId: q.id,
+            options: q.options,
+            correctOptions: q.correctOptions,
+            correctNumeric: q.correctNumeric,
+            studentAnswer,
+            studentOptionIndex,
+            studentNumeric,
+            timeTakenSec: r.timeTakenSec,
+            timeLimitSec: timeLimitSec ? Math.round(timeLimitSec / exam.questions.length) : undefined,
+            timestamp: attempt.submittedAt,
+          });
+        }
+        if (errorInputs.length > 0) {
+          ingestBulk(userId, errorInputs);
+        }
+      } catch (ingestErr) {
+        // Don't fail the evaluation if journal ingest fails
+        console.error('Error journal ingest failed:', (ingestErr as Error).message);
+      }
+    }
 
     return NextResponse.json({ attempt });
   } catch (e) {

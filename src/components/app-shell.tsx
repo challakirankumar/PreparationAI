@@ -32,6 +32,7 @@ import {
   TrendingUp,
   PenTool,
   Swords,
+  BookX,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -90,6 +91,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: 'Competition',
     items: [
       { id: 'battle-arena', label: 'Battle Arena', icon: Swords },
+      { id: 'error-journal', label: 'Error Journal', icon: BookX },
     ],
   },
   {

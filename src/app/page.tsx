@@ -25,6 +25,7 @@ import { PyqTrendPredictorView } from '@/components/views/pyq-trend-predictor';
 import { SocraticMentorView } from '@/components/views/socratic-mentor';
 import { HandwrittenGraderView } from '@/components/views/handwritten-grader';
 import { BattleArenaView } from '@/components/views/battle-arena';
+import { ErrorJournalView } from '@/components/views/error-journal';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
 import type { View } from '@/lib/types';
 
@@ -80,6 +81,8 @@ function ViewRouter({ view }: { view: View }) {
       return <HandwrittenGraderView />;
     case 'battle-arena':
       return <BattleArenaView />;
+    case 'error-journal':
+      return <ErrorJournalView />;
     default:
       return <Dashboard />;
   }
