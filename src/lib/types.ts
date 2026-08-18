@@ -16,7 +16,9 @@ export type View =
   | 'readiness'
   | 'rank-predictor'
   | 'university-predictor'
-  | 'weakness-radar';
+  | 'weakness-radar'
+  | 'study-material'
+  | 'settings';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 
@@ -24,12 +26,45 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  emailVerified?: boolean;
   type: UserType;
   examGoal: string;
   examGoals: string[];
   examDate: string;
+  examDates?: Record<string, string>;
   targetScore?: number;
   joinedAt: string;
+  phone?: string;
+  avatar?: string;
+  country?: string;
+  darkMode?: boolean;
+  academicRecords?: AcademicRecord[];
+}
+
+export interface AcademicRecord {
+  id: string;
+  examName: string;
+  institution?: string;
+  subjects: { name: string; marks: number; maxMarks: number; grade?: string }[];
+  totalMarks: number;
+  maxMarks: number;
+  percentage: number;
+  rank?: string;
+  date: string;
+  uploadedAt: string;
+  aiAnalysis?: AcademicAnalysis;
+}
+
+export interface AcademicAnalysis {
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  subjectInsights: { subject: string; insight: string; recommendation: string }[];
+  predictedReadiness: number;
+  predictedScoreRange: string;
+  studyPlan: { phase: string; duration: string; focus: string; tasks: string[] }[];
+  recommendedResources: string[];
+  generatedAt: string;
 }
 
 export type QuestionType = 'mcq' | 'msq' | 'numerical' | 'descriptive' | 'reading' | 'listening' | 'speaking' | 'writing';

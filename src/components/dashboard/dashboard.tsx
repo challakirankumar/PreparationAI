@@ -38,6 +38,7 @@ import { FeatureCard, type FeatureAccent } from './feature-card';
 import { ExamCountdownCard } from './exam-countdown-card';
 import { ManageExamsDialog } from './manage-exams-dialog';
 import { DailyPlanModal } from './daily-plan-modal';
+import { LiveCountdownCard, WeakAreaTriggerCard, ExamNewsFeed } from './live-dashboard-cards';
 import type { View } from '@/lib/types';
 
 interface FeatureDef {
@@ -541,6 +542,21 @@ export function Dashboard() {
         <StatCard label="Mocks Taken" value={mocksTaken} sub="last 30 days" icon={FileText} accent="teal" />
         <StatCard label="Best Percentile" value={bestPercentile} sub="all-time" icon={Trophy} accent="amber" />
         <StatCard label="Accuracy" value={`${avgAccuracy}%`} sub="average" icon={Target} accent="rose" />
+      </div>
+
+      {/* Live countdown + weak areas + news */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <LiveCountdownCard
+          examId={user.examGoal}
+          examDate={user.examDate}
+          examName={getPattern(user.examGoal)?.name ?? 'Target Exam'}
+        />
+        <WeakAreaTriggerCard attempts={attempts} />
+        <ExamNewsFeed
+          examId={user.examGoal}
+          examName={getPattern(user.examGoal)?.name ?? 'exam'}
+          country={user.country}
+        />
       </div>
 
       {/* Countdown + trend */}

@@ -16,6 +16,8 @@ import { ScholarshipEngine } from '@/components/views/scholarship-engine';
 import { StudyPlanner } from '@/components/views/study-planner';
 import { WellnessCounsellor } from '@/components/views/wellness-counsellor';
 import { UniversityPredictor } from '@/components/views/university-predictor';
+import { SettingsView } from '@/components/views/settings';
+import { StudyMaterialView } from '@/components/views/study-material';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
 import type { View } from '@/lib/types';
 
@@ -51,6 +53,10 @@ function ViewRouter({ view }: { view: View }) {
       return <SuccessSimulator />;
     case 'weakness-radar':
       return <PerformanceAnalytics />;
+    case 'settings':
+      return <SettingsView />;
+    case 'study-material':
+      return <StudyMaterialView />;
     default:
       return <Dashboard />;
   }

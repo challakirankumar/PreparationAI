@@ -5,6 +5,7 @@ import {
   Brain,
   LayoutDashboard,
   FileText,
+  BookOpen,
   BarChart3,
   CalendarDays,
   MessageSquare,
@@ -24,6 +25,7 @@ import {
   Target,
   Calendar,
   Clock,
+  Settings2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +52,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'mock-exam', label: 'Mock Exam', icon: FileText },
+      { id: 'study-material', label: 'Study Material', icon: BookOpen },
       { id: 'analytics', label: 'Analytics', icon: BarChart3 },
       { id: 'planner', label: 'Planner', icon: CalendarDays },
     ],
@@ -62,7 +65,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { id: 'success-simulator', label: 'Success Simulator', icon: Sparkles },
       { id: 'readiness', label: 'Readiness Index', icon: Gauge },
       { id: 'rank-predictor', label: 'Rank Predictor', icon: Trophy },
-      { id: 'university-predictor', label: 'University Predictor', icon: School },
+      { id: 'university-predictor', label: 'Discover', icon: School },
       { id: 'weakness-radar', label: 'Weakness Radar', icon: Radar },
     ],
   },
@@ -73,6 +76,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { id: 'university', label: 'Universities', icon: GraduationCap },
       { id: 'scholarship', label: 'Scholarships', icon: Award },
       { id: 'counsellor', label: 'Wellness', icon: HeartPulse },
+      { id: 'settings', label: 'Settings', icon: Settings2 },
     ],
   },
 ];
@@ -276,12 +280,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const user = useStore((s) => s.user);
 
+  // Dark mode toggle
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (user?.darkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [user?.darkMode]);
+
   if (!user) return null;
 
   return (
     <div className="min-h-screen bg-premium">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-72 flex-col bg-white border-r border-stone-200 z-40">
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-72 flex-col bg-white dark:bg-slate-900 border-r border-stone-200 dark:border-slate-700 z-40">
         <SidebarHeader />
         <NavList />
         <SidebarFooter />

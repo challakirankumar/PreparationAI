@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User, View, ExamAttempt, GeneratedExam, ChatMessage } from '@/lib/types';
+import type { User, View, ExamAttempt, GeneratedExam, ChatMessage, AcademicRecord } from '@/lib/types';
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 11);
@@ -17,15 +17,9 @@ function daysFromNow(days: number): string {
 function seedAttempts(): ExamAttempt[] {
   const now = Date.now();
   const mk = (
-    idx: number,
-    examId: string,
-    examName: string,
-    totalMarks: number,
-    scorePct: number,
+    idx: number, examId: string, examName: string, totalMarks: number, scorePct: number,
     subjectScores: { subject: string; scored: number; total: number }[],
-    weakTopics: string[],
-    strongTopics: string[],
-    daysAgo: number
+    weakTopics: string[], strongTopics: string[], daysAgo: number
   ): ExamAttempt => {
     const score = Math.round(totalMarks * scorePct);
     const total = subjectScores.reduce((a, s) => a + s.total, 0);
@@ -34,61 +28,45 @@ function seedAttempts(): ExamAttempt[] {
     const wrong = Math.round((total - scored) / 4);
     const unattempted = Math.max(0, Math.round(total / 4) - correct - wrong);
     return {
-      id: uid(),
-      examId,
-      examName,
+      id: uid(), examId, examName,
       startedAt: new Date(now - daysAgo * 86400000).toISOString(),
       submittedAt: new Date(now - daysAgo * 86400000 + 7200000).toISOString(),
-      durationSec: 5400 + idx * 600,
-      answers: {},
-      score,
-      totalMarks,
+      durationSec: 5400 + idx * 600, answers: {}, score, totalMarks,
       percentile: Math.round((1 - scorePct) * 60 + 40),
       rank: Math.round((1 - scorePct) * 50000 + 1000),
       subjectScores: subjectScores.map((s) => ({
-        subject: s.subject,
-        total: s.total,
-        scored: s.scored,
-        correct: Math.round(s.scored / 4),
-        wrong: Math.round((s.total - s.scored) / 4),
-        unattempted: 0,
-        accuracy: Math.round((s.scored / s.total) * 100),
+        subject: s.subject, total: s.total, scored: s.scored,
+        correct: Math.round(s.scored / 4), wrong: Math.round((s.total - s.scored) / 4),
+        unattempted: 0, accuracy: Math.round((s.scored / s.total) * 100),
       })),
-      topicScores: [],
-      accuracy: Math.round(scorePct * 100),
-      speed: 18 + idx * 2,
-      avgTimePerQuestion: 90 - idx * 5,
-      weakTopics,
-      strongTopics,
-      results: [],
-      youtubeRecs: [],
-      readinessIndex: Math.round(scorePct * 1000),
+      topicScores: [], accuracy: Math.round(scorePct * 100), speed: 18 + idx * 2,
+      avgTimePerQuestion: 90 - idx * 5, weakTopics, strongTopics, results: [],
+      youtubeRecs: [], readinessIndex: Math.round(scorePct * 1000),
     };
   };
-
   return [
     mk(0, 'jee-main', 'JEE Main', 300, 0.58, [
-      { subject: 'Physics', scored: 70, total: 100 },
-      { subject: 'Chemistry', scored: 56, total: 100 },
-      { subject: 'Mathematics', scored: 48, total: 100 },
+      { subject: 'Physics', scored: 70, total: 100 }, { subject: 'Chemistry', scored: 56, total: 100 }, { subject: 'Mathematics', scored: 48, total: 100 },
     ], ['Rotational Motion', 'Calculus', 'Coordination Compounds'], ['Kinematics', 'Organic Basics'], 21),
     mk(1, 'jee-main', 'JEE Main', 300, 0.64, [
-      { subject: 'Physics', scored: 80, total: 100 },
-      { subject: 'Chemistry', scored: 64, total: 100 },
-      { subject: 'Mathematics', scored: 48, total: 100 },
+      { subject: 'Physics', scored: 80, total: 100 }, { subject: 'Chemistry', scored: 64, total: 100 }, { subject: 'Mathematics', scored: 48, total: 100 },
     ], ['Calculus', 'Vectors', 'Electrostatics'], ['Kinematics', 'Atomic Structure'], 14),
     mk(2, 'jee-main', 'JEE Main', 300, 0.71, [
-      { subject: 'Physics', scored: 88, total: 100 },
-      { subject: 'Chemistry', scored: 72, total: 100 },
-      { subject: 'Mathematics', scored: 56, total: 100 },
+      { subject: 'Physics', scored: 88, total: 100 }, { subject: 'Chemistry', scored: 72, total: 100 }, { subject: 'Mathematics', scored: 56, total: 100 },
     ], ['Modern Physics', 'Probability'], ['Kinematics', 'Organic Basics'], 7),
     mk(3, 'neet', 'NEET', 720, 0.55, [
-      { subject: 'Physics', scored: 140, total: 180 },
-      { subject: 'Chemistry', scored: 150, total: 180 },
-      { subject: 'Botany', scored: 56, total: 180 },
-      { subject: 'Zoology', scored: 50, total: 180 },
+      { subject: 'Physics', scored: 140, total: 180 }, { subject: 'Chemistry', scored: 150, total: 180 }, { subject: 'Botany', scored: 56, total: 180 }, { subject: 'Zoology', scored: 50, total: 180 },
     ], ['Human Physiology', 'Genetics', 'Electrostatics'], ['Cell Biology', 'Chemical Bonding'], 3),
   ];
+}
+
+interface SavedUserData {
+  password: string;
+  user: User;
+  attempts: ExamAttempt[];
+  seenSignatures: string[];
+  mentorMessages: ChatMessage[];
+  academicRecords?: AcademicRecord[];
 }
 
 interface StoreState {
@@ -101,9 +79,11 @@ interface StoreState {
   dailyPlanDismissed: string | null;
   hydrated: boolean;
   seenSignatures: string[];
+  registeredUsers: Record<string, SavedUserData>;
 
   setHydrated: (v: boolean) => void;
-  login: (user: User) => void;
+  register: (newUser: User, password: string) => { success: boolean; error?: string };
+  loginWithCredentials: (email: string, password: string) => { success: boolean; error?: string };
   logout: () => void;
   setView: (v: View) => void;
   startExam: (exam: GeneratedExam, examId: string) => void;
@@ -115,60 +95,197 @@ interface StoreState {
   updateUser: (u: Partial<User>) => void;
   addExamGoal: (examId: string) => void;
   removeExamGoal: (examId: string) => void;
+  setExamDate: (examId: string, date: string) => void;
   recordSeenSignatures: (sigs: string[]) => void;
+  updateProfile: (updates: Partial<User>) => void;
+  addAcademicRecord: (record: AcademicRecord) => void;
+  updateAcademicRecord: (id: string, updates: Partial<AcademicRecord>) => void;
+  removeAcademicRecord: (id: string) => void;
+}
+
+function saveToRegistered(set: any, get: any, newUser: User, extra?: Partial<SavedUserData>) {
+  const email = newUser.email.toLowerCase().trim();
+  const existing = get().registeredUsers[email];
+  const saved: SavedUserData = {
+    password: existing?.password || '',
+    user: newUser,
+    attempts: extra?.attempts ?? existing?.attempts ?? get().attempts,
+    seenSignatures: extra?.seenSignatures ?? existing?.seenSignatures ?? get().seenSignatures,
+    mentorMessages: extra?.mentorMessages ?? existing?.mentorMessages ?? get().mentorMessages,
+    academicRecords: extra?.academicRecords ?? existing?.academicRecords ?? newUser.academicRecords,
+  };
+  set((s: StoreState) => ({ registeredUsers: { ...s.registeredUsers, [email]: saved } }));
 }
 
 export const useStore = create<StoreState>()(
   persist(
-    (set) => ({
-      user: null,
-      view: 'auth',
-      currentExam: null,
-      currentExamId: null,
-      attempts: [],
-      mentorMessages: [],
-      dailyPlanDismissed: null,
-      hydrated: false,
-      seenSignatures: [],
+    (set, get) => ({
+      user: null, view: 'auth', currentExam: null, currentExamId: null,
+      attempts: [], mentorMessages: [], dailyPlanDismissed: null, hydrated: false,
+      seenSignatures: [], registeredUsers: {},
 
       setHydrated: (v) => set({ hydrated: v }),
-      login: (user) => set({ user, view: 'dashboard', attempts: seedAttempts() }),
-      logout: () => set({ user: null, view: 'auth', currentExam: null, currentExamId: null, attempts: [], mentorMessages: [], seenSignatures: [] }),
+
+      register: (newUser, password) => {
+        const email = newUser.email.toLowerCase().trim();
+        if (get().registeredUsers[email]) {
+          return { success: false, error: 'An account with this email already exists. Please log in instead.' };
+        }
+        const saved: SavedUserData = { password, user: newUser, attempts: seedAttempts(), seenSignatures: [], mentorMessages: [] };
+        set((s) => ({
+          registeredUsers: { ...s.registeredUsers, [email]: saved },
+          user: newUser, view: 'dashboard', attempts: saved.attempts,
+          seenSignatures: [], mentorMessages: [], currentExam: null, currentExamId: null, dailyPlanDismissed: null,
+        }));
+        return { success: true };
+      },
+
+      loginWithCredentials: (email, password) => {
+        const key = email.toLowerCase().trim();
+        const saved = get().registeredUsers[key];
+        if (!saved) return { success: false, error: 'No account found with this email. Please sign up first.' };
+        if (saved.password !== password) return { success: false, error: 'Incorrect password. Please try again.' };
+        set({
+          user: saved.user, view: 'dashboard', attempts: saved.attempts,
+          seenSignatures: saved.seenSignatures, mentorMessages: saved.mentorMessages,
+          currentExam: null, currentExamId: null,
+        });
+        return { success: true };
+      },
+
+      logout: () => {
+        const s = get();
+        if (s.user) {
+          const email = s.user.email.toLowerCase().trim();
+          const saved: SavedUserData = {
+            password: s.registeredUsers[email]?.password || '',
+            user: s.user, attempts: s.attempts, seenSignatures: s.seenSignatures,
+            mentorMessages: s.mentorMessages, academicRecords: s.user.academicRecords,
+          };
+          set((st) => ({ registeredUsers: { ...st.registeredUsers, [email]: saved } }));
+        }
+        set({ user: null, view: 'auth', currentExam: null, currentExamId: null, attempts: [], mentorMessages: [], seenSignatures: [], dailyPlanDismissed: null });
+      },
+
       setView: (v) => set({ view: v }),
       startExam: (exam, examId) => set({ currentExam: exam, currentExamId: examId, view: 'mock-exam' }),
       endExam: () => set({ currentExam: null, currentExamId: null }),
-      addAttempt: (a) => set((s) => ({ attempts: [a, ...s.attempts] })),
-      addMentorMessage: (m) => set((s) => ({ mentorMessages: [...s.mentorMessages, m] })),
-      setMentorMessages: (m) => set({ mentorMessages: m }),
+
+      addAttempt: (a) => {
+        set((s) => ({ attempts: [a, ...s.attempts] }));
+        const s = get();
+        if (s.user) saveToRegistered(set, get, s.user, { attempts: s.attempts });
+      },
+
+      addMentorMessage: (m) => {
+        set((s) => ({ mentorMessages: [...s.mentorMessages, m] }));
+        const s = get();
+        if (s.user) saveToRegistered(set, get, s.user, { mentorMessages: s.mentorMessages });
+      },
+
+      setMentorMessages: (m) => {
+        set({ mentorMessages: m });
+        const s = get();
+        if (s.user) saveToRegistered(set, get, s.user, { mentorMessages: m });
+      },
+
       dismissDailyPlan: (date) => set({ dailyPlanDismissed: date }),
-      updateUser: (u) => set((s) => ({ user: s.user ? { ...s.user, ...u } : null })),
-      addExamGoal: (examId) => set((s) => {
-        if (!s.user) return {};
-        const current = s.user.examGoals?.length ? s.user.examGoals : [s.user.examGoal];
-        if (current.includes(examId)) return {};
-        const next = [...current, examId];
-        return { user: { ...s.user, examGoals: next } };
-      }),
-      removeExamGoal: (examId) => set((s) => {
-        if (!s.user) return {};
-        const current = s.user.examGoals?.length ? s.user.examGoals : [s.user.examGoal];
-        if (current.length <= 1) return {};
-        const next = current.filter((id) => id !== examId);
-        const newPrimary = s.user.examGoal === examId ? next[0] : s.user.examGoal;
-        return { user: { ...s.user, examGoals: next, examGoal: newPrimary } };
-      }),
-      recordSeenSignatures: (sigs) => set((s) => {
-        const existing = new Set(s.seenSignatures);
-        for (const sig of sigs) existing.add(sig);
-        const arr = Array.from(existing).slice(-5000);
-        return { seenSignatures: arr };
-      }),
+
+      updateUser: (u) => {
+        set((s) => ({ user: s.user ? { ...s.user, ...u } : null }));
+        const s = get();
+        if (s.user) saveToRegistered(set, get, s.user);
+      },
+
+      addExamGoal: (examId) => {
+        set((s) => {
+          if (!s.user) return {};
+          const current = s.user.examGoals?.length ? s.user.examGoals : [s.user.examGoal];
+          if (current.includes(examId)) return {};
+          const next = [...current, examId];
+          const newUser = { ...s.user, examGoals: next };
+          saveToRegistered(set, get, newUser);
+          return { user: newUser };
+        });
+      },
+
+      removeExamGoal: (examId) => {
+        set((s) => {
+          if (!s.user) return {};
+          const current = s.user.examGoals?.length ? s.user.examGoals : [s.user.examGoal];
+          if (current.length <= 1) return {};
+          const next = current.filter((id) => id !== examId);
+          const newUser = { ...s.user, examGoals: next, examGoal: next[0] || '' };
+          saveToRegistered(set, get, newUser);
+          return { user: newUser };
+        });
+      },
+
+      setExamDate: (examId, date) => {
+        set((s) => {
+          if (!s.user) return {};
+          const newDates = { ...(s.user.examDates || {}), [examId]: date };
+          const newUser = { ...s.user, examDates: newDates };
+          saveToRegistered(set, get, newUser);
+          return { user: newUser };
+        });
+      },
+
+      recordSeenSignatures: (sigs) => {
+        set((s) => {
+          const existing = new Set(s.seenSignatures);
+          for (const sig of sigs) existing.add(sig);
+          const arr = Array.from(existing).slice(-5000);
+          if (s.user) saveToRegistered(set, get, s.user, { seenSignatures: arr });
+          return { seenSignatures: arr };
+        });
+      },
+
+      updateProfile: (updates) => {
+        set((s) => ({ user: s.user ? { ...s.user, ...updates } : null }));
+        const s = get();
+        if (s.user) saveToRegistered(set, get, s.user);
+      },
+
+      addAcademicRecord: (record) => {
+        set((s) => {
+          if (!s.user) return {};
+          const records = [...(s.user.academicRecords || []), record];
+          const newUser = { ...s.user, academicRecords: records };
+          saveToRegistered(set, get, newUser, { academicRecords: records });
+          return { user: newUser };
+        });
+      },
+
+      updateAcademicRecord: (id, updates) => {
+        set((s) => {
+          if (!s.user || !s.user.academicRecords) return {};
+          const records = s.user.academicRecords.map((r) => r.id === id ? { ...r, ...updates } : r);
+          const newUser = { ...s.user, academicRecords: records };
+          saveToRegistered(set, get, newUser, { academicRecords: records });
+          return { user: newUser };
+        });
+      },
+
+      removeAcademicRecord: (id) => {
+        set((s) => {
+          if (!s.user || !s.user.academicRecords) return {};
+          const records = s.user.academicRecords.filter((r) => r.id !== id);
+          const newUser = { ...s.user, academicRecords: records };
+          saveToRegistered(set, get, newUser, { academicRecords: records });
+          return { user: newUser };
+        });
+      },
     }),
     {
       name: 'prep-ai-store',
       onRehydrateStorage: () => (state) => {
-        if (state?.user && (!state.user.examGoals || state.user.examGoals.length === 0)) {
-          state.user.examGoals = [state.user.examGoal];
+        if (state?.user) {
+          if (!state.user.examGoals || state.user.examGoals.length === 0) {
+            state.user.examGoals = state.user.examGoal ? [state.user.examGoal] : [];
+          }
+          if (!state.user.examDates) state.user.examDates = {};
+          if (state.user.emailVerified === undefined) state.user.emailVerified = true;
         }
         state?.setHydrated(true);
       },
@@ -176,13 +293,8 @@ export const useStore = create<StoreState>()(
   )
 );
 
-export function defaultExamDate(): string {
-  return daysFromNow(120);
-}
-
-export function uidGen(): string {
-  return uid();
-}
+export function defaultExamDate(): string { return daysFromNow(120); }
+export function uidGen(): string { return uid(); }
 
 export function userExamGoals(user: User | null): string[] {
   if (!user) return [];

@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { useStore, defaultExamDate } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { examsForUserType, getPattern } from '@/lib/exams/patterns';
+import { COUNTRIES, getCountryByCode } from '@/lib/country-exam-data';
 import type { ExamPattern, User, UserType } from '@/lib/types';
 import { SignupTermsDialog } from '@/components/shared/dialogs';
 
@@ -107,7 +108,8 @@ function ExamToggle({
 }
 
 export function AuthScreen() {
-  const login = useStore((s) => s.login);
+  const register = useStore((s) => s.register);
+  const loginWithCredentials = useStore((s) => s.loginWithCredentials);
   const { toast } = useToast();
 
   const [tab, setTab] = React.useState<'login' | 'signup'>('signup');
@@ -116,6 +118,7 @@ export function AuthScreen() {
   const [password, setPassword] = React.useState('');
   const [userType, setUserType] = React.useState<UserType>('school-12');
   const [selectedExams, setSelectedExams] = React.useState<string[]>(['jee-main']);
+  const [country, setCountry] = React.useState<string>('IN');
   const [termsOpen, setTermsOpen] = React.useState(false);
 
   const availableExams = React.useMemo(() => examsForUserType(userType), [userType]);
@@ -163,17 +166,16 @@ export function AuthScreen() {
   }
 
   function doLogin() {
-    login({
-      id: Math.random().toString(36).slice(2, 11),
-      name: name.trim() || (email.split('@')[0] ?? 'Aspirant'),
-      email: email.trim(),
-      type: userType,
-      examGoal: selectedExams[0] || 'jee-main',
-      examGoals: [...selectedExams],
-      examDate: defaultExamDate(),
-      joinedAt: new Date().toISOString(),
+    const result = loginWithCredentials(email.trim(), password);
+    if (!result.success) {
+      toast({ title: 'Login failed', description: result.error, variant: 'destructive' });
+      return;
+    }
+    const savedUser = useStore.getState().user;
+    toast({
+      title: `Welcome back, ${savedUser?.name.split(' ')[0]}!`,
+      description: `${useStore.getState().attempts.length} attempts on record`,
     });
-    toast({ title: `Welcome back!` });
   }
 
   function doSignup() {
@@ -188,10 +190,15 @@ export function AuthScreen() {
       examGoal: primaryExam,
       examGoals: [...selectedExams],
       examDate: defaultExamDate(),
+      country,
       targetScore: pattern ? Math.round(pattern.totalMarks * 0.75) : undefined,
       joinedAt: new Date().toISOString(),
     };
-    login(user);
+    const result = register(user, password);
+    if (!result.success) {
+      toast({ title: 'Sign up failed', description: result.error, variant: 'destructive' });
+      return;
+    }
     toast({
       title: `Welcome, ${user.name.split(' ')[0]}!`,
       description: `${selectedExams.length} target exam${selectedExams.length === 1 ? '' : 's'} ready · ${pattern?.name ?? ''}`,
@@ -298,6 +305,8 @@ export function AuthScreen() {
                   availableExams={availableExams}
                   selectedExams={selectedExams}
                   toggleExam={toggleExam}
+                  country={country}
+                  setCountry={setCountry}
                   onSubmit={handleSubmit}
                 />
               </TabsContent>
@@ -315,6 +324,8 @@ export function AuthScreen() {
                   availableExams={availableExams}
                   selectedExams={selectedExams}
                   toggleExam={toggleExam}
+                  country={country}
+                  setCountry={setCountry}
                   onSubmit={handleSubmit}
                 />
               </TabsContent>
@@ -350,6 +361,8 @@ function AuthFormFields({
   selectedExams,
   toggleExam,
   onSubmit,
+  country,
+  setCountry,
 }: {
   tab: 'login' | 'signup';
   name: string;
@@ -364,6 +377,8 @@ function AuthFormFields({
   selectedExams: string[];
   toggleExam: (id: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  country: string;
+  setCountry: (v: string) => void;
 }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -445,6 +460,22 @@ function AuthFormFields({
           })}
         </div>
       </div>
+
+      {/* Country selector — signup only */}
+      {tab === 'signup' && (
+      <div className="space-y-1.5">
+        <Label>Country</Label>
+        <select
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm font-medium text-stone-900 focus:border-blue-400 focus:ring-1 focus:ring-blue-300 outline-none"
+        >
+          {COUNTRIES.map((c) => (
+            <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+          ))}
+        </select>
+      </div>
+      )}
 
       {/* Multi-exam selector */}
       <div className="space-y-2">
