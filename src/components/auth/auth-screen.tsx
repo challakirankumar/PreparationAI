@@ -31,6 +31,7 @@ import { useStore, defaultExamDate } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { examsForUserType, getPattern } from '@/lib/exams/patterns';
 import type { ExamPattern, User, UserType } from '@/lib/types';
+import { SignupTermsDialog } from '@/components/shared/dialogs';
 
 const USER_TYPES: { id: UserType; label: string; description: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'school-11', label: 'Class 11', description: 'First year prep', icon: School },
@@ -115,6 +116,7 @@ export function AuthScreen() {
   const [password, setPassword] = React.useState('');
   const [userType, setUserType] = React.useState<UserType>('school-12');
   const [selectedExams, setSelectedExams] = React.useState<string[]>(['jee-main']);
+  const [termsOpen, setTermsOpen] = React.useState(false);
 
   const availableExams = React.useMemo(() => examsForUserType(userType), [userType]);
 
@@ -145,11 +147,37 @@ export function AuthScreen() {
       toast({ title: 'Password must be at least 4 characters', variant: 'destructive' });
       return;
     }
-    if (selectedExams.length === 0) {
+    if (tab === 'signup' && selectedExams.length === 0) {
       toast({ title: 'Select at least one target exam', variant: 'destructive' });
       return;
     }
 
+    if (tab === 'signup') {
+      // Show terms popup before creating account
+      setTermsOpen(true);
+      return;
+    }
+
+    // Login mode — direct
+    doLogin();
+  }
+
+  function doLogin() {
+    login({
+      id: Math.random().toString(36).slice(2, 11),
+      name: name.trim() || (email.split('@')[0] ?? 'Aspirant'),
+      email: email.trim(),
+      type: userType,
+      examGoal: selectedExams[0] || 'jee-main',
+      examGoals: [...selectedExams],
+      examDate: defaultExamDate(),
+      joinedAt: new Date().toISOString(),
+    });
+    toast({ title: `Welcome back!` });
+  }
+
+  function doSignup() {
+    setTermsOpen(false);
     const primaryExam = selectedExams[0];
     const pattern = getPattern(primaryExam);
     const user: User = {
@@ -163,7 +191,6 @@ export function AuthScreen() {
       targetScore: pattern ? Math.round(pattern.totalMarks * 0.75) : undefined,
       joinedAt: new Date().toISOString(),
     };
-
     login(user);
     toast({
       title: `Welcome, ${user.name.split(' ')[0]}!`,
@@ -303,6 +330,12 @@ export function AuthScreen() {
           </Card>
         </div>
       </div>
+
+      <SignupTermsDialog
+        open={termsOpen}
+        onOpenChange={setTermsOpen}
+        onAccept={doSignup}
+      />
     </div>
   );
 }

@@ -14,6 +14,7 @@ import { useStore, userExamGoals } from '@/lib/store';
 import { EXAM_PATTERNS, getPattern } from '@/lib/exams/patterns';
 import type { ExamAttempt, ExamPattern, GeneratedExam, User } from '@/lib/types';
 import { ManageExamsDialog } from '@/components/dashboard/manage-exams-dialog';
+import { ContestFormDialog } from '@/components/shared/dialogs';
 import { useToast } from '@/hooks/use-toast';
 import {
   Atom, Clock, FileText, ListChecks, Settings2, Sparkles, Trophy, Target,
@@ -39,6 +40,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
 
   const [manageOpen, setManageOpen] = React.useState(false);
   const [configFor, setConfigFor] = React.useState<ExamPattern | null>(null);
+  const [contestFor, setContestFor] = React.useState<ExamPattern | null>(null);
   const [difficulty, setDifficulty] = React.useState<'balanced' | 'easy' | 'hard'>('balanced');
   const [durationOverride, setDurationOverride] = React.useState<string>('default');
   const [generating, setGenerating] = React.useState(false);
@@ -370,16 +372,16 @@ export function MockExamEngine({ onStart }: Props = {}) {
                 <Button variant="outline" onClick={() => setConfigFor(null)} disabled={generating}>
                   Cancel
                 </Button>
-                <Button onClick={() => handleGenerate(configFor)} disabled={generating}>
-                  {generating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" /> Generate &amp; Start
-                    </>
-                  )}
+                <Button
+                  onClick={() => {
+                    if (configFor) {
+                      setContestFor(configFor);
+                      setConfigFor(null);
+                    }
+                  }}
+                  disabled={generating}
+                >
+                  <ShieldCheck className="h-4 w-4" /> Proceed to Rules
                 </Button>
               </DialogFooter>
             </>
@@ -388,6 +390,19 @@ export function MockExamEngine({ onStart }: Props = {}) {
       </Dialog>
 
       <ManageExamsDialog open={manageOpen} onOpenChange={setManageOpen} />
+
+      <ContestFormDialog
+        open={!!contestFor}
+        onOpenChange={(v) => !v && setContestFor(null)}
+        pattern={contestFor}
+        onAccept={() => {
+          if (contestFor) {
+            const p = contestFor;
+            setContestFor(null);
+            handleGenerate(p);
+          }
+        }}
+      />
     </div>
   );
 }
