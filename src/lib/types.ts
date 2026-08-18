@@ -31,7 +31,8 @@ export type View =
   | 'parent-dashboard'
   | 'nudge-bot'
   | 'league'
-  | 'voice-mentor';
+  | 'voice-mentor'
+  | 'rag-tutor';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 

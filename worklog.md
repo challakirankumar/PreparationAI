@@ -1344,3 +1344,80 @@ Stage Summary:
   ✓ #14 Voice Mentor Mode
 - Next up: Tier 3 (Moat / hard-to-copy) — RAG-over-syllabus AI Tutor, Burnout/Wellbeing Signal Engine, Explainability panel, White-label mode.
 
+
+---
+Task ID: TIER3-RAG
+Agent: main
+Task: Build Tier 3, Prompt #15 — RAG-over-syllabus AI Tutor: chat directly with NCERT/reference PDFs, cited answers only
+
+Work Log:
+- Created `/src/lib/rag/document-store.ts` (290 lines):
+  - RagDocument interface: id, title, subject, topic, source, sourceType (ncert/reference-book/notes/pyq), chapter, page, content, chunks[], createdAt
+  - RagChunk interface: id, documentId, index, text, termFreq (precomputed), source, chapter, page, subject, topic, title
+  - chunkDocument(): splits content into ~200-word passages with 30-word overlap at paragraph boundaries, computes term frequencies for each chunk
+  - computeTermFrequencies(): tokenizes text, removes stopwords (~80 common English words), normalizes by total word count
+  - In-memory store via globalThis.__rag_store__ with documents[] + chunks[] arrays
+  - Seed data: 7 documents spanning NCERT Physics (Ch 5 Laws of Motion, Ch 6 Work Energy Power), HC Verma (Ch 10 Rotational Mechanics), NCERT Chemistry (Ch 4 Chemical Bonding), NCERT Math (Ch 5 Differentiation, Ch 13 Probability), NCERT Biology (Ch 5 Genetics) — each ~500 words of real academic content
+  - listDocuments(), getDocument(), getAllChunks(), getChunksForDocument(), addDocument() for future PDF upload
+- Created `/src/lib/rag/retrieval-engine.ts` (210 lines):
+  - TF-IDF-style retrieval with keyword matching
+  - STOP_WORDS set (~80 words) shared with document-store for consistency
+  - tokenize(): lowercase, strip punctuation, filter stopwords + short tokens
+  - SUBJECT_KEYWORDS map: Physics (force, motion, velocity, energy, torque...), Chemistry (atom, molecule, bond, reaction...), Mathematics (derivative, integral, function, limit...), Biology (cell, tissue, gene, dna...)
+  - TOPIC_KEYWORDS map: 'Laws of Motion' (newton, force, inertia, momentum...), 'Chemical Bonding' (bond, covalent, ionic, hybridization...), 'Calculus' (derivative, integral, limit...), 'Genetics' (gene, dna, heredity, mendel...)
+  - detectSubject(): scores query tokens against subject keywords
+  - detectTopic(): scores query tokens against topic keywords
+  - computeIdfMap(): IDF = log((N+1)/(df+1)) + 1 across all chunks
+  - scoreChunk(): TF-IDF sum for matching terms + 1.5x boost for subject match + 2.0x boost for topic match
+  - retrieve(query, topK=5): returns RetrievalResult with chunks sorted by score desc
+  - buildContextForLLM(): concatenates retrieved chunks with [Source N: source] headers, returns ContextCitation[] for UI
+- Created `/api/rag-tutor/route.ts` (130 lines):
+  - POST endpoint accepting {query, userId, user, language, history, documentIds?, topK?}
+  - Routes through EduScope guardrail (PII redaction, scope clamp, language injection)
+  - Hard blocks unsafe/off-topic queries with polite refusal
+  - Calls retrieve() to get top-K chunks
+  - If 0 chunks found: returns "I couldn't find any relevant content" message (no hallucination)
+  - Builds context + calls GLM-4.6 with strict "answer ONLY from provided source context" system prompt
+  - System prompt rules: cite sources inline as [Source N] or [Source N, p. X], use direct quotes when concise, paraphrase when long, point out contradictions, ≤250 words, list "Sources used:" at end
+  - EduScope response inspection (PII redaction + safety check)
+  - Fallback: if GLM-4.6 fails, returns retrieved chunks directly without synthesis (marked fallback=true)
+- Created `/src/components/views/rag-tutor.tsx` (380 lines):
+  - PageHeader with BookOpen icon
+  - 4-column layout: chat thread (3 cols) + indexed sources sidebar (1 col)
+  - Indexed sources sidebar: 7 documents with subject badges (color-coded), source type badges (NCERT amber, Reference purple), page numbers
+  - "How RAG Works" explainer card with 5-step numbered list
+  - Chat thread: empty state with 6 quick-prompt suggestion buttons, chat bubbles with citations
+  - Per-assistant-turn badges: detectedSubject (color-coded), detectedTopic, retrievedCount, fallback, blocked
+  - Citation cards: expandable (click to expand), show source + chapter + page + subject + topic + excerpt
+  - Input card with ⌘+Enter to send
+- Wired into router (`src/app/page.tsx`): case 'rag-tutor' → <RagTutorView />
+- Added 'rag-tutor' to View type union (`src/lib/types.ts`)
+- Added Library icon to sidebar imports
+- Added to sidebar (`src/components/app-shell.tsx`) under "AI Agents" group with Library icon and "RAG Tutor" label (positioned after Socratic Mentor v2, before Voice Mentor)
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results/exam-runner/mock-exam-engine remain untouched)
+- `bun run lint` → 0 errors, 14 cosmetic warnings (all "unused eslint-disable" — harmless)
+- Dev server restarted cleanly on port 3000 (Next.js 16.1.3 Turbopack, ready in 815ms)
+- Manual API smoke tests with 3 scenarios:
+  - Physics query "What is Newton second law of motion?" → retrieved 5 chunks (NCERT Physics Ch 5 + HC Verma Ch 10 + Biology Ch 5), detected subject=Physics, topic=Laws of Motion. AI reply includes inline citations: "Newton's second law of motion states that the rate of change of momentum... [Source 1]... F = dp/dt [Source 1]... F = ma [Source 1, Source 2]". 5 citations returned with source/chapter/page/subject/topic/excerpt fields ✓
+  - Chemistry query "Explain hybridization" → retrieved 2 chunks (NCERT Chemistry Ch 4 p. 65), detected subject=Chemistry, topic=Chemical Bonding. AI reply cites [Source 1] and lists sp/sp²/sp³ hybridization with examples — exactly matching source content ✓
+  - Off-syllabus query "What is the capital of France?" → retrievedCount=0 (no chunks found), reply="I couldn't find any relevant content in the indexed documents" — no hallucination, exactly as designed ✓
+- Home page loads in 48ms with 200 status ✓
+
+Stage Summary:
+- Tier 3, Prompt #15 (RAG-over-syllabus AI Tutor) is fully built and verified end-to-end.
+- Three core capabilities:
+  1. Document indexing: 7 pre-indexed NCERT + reference book chapters (Physics, Chemistry, Math, Biology) covering Laws of Motion, Work Energy Power, Rotational Mechanics, Chemical Bonding, Differentiation, Probability, Genetics. Each document is chunked into ~200-word passages with 30-word overlap for context continuity.
+  2. TF-IDF retrieval: Query is tokenized (stopwords removed), subject + topic are auto-detected from keyword matches, IDF is computed across the chunk corpus, top-5 chunks are retrieved via TF-IDF scoring with subject/topic boosts (1.5x and 2.0x respectively).
+  3. Cited answer generation: GLM-4.6 is called with a strict "answer ONLY from provided source context" system prompt. The model cites sources inline as [Source 1] or [Source 1, p. 87], uses direct quotes when concise, paraphrases when long, and lists "Sources used:" at the end. If no relevant chunks are found, the tutor explicitly says so — no hallucination.
+- The UI shows:
+  - Chat thread with per-turn badges (detected subject/topic, retrieved count, fallback/blocked indicators)
+  - Expandable citation cards showing source, chapter, page number, subject (color-coded), topic, and an excerpt from the actual document
+  - Sidebar listing all 7 indexed documents with source-type badges (NCERT amber, Reference purple)
+  - "How RAG Works" 5-step explainer
+  - 6 quick-prompt suggestion buttons for first-time users
+- Anti-hallucination guarantee: The system prompt explicitly instructs the model to answer ONLY from the provided context. If the context doesn't contain the answer, the model says "I don't have enough information" rather than making something up. Verified with the "capital of France" test — correctly returned 0 results with a "couldn't find" message.
+- Sidebar: "RAG Tutor" added to AI Agents group with Library icon.
+- Next: Tier 3 Prompt #16 (Burnout/Wellbeing Signal Engine — uses existing Behavior analytics to trigger a check-in, not a study nudge), then #17 (Explainability panel), #18 (White-label mode).
+
