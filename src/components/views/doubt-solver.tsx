@@ -95,6 +95,7 @@ export function DoubtSolverView() {
           user: user ? { id: user.id, type: user.type, examGoal: user.examGoal } : undefined,
           examGoal: user?.examGoal,
           history,
+          language: typeof window !== 'undefined' ? (JSON.parse(localStorage.getItem('prep-ai-language') || '{"state":{"language":"en"}}').state?.language || 'en') : 'en',
         }),
       });
       const j = await r.json();

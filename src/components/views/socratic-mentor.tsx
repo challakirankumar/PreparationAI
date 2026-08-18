@@ -167,7 +167,12 @@ export function SocraticMentorView() {
         const r = await fetch('/api/socratic-mentor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'start', userId: user?.id, examGoal: user?.examGoal }),
+          body: JSON.stringify({
+            action: 'start',
+            userId: user?.id,
+            examGoal: user?.examGoal,
+            language: typeof window !== 'undefined' ? (JSON.parse(localStorage.getItem('prep-ai-language') || '{"state":{"language":"en"}}').state?.language || 'en') : 'en',
+          }),
         });
         if (r.ok) {
           const j: SocraticResponse = await r.json();

@@ -10,17 +10,18 @@ export const maxDuration = 60;
 interface MentorRequestBody {
   messages: { role: string; content: string }[];
   profile?: Partial<User> & { id?: string };
+  language?: string;
 }
 
 export async function POST(request: Request) {
   try {
-    const { messages: incomingMessages, profile } = (await request.json()) as MentorRequestBody;
+    const { messages: incomingMessages, profile, language } = (await request.json()) as MentorRequestBody;
     const msgs = Array.isArray(incomingMessages) ? incomingMessages : [];
     const latestUserMsg = msgs.filter(m => m.role === 'user').pop();
 
     // -------- EduScope guardrail --------
     const guard = getEduScope();
-    const ctx = buildContext('mentor', (profile as User | undefined) ?? null);
+    const ctx = buildContext('mentor', (profile as User | undefined) ?? null, undefined, language);
     const baseSystem = `You are "PrepMentor", a 24/7 AI academic mentor for the Preparation AI platform.
 You help students preparing for competitive exams (${profile?.examGoal || 'JEE Main / NEET / GRE / etc.'}) with:
 - Explaining concepts and doubts across Physics, Chemistry, Math, Biology, English, Reasoning

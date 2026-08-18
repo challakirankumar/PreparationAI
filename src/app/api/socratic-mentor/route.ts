@@ -55,6 +55,7 @@ interface SocraticRequest {
   userId?: string;
   examGoal?: string;
   user?: Pick<User, 'id' | 'type' | 'examGoal'>;
+  language?: string;
   // For 'respond': the student's latest message/attempt
   message?: string;
   // Context for detection: the original problem being discussed
@@ -251,7 +252,7 @@ export async function POST(request: Request) {
 
     // -------- EduScope guardrail --------
     const guard = getEduScope();
-    const ctx = buildContext('mentor', (body.user as User | undefined) ?? null);
+    const ctx = buildContext('mentor', (body.user as User | undefined) ?? null, undefined, body.language);
     const baseSystem = buildSystemPrompt(session.state, session.lastDetection, { examGoal: session.examGoal });
     const decision = guard.evaluate({
       userPrompt: message,

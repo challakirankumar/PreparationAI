@@ -118,6 +118,7 @@ export function MentorRoom() {
             name: userName,
             type: user?.type || 'school-12',
           },
+          language: typeof window !== 'undefined' ? (JSON.parse(localStorage.getItem('prep-ai-language') || '{"state":{"language":"en"}}').state?.language || 'en') : 'en',
         }),
       });
       const data = await res.json();

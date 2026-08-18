@@ -1035,3 +1035,70 @@ Stage Summary:
 - Sidebar: new "Family" group with Heart icon, "Parent Dashboard" entry.
 - All parent API calls are audited via EduScope for safety/compliance.
 
+
+---
+Task ID: TIER2-I18N
+Agent: main
+Task: Build Tier 2, Prompt #11 — Regional language support: Hindi + Spanish + French, both UI and AI Mentor responses
+
+Work Log:
+- Created `/src/lib/i18n/strings.ts` (340 lines):
+  - Language type: 'en' | 'hi' | 'es' | 'fr'
+  - LANGUAGES metadata: code, nativeName, englishName, flag (🇬🇧 🇮🇳 🇪🇸 🇫🇷), dir (all ltr)
+  - StringKey type: ~60 keys covering nav items, nav groups, common buttons, dashboard labels, mentor placeholders, common labels
+  - 4 full translation dictionaries:
+    - English (default, all keys)
+    - Hindi: डैशबोर्ड, मॉक परीक्षा, अध्ययन सामग्री, विश्लेषण, प्लानर, एआई मेंटर, संदेह समाधान, PYQ रुझान, हस्तलिखित ग्रेडर, बैटल एरिना, त्रुटि जर्नल, अभिभावक डैशबोर्ड, etc.
+    - Spanish: Panel, Examen de Práctica, Material de Estudio, Análisis, Planificador, Mentor IA, Solucionador de Dudas, Tendencias PYQ, Calificador de Manuscritos, Arena de Batalla, Diario de Errores, etc.
+    - French: Tableau de bord, Examen blanc, Matériel d'étude, Analytique, Planificateur, Mentor IA, Solveur de doutes, Tendances PYQ, Évaluateur manuscrit, Arène de bataille, Journal d'erreurs, etc.
+  - AI_LANGUAGE_INSTRUCTIONS: per-language instructions for the AI mentor (e.g. "Respond in Hindi — you may use English for technical terms, but keep explanations in Hindi")
+  - translate(key, lang) function with English fallback
+- Created `/src/lib/i18n/use-language.ts` (35 lines):
+  - useLanguageStore: Zustand store with persist middleware (localStorage key: 'prep-ai-language')
+  - State: language + setLanguage + t (translation function bound to current language)
+  - useLanguage() hook: returns { language, setLanguage, t, meta, languages } for components
+- Created `/src/components/shared/language-switcher.tsx` (22 lines):
+  - Compact dropdown with flag + native name
+  - Wires to useLanguageStore via useLanguage hook
+- Wired into sidebar (`src/components/app-shell.tsx`):
+  - Added NAV_ITEM_KEYS map: View → StringKey (covers all 28 nav items)
+  - Added NAV_GROUP_KEYS map: group title → StringKey (Core/AI Agents/Institution/Competition/Family/Explore)
+  - NavList component now uses useLanguage() hook
+  - Group titles translated via t(NAV_GROUP_KEYS[group.title])
+  - Item labels translated via t(NAV_ITEM_KEYS[item.id])
+  - LanguageSwitcher added to SidebarFooter (above user info, separated by border-b)
+- Extended EduScope to inject language preference into AI system prompts (`src/lib/ai-guards/eduscope.ts`):
+  - Added `language?: string` field to GuardContext
+  - Added `languageClause` in hardenSystemPrompt(): "The student has selected {lang} as their preferred language. Respond in {lang}. You may use English for technical terms (formulas, constants, scientific names), but all explanations, hints, and feedback must be in {lang}."
+  - Clause only injected when language !== 'en' (English is default — no extra prompt needed)
+  - Extended buildContext() to accept language as 4th parameter: buildContext(agent, user, sessionId, language)
+- Wired language into all 3 AI agent API routes:
+  - `/api/mentor/route.ts`: accepts `language` in request body, passes to buildContext
+  - `/api/solve-doubt/route.ts`: accepts `language` in request body, passes to buildContext
+  - `/api/socratic-mentor/route.ts`: accepts `language` in request body, passes to buildContext
+- Wired language from client UIs:
+  - `mentor-room.tsx`: reads language from localStorage ('prep-ai-language' key, parses JSON state) and includes in /api/mentor POST body
+  - `socratic-mentor.tsx`: same pattern for /api/socratic-mentor POST body
+  - `doubt-solver.tsx`: same pattern for /api/solve-doubt POST body
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results/exam-runner/mock-exam-engine remain untouched)
+- `bun run lint` → 0 errors, 10 cosmetic warnings (all "unused eslint-disable" — harmless)
+- Dev server restarted cleanly on port 3000 (Next.js 16.1.3 Turbopack, ready in 908ms)
+- Manual API smoke tests with 4 languages:
+  - Mentor + Hindi: "Explain Newton's second law" → reply in Hindi: "न्यूटन का दूसरा नियम बल, द्रव्यमान और त्वरण के बीच का संबंध बताता है।" with F=ma formula (technical term kept in English) ✓
+  - Mentor + Spanish: "What is the formula for kinetic energy?" → reply in Spanish: "La fórmula de la energía cinética es: KE = ½mv²" with full Spanish explanation ✓
+  - Mentor + French: "How do I prepare for JEE Main in 3 months?" → reply in French: "Pour préparer JEE Main en 3 mois, concentrez-vous sur une stratégie intensive et ciblée" ✓
+  - Socratic Mentor + Hindi: "I think heavier objects fall faster because gravity pulls them more" → correctly detected mass-affects-fall-rate misconception (70% confidence), responded in Hindi invoking Galileo's experiments as confront-contradiction strategy ✓
+- Home page loads in 44ms with 200 status ✓
+
+Stage Summary:
+- Tier 2, Prompt #11 (Regional language support) is fully built and verified end-to-end.
+- Two layers of translation:
+  1. UI translation: ~60 string keys translated into Hindi, Spanish, French — covers nav items, nav groups, common buttons, dashboard labels, mentor placeholders, common labels. The sidebar dynamically translates both group titles and item labels based on the persisted language preference.
+  2. AI mentor translation: EduScope injects a LANGUAGE clause into the system prompt for mentor, doubt-solver, and socratic-mentor agents. The AI responds in the student's chosen language while preserving English for technical terms (formulas, constants, scientific names).
+- Language preference is persisted to localStorage (key: 'prep-ai-language') via Zustand persist middleware — survives page refreshes and across sessions.
+- LanguageSwitcher component is a compact dropdown showing flag + native name, placed in the sidebar footer above the user info.
+- The Socratic Mentor v2 + misconception detection engine works correctly across languages — the Hindi test confirmed the engine detects the Aristotelian "mass-affects-fall-rate" misconception and deploys the confront-contradiction strategy with Galileo's experiments, all in Hindi.
+- This completes part of Tier 2 (Retention & growth) — next prompts (WhatsApp/Telegram daily nudge, Gamified League System, Voice Mentor Mode) can build on the i18n infrastructure for multilingual nudges and voice output.
+

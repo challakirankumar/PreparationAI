@@ -14,6 +14,7 @@ interface SolveDoubtRequest {
   user?: Pick<User, 'id' | 'type' | 'examGoal'>;
   examGoal?: string;
   history?: { role: 'user' | 'assistant'; content: string }[];
+  language?: string;
 }
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB hard cap
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
 
   // -------- EduScope guardrail (audit + harden) --------
   const guard = getEduScope();
-  const ctx = buildContext('doubt-solver', (body.user as User | undefined) ?? null);
+  const ctx = buildContext('doubt-solver', (body.user as User | undefined) ?? null, undefined, body.language);
   const baseSystem = `You are "Doubt Solver", a multimodal academic tutor inside Preparation AI.
 Given a student-uploaded image (photo of a textbook problem, handwritten solution, diagram, equation, or graph) and an optional text prompt, you must:
 

@@ -47,6 +47,51 @@ import { cn } from '@/lib/utils';
 import { useStore, userExamGoals } from '@/lib/store';
 import { getPattern } from '@/lib/exams/patterns';
 import type { View } from '@/lib/types';
+import { LanguageSwitcher } from '@/components/shared/language-switcher';
+import { useLanguage } from '@/lib/i18n/use-language';
+import type { StringKey } from '@/lib/i18n/strings';
+
+// Map sidebar item IDs to translation keys
+const NAV_ITEM_KEYS: Record<View, StringKey | undefined> = {
+  'dashboard': 'nav.dashboard',
+  'mock-exam': 'nav.mockExam',
+  'study-material': 'nav.studyMaterial',
+  'analytics': 'nav.analytics',
+  'planner': 'nav.planner',
+  'mentor': 'nav.mentor',
+  'doubt-solver': 'nav.doubtSolver',
+  'pyq-trends': 'nav.pyqTrends',
+  'handwritten-grader': 'nav.handwrittenGrader',
+  'battle-arena': 'nav.battleArena',
+  'error-journal': 'nav.errorJournal',
+  'parent-dashboard': 'nav.parentDashboard',
+  'institution': 'nav.institution',
+  'teacher': 'nav.teacher',
+  'guardrail': 'nav.guardrail',
+  'settings': 'nav.settings',
+  'career': 'nav.career',
+  'university': 'nav.university',
+  'scholarship': 'nav.scholarship',
+  'counsellor': 'nav.counsellor',
+  'university-predictor': 'nav.discover',
+  'weakness-radar': 'nav.weaknessRadar',
+  'socratic-mentor': 'nav.mentor',
+  'auth': undefined,
+  'digital-twin': undefined,
+  'success-simulator': undefined,
+  'readiness': undefined,
+  'rank-predictor': undefined,
+};
+
+// Map group titles to translation keys
+const NAV_GROUP_KEYS: Record<string, StringKey> = {
+  'Core': 'navGroup.core',
+  'AI Agents': 'navGroup.aiAgents',
+  'Institution': 'navGroup.institution',
+  'Competition': 'navGroup.competition',
+  'Family': 'navGroup.family',
+  'Explore': 'navGroup.explore',
+};
 
 interface NavItem {
   id: View;
@@ -138,13 +183,17 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
   const attempts = useStore((s) => s.attempts);
+  const { t } = useLanguage();
 
   return (
     <nav className="flex-1 overflow-y-auto scroll-thin px-3 py-3 space-y-5">
-      {NAV_GROUPS.map((group) => (
+      {NAV_GROUPS.map((group) => {
+        const groupTitleKey = NAV_GROUP_KEYS[group.title];
+        const translatedTitle = groupTitleKey ? t(groupTitleKey) : group.title;
+        return (
         <div key={group.title}>
           <p className="px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-            {group.title}
+            {translatedTitle}
           </p>
           <div className="space-y-0.5">
             {group.items.map((item) => {
@@ -167,7 +216,9 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                   )}
                 >
                   <Icon className={cn('h-4 w-4 flex-shrink-0', active ? 'text-white' : 'text-stone-500')} />
-                  <span className="flex-1 text-left truncate">{item.label}</span>
+                  <span className="flex-1 text-left truncate">
+                    {NAV_ITEM_KEYS[item.id] ? t(NAV_ITEM_KEYS[item.id]!) : item.label}
+                  </span>
                   {isMockExam && attemptCount > 0 && (
                     <Badge
                       variant="outline"
@@ -184,7 +235,8 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
             })}
           </div>
         </div>
-      ))}
+        );
+      })}
     </nav>
   );
 }
@@ -245,6 +297,9 @@ function SidebarFooter() {
   if (!user) return null;
   return (
     <div className="border-t border-stone-200 p-3 flex-shrink-0">
+      <div className="flex items-center justify-end mb-2 pb-2 border-b border-stone-100">
+        <LanguageSwitcher compact />
+      </div>
       <div className="flex items-center gap-2 mb-2">
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white text-xs font-semibold">
