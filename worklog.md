@@ -1102,3 +1102,86 @@ Stage Summary:
 - The Socratic Mentor v2 + misconception detection engine works correctly across languages — the Hindi test confirmed the engine detects the Aristotelian "mass-affects-fall-rate" misconception and deploys the confront-contradiction strategy with Galileo's experiments, all in Hindi.
 - This completes part of Tier 2 (Retention & growth) — next prompts (WhatsApp/Telegram daily nudge, Gamified League System, Voice Mentor Mode) can build on the i18n infrastructure for multilingual nudges and voice output.
 
+
+---
+Task ID: TIER2-NUDGE
+Agent: main
+Task: Build Tier 2, Prompt #12 — WhatsApp/Telegram daily nudge bot: spaced-repetition reminders, 1-tap doubt photo upload
+
+Work Log:
+- Created `/src/lib/nudge/types.ts` (250 lines):
+  - 8 nudge types: spaced-repetition, daily-plan, streak-warning, weak-topic-drill, exam-countdown, battle-invite, doubt-photo-prompt, wellness-check
+  - 3 channels: whatsapp, telegram, in-app
+  - 7 statuses: pending, sent, delivered, read, acknowledged, snoozed, failed
+  - Nudge interface: id, userId, type, channel, recipient, message (WhatsApp-formatted with *bold* _italic_ ```code```), appDeepLink, imageUrl, scheduledFor, sentAt, deliveredAt, readAt, status, snoozedUntil, snoozeCount, metadata (spacedRepetitionStep/topic/subject/questionId/streakDays/daysToExam), isOneTap
+  - SPACED_REPETITION_INTERVALS_DAYS = [1, 3, 7, 14, 30] — SM-2 inspired, simplified
+  - getNextSpacedRepetitionDate(): computes next review date based on current step
+  - NudgePreferences: enabled, channel toggles (whatsapp/telegram/in-app), contact info (whatsappPhone, telegramChatId), quietHoursStart/End (24h format), morningNudgeTime, eveningNudgeTime, maxNudgesPerDay (default 3), enabledTypes per-type opt-ins, language
+  - DEFAULT_NUDGE_PREFERENCES: sensible defaults (WhatsApp off, in-app on, quiet hours 22→7, 3 nudges/day, battle-invite off by default)
+  - buildNudgeMessage(): 8 per-type message templates with WhatsApp formatting + multi-language support (en/hi/es/fr) — translates greetings, key phrases, CTAs per language
+  - isWithinQuietHours(): handles both simple (22→23) and wrap-midnight (22→7) cases
+  - shouldDeduplicateNudge(): prevents same-type nudge to same user within 6 hours
+- Created `/src/lib/nudge/store.ts` (273 lines):
+  - In-memory store via globalThis.__nudge_store__ with nudges[] + preferences Map
+  - Seed data: 1 demo user with WhatsApp enabled (+91-9876543210), 4 demo nudges spanning spaced-repetition (Physics Rotational Motion, step 1/5), streak-warning (5-day streak at risk, overdue), weak-topic-drill (Organic Basics, 3 errors), exam-countdown (120 days, acknowledged)
+  - getPreferences(), updatePreferences()
+  - getNudges() with filters (status/type/limit)
+  - createNudge(): validates type enabled, deduplicates, enforces daily cap, auto-selects channel based on preferences
+  - sendNudge(): checks quiet hours (snoozes if within), marks as sent + delivered, returns simulated providerMessageId (in production: replace with WhatsApp Business API / Telegram Bot API call)
+  - acknowledgeNudge(), snoozeNudge()
+  - generateSpacedRepetitionNudges(): pulls from Error Journal, checks each unresolved entry's due date based on spaced-repetition schedule, creates nudges for due items
+  - processDueNudges(): sends all pending nudges whose scheduledFor has passed
+  - createOneTapDoubtNudge(): generates the 1-tap doubt-photo nudge with pre-filled message + deep link
+- Created 5 API routes:
+  - GET `/api/nudge/queue?userId=...&processDue=true`: returns nudges + preferences + generated count (from spaced-rep) + processed count (from send)
+  - POST `/api/nudge/send`: body { nudgeId } — sends a specific nudge (simulates WhatsApp/Telegram dispatch)
+  - POST `/api/nudge/ack`: body { nudgeId, action: 'acknowledge' | 'snooze', snoozeUntil? }
+  - POST `/api/nudge/doubt-photo`: body { userId, imageDataUrl? } — creates 1-tap doubt nudge
+  - GET/PATCH `/api/nudge/preferences`: GET returns preferences; PATCH updates with body { userId, updates }
+- Created `/src/components/views/nudge-bot.tsx` (560 lines):
+  - PageHeader with MessageCircle icon
+  - 4 KPI cards: Pending / Sent Today / Snoozed / Generated (with skipped count)
+  - 4-tab layout: Nudge Queue / Spaced Repetition / 1-Tap Doubt / Preferences
+  - Nudge Queue tab: full list of nudges with WhatsApp-style message preview (green chat bubble on beige background), type/channel/status badges, metadata display, deep link, action buttons (Send Now, Acknowledge, Snooze 1h/4h/Tomorrow, Copy message)
+  - Spaced Repetition tab: explainer card with 5-step interval visualization (1d → 3d → 1w → 2w → 1m), list of upcoming spaced-rep nudges
+  - 1-Tap Doubt tab: setup instructions (save bot number, open WhatsApp, send photo with "solve this" caption), "Generate 1-Tap Nudge Now" button, bot admin setup notes (WhatsApp Business API + Telegram BotFather instructions, env var names)
+  - Preferences tab: master switch, channel toggles (WhatsApp with phone input, Telegram with chatId input, in-app), quiet hours (24h start/end selectors), per-type opt-in switches (8 types), max nudges per day selector, language selector (en/hi/es/fr)
+- Wired into router (`src/app/page.tsx`): case 'nudge-bot' → <NudgeBotView />
+- Added 'nudge-bot' to View type union (`src/lib/types.ts`)
+- Added MessageCircle icon to sidebar imports
+- Added to sidebar (`src/components/app-shell.tsx`) under "Family" group with MessageCircle icon and "Nudge Bot" label
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results/exam-runner/mock-exam-engine remain untouched)
+- `bun run lint` → 0 errors, 11 cosmetic warnings (all "unused eslint-disable" — harmless)
+- Dev server restarted cleanly on port 3000 (Next.js 16.1.3 Turbopack, ready in 839ms)
+- Manual API smoke tests with 6 scenarios:
+  - GET /api/nudge/queue?userId=demo_user&processDue=true → returned 4 nudges (1 acknowledged exam-countdown from yesterday, 1 delivered streak-warning sent by processDue, 2 pending), preferences (WhatsApp enabled, +91-9876543210, quiet hours 22→7, 3/day cap, English), generated 0 new (9 skipped — error journal entries not yet due), processed 1 sent (streak-warning was overdue) ✓
+  - POST /api/nudge/send with pending nudge ID → success=true, returned simulated providerMessageId (sim_msyz28y3), marked as delivered ✓
+  - POST /api/nudge/ack with action:acknowledge → ok=true, marked as acknowledged ✓
+  - POST /api/nudge/ack with action:snooze + snoozeUntil (4h later) → ok=true, snoozed with snoozeCount=1 ✓
+  - POST /api/nudge/doubt-photo with fresh user → created doubt-photo-prompt nudge, isOneTap=true, channel=in-app (no WhatsApp configured), message in English with 📸 emoji + prepai.app/doubt-solver deep link ✓
+  - PATCH /api/nudge/preferences with updates {maxNudgesPerDay:5, language:hi} → updated successfully, confirmed via subsequent GET ✓
+  - Daily cap protection verified: 1-tap doubt nudge creation on demo_user (already had 3 nudges today) was rejected with "Daily nudge cap (3) reached" — falling back to fresh user worked ✓
+- Home page loads in 45ms with 200 status ✓
+
+Stage Summary:
+- Tier 2, Prompt #12 (WhatsApp/Telegram daily nudge bot) is fully built and verified end-to-end.
+- Three core capabilities:
+  1. Spaced-repetition reminders: For every unresolved error journal entry, the system checks if it's due for review (1d → 3d → 7d → 14d → 30d intervals). Due items generate spaced-repetition nudges with the original question text + topic + step number.
+  2. Multi-channel delivery: WhatsApp Business API + Telegram Bot API + in-app notifications. Channel auto-selected based on user preferences. Currently simulated (returns providerMessageId like "sim_xxx") — production integration requires adding WHATSAPP_API_TOKEN and TELEGRAM_BOT_TOKEN env vars.
+  3. 1-tap doubt photo upload: Generates a pre-filled WhatsApp/Telegram message with deep link to the Doubt Solver view. Student forwards the message to the bot, snaps a photo of their problem, and the AI responds with Socratic guidance.
+- 8 nudge types cover the full retention loop:
+  - spaced-repetition (revisit wrong answers at increasing intervals)
+  - daily-plan (morning reminder of today's study plan)
+  - streak-warning (don't break the streak!)
+  - weak-topic-drill (top weak topic needs attention)
+  - exam-countdown (X days to exam)
+  - battle-invite (challenge a peer — opt-in only)
+  - doubt-photo-prompt (1-tap doubt upload encouragement)
+  - wellness-check (gentle check-in from wellness signals)
+- Multi-language: All 8 message templates support English, Hindi, Spanish, French — greetings, key phrases, and CTAs translated per the user's language preference.
+- Protective features: quiet hours (no nudges 22→7 by default), daily cap (3/day default, configurable 1-10), deduplication (no same-type nudge within 6 hours), per-type opt-in switches.
+- The Nudge Bot UI shows WhatsApp-style message previews (green chat bubble on beige background), so users can see exactly what the bot would send.
+- Sidebar: "Nudge Bot" added to the Family group (alongside Parent Dashboard) with MessageCircle icon.
+

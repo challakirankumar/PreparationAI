@@ -28,7 +28,8 @@ export type View =
   | 'handwritten-grader'
   | 'battle-arena'
   | 'error-journal'
-  | 'parent-dashboard';
+  | 'parent-dashboard'
+  | 'nudge-bot';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 

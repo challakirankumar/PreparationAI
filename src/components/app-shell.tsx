@@ -34,6 +34,7 @@ import {
   Swords,
   BookX,
   Heart,
+  MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +66,7 @@ const NAV_ITEM_KEYS: Record<View, StringKey | undefined> = {
   'battle-arena': 'nav.battleArena',
   'error-journal': 'nav.errorJournal',
   'parent-dashboard': 'nav.parentDashboard',
+  'nudge-bot': undefined,  // no translation key — uses label "Nudge Bot"
   'institution': 'nav.institution',
   'teacher': 'nav.teacher',
   'guardrail': 'nav.guardrail',
@@ -144,6 +146,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: 'Family',
     items: [
       { id: 'parent-dashboard', label: 'Parent Dashboard', icon: Heart },
+      { id: 'nudge-bot', label: 'Nudge Bot', icon: MessageCircle },
     ],
   },
   {
