@@ -31,6 +31,7 @@ import {
   Camera,
   TrendingUp,
   PenTool,
+  Swords,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +84,12 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { id: 'institution', label: 'Institute Dashboard', icon: Building2 },
       { id: 'teacher', label: 'Teacher View', icon: GraduationCap },
+    ],
+  },
+  {
+    title: 'Competition',
+    items: [
+      { id: 'battle-arena', label: 'Battle Arena', icon: Swords },
     ],
   },
   {

@@ -25,7 +25,8 @@ export type View =
   | 'doubt-solver'
   | 'pyq-trends'
   | 'socratic-mentor'
-  | 'handwritten-grader';
+  | 'handwritten-grader'
+  | 'battle-arena';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 

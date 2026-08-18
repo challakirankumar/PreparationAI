@@ -753,3 +753,105 @@ Stage Summary:
 - Error handling is defensive: if the VLM can't read handwriting or returns malformed JSON, the API returns fallback=true with illegible=true and per-step "manual review needed" feedback — the UI surfaces this clearly with amber fallback badge.
 - Next prompts (Peer Battle Mode, Error Journal) can build on this — especially the Error Journal, which can ingest the per-step mistakesIdentified[] from this grader to build a personal mistake-pattern report over time.
 
+
+---
+Task ID: TIER1-BATTLE
+Agent: main
+Task: Build Tier 1, Prompt #8 — Peer Battle Mode: 1v1 timed duels, live leaderboards, study squads
+
+Work Log:
+- Created `/src/lib/battle/types.ts` (143 lines):
+  - BattleSession: id, mode (solo-bot|async-duel|squad-vs-squad), status (pending|active|completed|abandoned), playerA/B (with rating, isBot, botAccuracy, botResponseTimeMs), questionCount, timePerQuestionSec, questions[], currentQuestionIndex, scores, winner, xpAwarded, ratingChange
+  - BattlePlayer, BattleQuestion, BattleResponse (with pointsEarned)
+  - BattleLeaderboardEntry, StudySquad (with tier bronze/silver/gold/diamond, color, weeklyWins/Losses), SquadMember
+  - calculatePoints(): 100 base + up to 50 speed bonus (linear inverse of time ratio)
+  - updateRating(): Elo-style with K=32, clamped to [800, 2500]
+  - computeRatingChange(): signed delta for UI display
+  - computeSquadTier(): 0-2000 bronze, 2000-5000 silver, 5000-10000 gold, 10000+ diamond
+  - computeXpAward(): 50 base participation + 100 win bonus + 50 draw bonus + margin/10 bonus (capped 50) + mode multiplier (1.5x squad-vs-squad, 1.2x async-duel)
+- Created `/src/lib/battle/question-pool.ts` (167 lines):
+  - generateBattleQuestions(): picks from GENERATORS registry, balances topic coverage (picks from least-used half), mixes easy/medium/hard difficulty
+  - 5 bot personalities with skill tiers:
+    - Rookie Ravi (rating 900, accuracy 0.45, response 12s)
+    - Aspirant Anu (rating 1100, accuracy 0.55, response 10s)
+    - Sharp Shruti (rating 1300, accuracy 0.65, response 8s)
+    - Master Mohan (rating 1500, accuracy 0.75, response 7s)
+    - Grand Guru Geeta (rating 1700, accuracy 0.82, response 6s)
+  - pickBotOpponent(): picks bot within ±200 rating of player (falls back to closest)
+  - simulateBotAnswer(): rolls for accuracy, jitters response time ±30%
+  - gradeBattleAnswer(): MCQ (single optionIndex) or MSQ (array) — MSQ requires exact set match
+- Created `/src/lib/battle/battle-manager.ts` (333 lines):
+  - In-memory store via globalThis.__battle_store__ with battles Map, players Map (with battlesWon/Lost/Draw, totalXp, weeklyXp, monthlyXp, xpHistory), squads Map, playerSquad Map
+  - Seed data: 8 demo leaderboard players (ratings 1240-1610) + 3 demo squads (Photon Squad jee-main, Chem Catalysts neet, Quant Quokkas cat) with member assignments
+  - getOrCreatePlayer(): auto-creates player at rating 1000 on first battle
+  - startBattle(): generates questions, picks bot opponent (or real opponent for async-duel), pre-computes bot's answers (correctness + response time + points) so they're ready when player progresses
+  - submitAnswer(): grades player's answer, advances to next question, checks termination, calls finalizeBattle on completion
+  - finalizeBattle(): updates player rating (Elo), battle counts (W/L/D), XP (total/weekly/monthly), squad stats (XP, weeklyWins/Losses, tier recompute)
+  - getLeaderboard(): sorts by rating desc, assigns ranks, excludes bots
+  - getPlayerBattles(): returns last 20 battles for the player
+  - createSquad(), joinSquad(), leaveSquad(): full squad CRUD with auto-removal from previous squad on join
+  - getSquadMembers(): sorted by contributionXp desc
+  - gcBattles(): marks battles older than 1h as abandoned, removes terminated battles older than 2h
+  - resetWeeklyStats(): clears weeklyXp + weeklyWins/Losses (for cron)
+- Created 5 API routes:
+  - POST `/api/battle/start` — accepts {examId, userId, displayName, mode, questionCount, timePerQuestionSec}, returns battleId + first question + bot's pre-computed total
+  - POST `/api/battle/respond` — accepts {battleId, questionId, answer, timeTakenMs}, returns correct/points/opponentCorrect/opponentPoints/nextQuestion/winner
+  - GET `/api/battle/finish?battleId=` — returns full battle state with per-question breakdown (used for replay/review)
+  - GET `/api/battle/leaderboard?userId=` — returns global leaderboard + my entry + my recent 5 battles
+  - GET/POST `/api/battle/squads` — GET returns squads list + my squad + members; POST handles create/join/leave actions
+- Created `/src/components/views/battle-arena.tsx` (819 lines):
+  - PageHeader with Swords icon
+  - 3-tab layout: Battle Arena / Leaderboard / Study Squads
+  - BattleArenaTab:
+    - Pre-battle setup: exam selector (filtered by user's examGoals), question count slider (5-15), time-per-question slider (15-60s), "How battles work" explainer card
+    - Active battle: top score bar (player A vs VS vs player B with avatars + live scores + score diff indicator), question card with timer (red pulse when ≤5s), options grid with click-to-select, after-submit shows correct/wrong highlighting + per-question result overlay ("Correct! +142 points | Opponent: ✓ correct (+129 pts in 12.6s)"), submit/skip buttons
+    - Auto-submit as 'unanswered' when timer hits 0
+    - 1.8s delay between questions so player can see the result
+    - BattleResultView: tier-colored hero (Victory emerald/Draw blue/Defeat rose) with icon + headline + final scores + rewards cards (XP earned, Rating change with + / − sign) + "Battle Again" button
+  - LeaderboardTab:
+    - My stats card at top (rank badge, rating, win rate, total XP, weekly XP)
+    - Global leaderboard with rank coloring (gold/silver/bronze for top 3), player row shows displayName, W/L/D, win rate, rating, total XP, trophy icon for top 3
+    - Highlights current user's row with blue background
+  - SquadsTab:
+    - My squad card (if member): squad name, tier badge with squad color, description, 4-stat grid (members, total XP, weekly XP, weekly W/L), member list with avatar + contribution XP + weekly contribution
+    - Create new squad form (name, description, exam goal) when no squad joined
+    - Browse squads grid: each card shows squad name, tier badge (color-coded), description, member count, total XP, exam goal badge, Join button
+- Wired into router (`src/app/page.tsx`): case 'battle-arena' → <BattleArenaView />
+- Added 'battle-arena' to View type union (`src/lib/types.ts`)
+- Added to sidebar (`src/components/app-shell.tsx`) — new "Competition" group with Swords icon and "Battle Arena" label
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results/exam-runner/mock-exam-engine remain untouched)
+- `bun run lint` → 0 errors, 8 cosmetic warnings (all "unused eslint-disable" — harmless)
+- Dev server restarted cleanly on port 3000 (Next.js 16.1.3 Turbopack, ready in 868ms)
+- Manual API smoke tests:
+  - GET /api/battle/squads → returns 3 seeded squads (Photon Squad diamond tier 10900 XP, Chem Catalysts diamond 14280 XP, Quant Quokkas gold 5390 XP) ✓
+  - GET /api/battle/leaderboard → returns 8 seeded players, top is Ananya Iyer rating 1610 (47W/19L/5D, 6120 XP) ✓
+  - POST /api/battle/start → creates battle, picks bot opponent within ±200 rating (Rookie Ravi 900 for player 1000) ✓
+  - POST /api/battle/respond → grades answer, returns points/opponent result/next question ✓
+  - GET /api/battle/finish → returns full per-question breakdown ✓
+  - POST /api/battle/squads (action: create) → creates new squad with bronze tier ✓
+- Full end-to-end battle simulation (`scripts/test-battle.py`):
+  - Started 5-question JEE Main battle vs "Aspirant Anu" bot (rating 1100)
+  - Answered Q1-3 correctly (138-142 points each — 100 base + ~40 speed bonus for 5s responses)
+  - Answered Q4-5 wrong (0 points)
+  - Bot answered all 5 correctly (got lucky rolls against its 0.55 accuracy)
+  - Final score: 420 vs 661 — bot won (loss)
+  - Rating change: -12 (Elo, lost to slightly higher-rated opponent)
+  - XP awarded: 50 (participation only — no win bonus)
+  - Player now appears on leaderboard at rank #10 with rating 988
+  - Created "Test Squad Alpha" with bronze tier ✓
+- Home page loads in 69ms with 200 status ✓
+
+Stage Summary:
+- Tier 1, Prompt #8 (Peer Battle Mode) is fully built and verified end-to-end.
+- Three competition surfaces in one view:
+  1. Battle Arena — solo-bot 1v1 duels with bot opponents matched to player's rating; live scoring with 100 base + 50 speed bonus per question; per-question result overlay shows player + opponent correctness + points + time
+  2. Leaderboard — global ranking sorted by Elo rating; my-stats card shows personal rank, rating, win rate, total/weekly XP; top-3 highlighted with gold/silver/bronze
+  3. Study Squads — create/join/leave squads with tier progression (bronze → silver → gold → diamond based on squad total XP); squad stats aggregate member XP and weekly W/L; members ranked by contribution
+- Elo-style rating system (K=32, clamped 800-2500) ensures fair matchmaking; bot opponents within ±200 of player rating for close battles.
+- XP system rewards participation (50 base) + win (100) + draw (50) + score margin (capped 50) + mode multiplier (1.5x squad-vs-squad).
+- Seeded with 8 demo players (ratings 1240-1610) + 3 demo squads so the leaderboard and squad browser are populated immediately.
+- Bot personalities (Rookie Ravi 900 → Grand Guru Geeta 1700) span skill levels so players always find a competitive match.
+- Next prompt (Auto-generated Error Journal) can ingest the per-battle results to build a personal mistake-pattern report — specifically the wrong answers in battle results can feed the journal's root-cause analysis.
+
