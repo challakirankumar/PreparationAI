@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import ZAI from 'z-ai-web-dev-sdk';
 import type { AcademicRecord, AcademicAnalysis } from '@/lib/types';
+import { getEduScope, buildContext } from '@/lib/ai-guards/eduscope';
+import type { User } from '@/lib/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,6 +12,7 @@ interface AnalyzeRequestBody {
   record: AcademicRecord;
   examGoal?: string;
   userName?: string;
+  user?: Pick<User, 'id' | 'type' | 'examGoal'>;
 }
 
 /**
@@ -185,6 +188,20 @@ export async function POST(request: Request) {
     const userName = body.userName || 'the student';
     const fallback = buildFallback(record);
 
+    // -------- EduScope guardrail --------
+    const guard = getEduScope();
+    const ctx = buildContext('academic-analyzer', (body.user as User | undefined) ?? null);
+    const userPromptForGuard = `Student: ${userName} | Exam: ${record.examName} | Subjects: ${record.subjects.map(s => `${s.name}:${s.marks}/${s.maxMarks}`).join(', ')}`;
+    const baseSystem = `You are an expert academic analyst for the Preparation AI platform. Given a student's exam record, produce a thorough, actionable analysis as STRICT JSON.`;
+    const decision = guard.evaluate({
+      userPrompt: userPromptForGuard,
+      systemPrompt: baseSystem,
+      context: ctx,
+    });
+    // For this agent we don't hard-block (no student-facing free text), but we
+    // log the audit entry and use the hardened system prompt.
+    const systemContent = decision.rewrittenSystemPrompt + `\n\nReturn ONLY the JSON object — no prose, no markdown fences.`;
+
     try {
       const zai = await ZAI.create();
       const subjectLines = record.subjects.map((s) => {
@@ -193,7 +210,18 @@ export async function POST(request: Request) {
         return `- ${s.name}: ${s.marks}/${s.maxMarks} (${pct}%)${gradeSuffix}`;
       }).join('\n');
 
-      const systemContent = `You are an expert academic analyst for the Preparation AI platform. Given a student's exam record, produce a thorough, actionable analysis as STRICT JSON conforming to this TypeScript interface:
+      const userContent = `Student: ${userName}
+Exam goal: ${examGoal}
+Record: ${record.examName}${record.institution ? ` at ${record.institution}` : ''} on ${record.date}
+Overall: ${record.totalMarks}/${record.maxMarks} (${record.percentage.toFixed(1)}%)
+Subjects:
+${subjectLines}
+
+Analyse and return the JSON object now.`;
+
+      const systemContentWithSchema = systemContent + `
+
+The JSON must conform to this TypeScript interface:
 
 interface AcademicAnalysis {
   summary: string;                      // 2-3 sentence overall evaluation, student-first tone
@@ -205,25 +233,14 @@ interface AcademicAnalysis {
   studyPlan: { phase: string; duration: string; focus: string; tasks: string[] }[];  // 3 phases
   recommendedResources: string[];       // 4-6 specific resources (books, channels, websites)
   generatedAt: string;                  // ISO 8601 timestamp
-}
-
-Return ONLY the JSON object — no prose, no markdown fences.`;
-
-      const userContent = `Student: ${userName}
-Exam goal: ${examGoal}
-Record: ${record.examName}${record.institution ? ` at ${record.institution}` : ''} on ${record.date}
-Overall: ${record.totalMarks}/${record.maxMarks} (${record.percentage.toFixed(1)}%)
-Subjects:
-${subjectLines}
-
-Analyse and return the JSON object now.`;
+}`;
 
       const completion = await zai.chat.completions.create({
         model: 'glm-4.6',
         stream: false,
         messages: [
-          { role: 'system', content: systemContent },
-          { role: 'user', content: userContent },
+          { role: 'system', content: systemContentWithSchema },
+          { role: 'user', content: decision.sanitizedPrompt || userContent },
         ],
       });
 
@@ -233,7 +250,10 @@ Analyse and return the JSON object now.`;
         const analysis: AcademicAnalysis = parsed;
         // Always stamp server time so the client sees a fresh generatedAt.
         analysis.generatedAt = new Date().toISOString();
-        return NextResponse.json({ analysis });
+        // EduScope response inspection (redacts any leaked PII)
+        const inspection = guard.inspectResponse(analysis.summary, decision.auditId);
+        if (inspection.safe) analysis.summary = inspection.cleaned;
+        return NextResponse.json({ analysis, auditId: decision.auditId });
       }
       // JSON parse failed → fall back.
       return NextResponse.json({ analysis: fallback, fallback: true });

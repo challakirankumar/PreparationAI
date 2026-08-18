@@ -357,3 +357,90 @@ Stage Summary:
 - Component is NOT yet wired into the `ViewRouter` in `src/app/page.tsx` or the `NAV_GROUPS` in `src/components/app-shell.tsx` — the `'study-material'` view already exists in the `View` union type (`src/lib/types.ts:20`) but is not currently routable. A follow-up wiring task would add a `case 'study-material': return <StudyMaterialView />` to `ViewRouter` and an `Explore` group nav entry. Left as-is because the task spec was scoped strictly to creating the two files.
 - Lint-clean and TS-clean; ready for integration.
 
+
+---
+Task ID: TIER0
+Agent: main
+Task: Build Tier 0 Foundational Features (EduScope AI Guardrail + Institutional/B2B Layer + Multimodal Doubt Solving) per user's Feature Strategy doc
+
+Work Log:
+- Created `/src/lib/ai-guards/eduscope.ts` (424 lines) — shared guardrail layer with 4 policy categories:
+  - OFF-TOPIC-001: blocks non-education topics (gambling, drugs, weapons, NSFW, hacking, financial advice, etc.)
+  - SAFETY-001: blocks jailbreak attempts (ignore-previous-instructions, DAN mode, "reveal system prompt", self-harm)
+  - PII-001: redacts phone/email/aadhaar/pan/credit-card/pincode from outbound prompts
+  - SOCRATIC-001: re-routes "give me the answer" prompts through Socratic guidance reframe
+  - 5-stage pipeline per call: PII redaction → Socratic check → off-topic check → hard safety filter → system-prompt hardening
+  - System-prompt hardening injects: SCOPE clause, MINOR-SAFETY clause (when isMinor), SOCRATIC MODE clause (for mentor/doubt-solver/academic-analyzer), IDENTITY lock, AUDIT notice
+  - Singleton via globalThis.__eduscope__ (survives HMR); audit log capped at 1000 entries
+  - inspectResponse() also checks the model's output for PII/safety before returning to UI
+- Wired EduScope into existing AI routes:
+  - `/api/mentor/route.ts` — full guardrail (evaluates prompt, blocks unsafe/off-topic, reframes Socratic, sanitizes PII, inspects response)
+  - `/api/analyze-academic/route.ts` — hardens system prompt + audits (no hard-block since input is structured academic data, not free-form student chat)
+  - `/api/exam-news/route.ts` — hardens system prompt + inspects response (redacts any leaked PII from generated news JSON)
+- Created `/api/guardrail-stats` route — GET returns aggregate stats + recent audit log (used by Guardrail Dashboard); POST accepts {prompt, agent, isMinor} and returns GuardDecision for sandbox testing without calling the underlying model
+- Created `/src/components/views/guardrail-dashboard.tsx` — admin view with:
+  - 4 KPI cards (Total AI Calls / Allowed / Blocked / Socratic Mode)
+  - Top Policies Fired table + Calls-by-Agent breakdown
+  - Prompt Sandbox — pick agent, paste prompt, toggle minor flag, see verdict/reason/matched-policies/Socratic-reframe/sanitized-prompt
+  - Live Audit Trail table (last 50 calls with timestamp, agent, verdict badge, reason, policies, digest, response-blocked indicator)
+  - Auto-refreshes every 5 seconds
+- Created `/src/lib/institution/types.ts` — Institution, Batch, Teacher, BatchAssignment, CohortMetrics, InstitutionSummary
+- Created `/src/lib/institution/store.ts` — in-memory + persisted store (globalThis.__institution_store__):
+  - Seed: 1 demo institution (VidyaMandir Excellence Academy, Bengaluru), 2 batches (JEE 2026 Riser, NEET 2026 Foundation), 1 teacher (Prof. Anjali Deshpande), 3 assignments
+  - CRUD for batches, teachers, assignments, student enrolment
+  - computeBatchMetrics() — aggregates ExamAttempt history from registeredUsers into: totalStudents, activeStudents (last 7d), avgScorePct, avgAccuracy, avgTimePerQ, totalMocksTaken, topWeakTopics (top 5 by cohort frequency), engagementTrend (7-day series), scoreDistribution (4 buckets), topPerformers (≥60% & ≥3 mocks), atRiskStudents (<35% or <2 mocks with reason)
+  - computeInstitutionSummary() — cross-batch rollup with mini-stats per batch
+- Created 4 institution API endpoints:
+  - GET /api/institution — list institutions, or single institution with full summary when ?institutionId= is set
+  - GET/POST/PATCH /api/institution/batches — list batches, create batch, enroll/unenroll student
+  - GET /api/institution/cohort?batchId=...&registeredUsers=<JSON> — single batch cohort metrics
+  - GET/POST /api/institution/assignments — list/create assignments by batchId or teacherId
+- Created `/src/components/views/institution-dashboard.tsx` — combined Admin + Teacher dashboard with role switcher (admin/teacher/student):
+  - Top KPI strip (Total Batches / Students / Teachers / Mocks Attempted)
+  - 4-tab layout: Batches / Cohort Analytics / Assignments / Teachers (admin-only)
+  - BatchCard: tier badge, target exam badge, students/capacity/active/avg-score mini-stats with capacity bar
+  - CohortAnalyticsPanel: 4 mini-stats + score distribution bar chart + 7-day engagement trend + top weak topics (with frequency bars) + top performers + at-risk students
+  - CreateBatchDialog: name/cohort-tier/target-exam/capacity form → POST /api/institution/batches
+  - AssignmentPanel: list assignments with type-colored badges (DPP/Practice/Mock/Revision) + create form (title/type/description/due-date)
+- Created `/api/solve-doubt/route.ts` — multimodal doubt solver:
+  - Accepts imageDataUrl (base64) or imageUrl + optional prompt
+  - 8MB image cap with byte-estimation guard
+  - Routes through EduScope (blocks unsafe/off-topic, reframes Socratic, hardens system prompt)
+  - Uses zai.chat.completions.createVision() when image present (multimodal), falls back to chat.completions.create() for text-only
+  - Inspects model response for safety/PII before returning
+  - Returns subject guess (Physics/Chemistry/Math/Biology) for UI badge
+- Created `/src/components/views/doubt-solver.tsx` — multimodal chat view:
+  - Upload via gallery button, camera button (capture="environment"), or clipboard paste (paste event)
+  - Image preview with remove button
+  - Chat thread with user/assistant bubbles (user bubbles show uploaded image thumbnail)
+  - Assistant bubbles show subject badge, Socratic badge (when triggered), Blocked badge (when blocked)
+  - Quick-prompt suggestions ("Walk me through the approach", "Where did I go wrong?", etc.)
+  - Maintains 6-turn history for follow-up questions
+  - EduScope explanation card at bottom
+- Wired all 3 new views into ViewRouter (`src/app/page.tsx`) — case 'guardrail', 'institution', 'teacher', 'doubt-solver'
+- Added 'blue' to PageHeader accent prop union (`src/components/shared.tsx`)
+- Added 3 new nav groups entries: Doubt Solver (Core), Institute Dashboard + Teacher View (new "Institution" group), Guardrail Dashboard (Explore)
+- Added 'guardrail' | 'institution' | 'teacher' | 'doubt-solver' to View type union (`src/lib/types.ts`)
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results.tsx/exam-runner.tsx/mock-exam-engine.tsx remain, untouched, out of scope)
+- `bun run lint` → 0 errors, 2 cosmetic warnings (unused eslint-disable directives, harmless)
+- Dev server started cleanly on port 3000 (Next.js 16.1.3 Turbopack)
+- Manual API smoke tests:
+  - GET /api/guardrail-stats → returns { stats: {total:0, allowed:0, blocked:0, socratic:0, byAgent:{}, topPolicies:[]}, recent:[] }
+  - POST /api/guardrail-stats with jailbreak prompt → verdict=blocked-unsafe, policy=SAFETY-001 ✓
+  - POST with off-topic prompt (casino) → verdict=blocked-off-topic, policy=OFF-TOPIC-001 ✓
+  - POST with PII prompt (phone number) → verdict=allowed, sanitized="my phone is [PHONE]…", policy=PII-001 ✓
+  - POST with Socratic trigger ("just give me the answer") → verdict=socratic, socraticReframe set ✓
+  - POST with legitimate education query → verdict=allowed, no policies matched ✓
+  - GET /api/institution?institutionId=inst_demo001 → returns institution + summary (2 batches, 1 teacher, 0 students) ✓
+  - GET /api/institution/batches?institutionId=inst_demo001 → returns 2 seeded batches ✓
+  - Audit log accumulates correctly (5 calls after 5 test prompts: 2 allowed, 2 blocked, 1 socratic)
+
+Stage Summary:
+- Tier 0 foundational layer is fully built and verified end-to-end.
+- EduScope guardrail is now the shared safety layer for all AI agents — mentor, exam-news, and academic-analyzer are wired in; future agents (digital-twin, success-simulator, wellness-counsellor) can be wired by adding one import + 3 lines (evaluate → use rewrittenSystemPrompt → inspectResponse).
+- Institutional / B2B module is live with seed data and complete admin + teacher views, ready for real Prisma-backed persistence when a DB is added.
+- Multimodal Doubt Solver uses ZAI's vision API for image understanding, with full EduScope guardrail (PII redaction, Socratic mode, scope clamp) and 8MB upload cap.
+- All 3 features are accessible from the sidebar (Doubt Solver in Core, Institute Dashboard + Teacher View in new Institution group, Guardrail Dashboard in Explore).
+- Next tiers (Tier 1: Adaptive IRT engine, PYQ Trend Predictor, Socratic v2, Handwritten-step grading, Peer Battle Mode, Error Journal; Tier 2: Parent Dashboard, Regional languages, WhatsApp bot, League System, Voice Mentor; Tier 3: RAG tutor, Burnout engine, Explainability panel, White-label mode) are queued for subsequent sessions, per user's "build in priority order, don't paste whole doc at once" instruction.

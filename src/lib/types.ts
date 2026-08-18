@@ -18,7 +18,11 @@ export type View =
   | 'university-predictor'
   | 'weakness-radar'
   | 'study-material'
-  | 'settings';
+  | 'settings'
+  | 'guardrail'
+  | 'institution'
+  | 'teacher'
+  | 'doubt-solver';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 

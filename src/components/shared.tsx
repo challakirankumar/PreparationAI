@@ -7,7 +7,7 @@ export function PageHeader({ icon: Icon, title, subtitle, accent = 'emerald', ri
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   subtitle?: string;
-  accent?: 'emerald' | 'amber' | 'teal' | 'rose';
+  accent?: 'emerald' | 'amber' | 'teal' | 'rose' | 'blue';
   right?: React.ReactNode;
 }) {
   const grads = {
@@ -15,6 +15,7 @@ export function PageHeader({ icon: Icon, title, subtitle, accent = 'emerald', ri
     amber: 'from-amber-500 to-orange-500',
     teal: 'from-teal-600 to-cyan-600',
     rose: 'from-rose-500 to-pink-500',
+    blue: 'from-blue-600 to-cyan-600',
   };
   return (
     <div className="flex flex-wrap items-start justify-between gap-4 mb-6">

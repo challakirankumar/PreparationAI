@@ -26,6 +26,9 @@ import {
   Calendar,
   Clock,
   Settings2,
+  Shield,
+  Building2,
+  Camera,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +55,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'mock-exam', label: 'Mock Exam', icon: FileText },
+      { id: 'doubt-solver', label: 'Doubt Solver', icon: Camera },
       { id: 'study-material', label: 'Study Material', icon: BookOpen },
       { id: 'analytics', label: 'Analytics', icon: BarChart3 },
       { id: 'planner', label: 'Planner', icon: CalendarDays },
@@ -70,12 +74,20 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     ],
   },
   {
+    title: 'Institution',
+    items: [
+      { id: 'institution', label: 'Institute Dashboard', icon: Building2 },
+      { id: 'teacher', label: 'Teacher View', icon: GraduationCap },
+    ],
+  },
+  {
     title: 'Explore',
     items: [
       { id: 'career', label: 'Career Guide', icon: Briefcase },
-      { id: 'university', label: 'Universities', icon: GraduationCap },
+      { id: 'university', label: 'Universities', icon: School },
       { id: 'scholarship', label: 'Scholarships', icon: Award },
       { id: 'counsellor', label: 'Wellness', icon: HeartPulse },
+      { id: 'guardrail', label: 'Guardrail Dashboard', icon: Shield },
       { id: 'settings', label: 'Settings', icon: Settings2 },
     ],
   },

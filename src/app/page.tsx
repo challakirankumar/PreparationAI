@@ -18,6 +18,9 @@ import { WellnessCounsellor } from '@/components/views/wellness-counsellor';
 import { UniversityPredictor } from '@/components/views/university-predictor';
 import { SettingsView } from '@/components/views/settings';
 import { StudyMaterialView } from '@/components/views/study-material';
+import { GuardrailDashboardView } from '@/components/views/guardrail-dashboard';
+import { InstitutionDashboardView } from '@/components/views/institution-dashboard';
+import { DoubtSolverView } from '@/components/views/doubt-solver';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
 import type { View } from '@/lib/types';
 
@@ -57,6 +60,14 @@ function ViewRouter({ view }: { view: View }) {
       return <SettingsView />;
     case 'study-material':
       return <StudyMaterialView />;
+    case 'guardrail':
+      return <GuardrailDashboardView />;
+    case 'institution':
+      return <InstitutionDashboardView />;
+    case 'teacher':
+      return <InstitutionDashboardView />;
+    case 'doubt-solver':
+      return <DoubtSolverView />;
     default:
       return <Dashboard />;
   }

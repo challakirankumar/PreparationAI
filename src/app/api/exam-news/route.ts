@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import ZAI from 'z-ai-web-dev-sdk';
+import { getEduScope } from '@/lib/ai-guards/eduscope';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -241,18 +242,28 @@ export async function POST(request: Request) {
   const country = (body.country || '').trim() || 'India';
 
   try {
+    // -------- EduScope guardrail (audit + harden system prompt) --------
+    const guard = getEduScope();
+    const decision = guard.evaluate({
+      userPrompt: `Generate news items for exam: ${examName} (id: ${examId}, region: ${country})`,
+      systemPrompt: 'You generate structured JSON news feeds for exam aspirants. Output only JSON.',
+      context: { agent: 'exam-news' },
+    });
+
     const zai = await ZAI.create();
     const completion = await zai.chat.completions.create({
       model: 'glm-4.6',
       stream: false,
       messages: [
-        { role: 'system', content: 'You generate structured JSON news feeds for exam aspirants. Output only JSON.' },
+        { role: 'system', content: decision.rewrittenSystemPrompt },
         { role: 'user', content: buildPrompt(examName, examId, country) },
       ],
     });
 
     const content = completion?.choices?.[0]?.message?.content || '';
-    const rawArray = extractJsonArray(content);
+    const inspection = guard.inspectResponse(content, decision.auditId);
+    const safeContent = inspection.safe ? inspection.cleaned : '';
+    const rawArray = extractJsonArray(safeContent);
 
     if (!rawArray || rawArray.length === 0) {
       const fallback = getFallbackNews(examName, country);
