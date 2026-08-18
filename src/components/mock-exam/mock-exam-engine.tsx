@@ -19,8 +19,9 @@ import { useToast } from '@/hooks/use-toast';
 import {
   Atom, Clock, FileText, ListChecks, Settings2, Sparkles, Trophy, Target,
   TrendingUp, ArrowRight, Layers, Info, ShieldCheck, Loader2, GraduationCap,
-  HeartPulse, BookOpen, Briefcase, Cpu, Languages, Landmark,
+  HeartPulse, BookOpen, Briefcase, Cpu, Languages, Landmark, Brain,
 } from 'lucide-react';
+import { AdaptiveMockRunner } from './adaptive-mock-runner';
 
 interface Props {
   onStart?: () => void;
@@ -44,6 +45,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
   const [difficulty, setDifficulty] = React.useState<'balanced' | 'easy' | 'hard'>('balanced');
   const [durationOverride, setDurationOverride] = React.useState<string>('default');
   const [generating, setGenerating] = React.useState(false);
+  const [adaptiveFor, setAdaptiveFor] = React.useState<ExamPattern | null>(null);
 
   const recentAttempts = React.useMemo(() => {
     return [...attempts]
@@ -120,6 +122,15 @@ export function MockExamEngine({ onStart }: Props = {}) {
 
   return (
     <div className="space-y-6">
+      {/* Adaptive mode — replaces the engine UI when active */}
+      {adaptiveFor && (
+        <AdaptiveMockRunner
+          examId={adaptiveFor.id}
+          onExit={() => setAdaptiveFor(null)}
+        />
+      )}
+      {!adaptiveFor && (
+        <>
       {/* Hero */}
       <Card className="bg-hero-emerald border-blue-200">
         <CardContent className="pt-6">
@@ -243,9 +254,18 @@ export function MockExamEngine({ onStart }: Props = {}) {
                       )}
                     </CardContent>
                     <CardFooter>
-                      <Button className="w-full" onClick={() => setConfigFor(p)}>
-                        <Settings2 className="h-4 w-4" /> Configure &amp; start
-                      </Button>
+                      <div className="w-full space-y-2">
+                        <Button className="w-full" onClick={() => setConfigFor(p)}>
+                          <Settings2 className="h-4 w-4" /> Configure &amp; start
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                          onClick={() => setAdaptiveFor(p)}
+                        >
+                          <Brain className="h-4 w-4" /> Adaptive Mode (IRT)
+                        </Button>
+                      </div>
                     </CardFooter>
                   </Card>
                 );
@@ -403,6 +423,8 @@ export function MockExamEngine({ onStart }: Props = {}) {
           }
         }}
       />
+        </>
+      )}
     </div>
   );
 }
