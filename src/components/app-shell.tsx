@@ -67,6 +67,7 @@ const NAV_ITEM_KEYS: Record<View, StringKey | undefined> = {
   'error-journal': 'nav.errorJournal',
   'parent-dashboard': 'nav.parentDashboard',
   'nudge-bot': undefined,  // no translation key — uses label "Nudge Bot"
+  'league': undefined,     // no translation key — uses label "League"
   'institution': 'nav.institution',
   'teacher': 'nav.teacher',
   'guardrail': 'nav.guardrail',
@@ -140,6 +141,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { id: 'battle-arena', label: 'Battle Arena', icon: Swords },
       { id: 'error-journal', label: 'Error Journal', icon: BookX },
+      { id: 'league', label: 'League System', icon: Trophy },
     ],
   },
   {

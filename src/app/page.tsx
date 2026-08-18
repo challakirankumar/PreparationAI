@@ -28,6 +28,7 @@ import { BattleArenaView } from '@/components/views/battle-arena';
 import { ErrorJournalView } from '@/components/views/error-journal';
 import { ParentDashboardView } from '@/components/views/parent-dashboard';
 import { NudgeBotView } from '@/components/views/nudge-bot';
+import { LeagueSystemView } from '@/components/views/league-system';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
 import type { View } from '@/lib/types';
 
@@ -89,6 +90,8 @@ function ViewRouter({ view }: { view: View }) {
       return <ParentDashboardView />;
     case 'nudge-bot':
       return <NudgeBotView />;
+    case 'league':
+      return <LeagueSystemView />;
     default:
       return <Dashboard />;
   }

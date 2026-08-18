@@ -1185,3 +1185,87 @@ Stage Summary:
 - The Nudge Bot UI shows WhatsApp-style message previews (green chat bubble on beige background), so users can see exactly what the bot would send.
 - Sidebar: "Nudge Bot" added to the Family group (alongside Parent Dashboard) with MessageCircle icon.
 
+
+---
+Task ID: TIER2-LEAGUE
+Agent: main
+Task: Build Tier 2, Prompt #13 — Gamified League System: Bronze→Silver→Gold→Diamond cohorts, weekly resets, real cost-free rewards
+
+Work Log:
+- Created `/src/lib/league/types.ts` (272 lines):
+  - 4 tiers: Bronze 🥉 (0 XP), Silver 🥈 (200+ XP), Gold 🥇 (600+ XP), Diamond 💎 (1200+ XP)
+  - TIERS metadata: color, bgClass, textClass, borderClass, icon, weeklyXpThreshold, promotionPercentile (top 30%/25%/20%/0%), demotionPercentile (0%/20%/25%/30%), rewards[]
+  - Cost-free rewards per tier:
+    - Bronze: badge, leaderboard access, streak tracking
+    - Silver: badge, custom profile color, +5% XP boost, peer battles
+    - Gold: badge, +10% XP boost, 1 streak protection token/week, priority doubt queue, squad banner
+    - Diamond: badge, +15% XP boost, 2 streak tokens/week, instant priority, diamond banner, early feature access, mentor status
+  - LeaguePlayer interface: tier, weeklyXp, rankInTier, tierSize, progressToNextTier, xpToNextTier, lastWeekTier, streakProtectionTokens, weeksByTier, highestTierAchieved, badges[]
+  - Badge: id, name, description, icon, tier?, earnedAt, category (tier-promotion/streak/milestone/special)
+  - CohortStanding, WeeklyResetEvent, RewardGrant interfaces
+  - computeTierForXp(): weekly XP → tier mapping
+  - computeProgressToNextTier(): progressPct + xpToNext + nextTier
+  - computeProjectedChange(): based on rank/tierSize percentile vs promotion/demotion thresholds
+  - getWeekStart/getWeekEnd/getWeekKey(): Monday-based week helpers
+  - generateTierBadge(), generateStreakBadge() (3/7/14/30/60/100-day milestones), generateMilestoneBadge() (10/25/50/100/250/500 mocks)
+- Created `/src/lib/league/store.ts` (340 lines):
+  - In-memory store via globalThis.__league_store__ with players Map, history Map, rewards Map, currentWeekKey
+  - Seed data: 20 demo players (5 per tier) — Diamond: Aarav 1850XP, Diya 1620XP, Vivaan 1480XP, Ananya 1340XP, Aditya 1250XP; Gold: Saanvi 1150, Arjun 980, Ishaan 820, Riya 710, Karan 650; Silver: Tara 540, Rohit 420, Nisha 350, Sameer 280, Pooja 220; Bronze: Vikram 180, Anika 140, Dev 90, Kavya 50, Yash 20
+  - Demo history for demo_p1 (Aarav): 3 weekly events showing Silver→Gold→Diamond progression over 3 weeks (720 XP, 850 XP, 1850 XP)
+  - Demo rewards for demo_p1: 2 streak protection tokens (Gold weekly + Diamond weekly) + 1 feature access reward
+  - recomputeRanks(): sorts each tier by weeklyXp desc, assigns ranks + computes progress to next tier
+  - getOrCreatePlayer(): new players start in Bronze with 0 XP
+  - getCohortStandings(tier): returns sorted cohort with projectedChange (promote/demote/stay) per player
+  - getAllCohortStandings(): all 4 tiers at once
+  - awardXp(): applies tier-based XP boost (1.15x Diamond, 1.10x Gold, 1.05x Silver), checks for auto-promotion on threshold cross, grants tier badge + streak tokens on promotion
+  - applyStreakProtectionToken(): consumes a token to prevent demotion (renamed from useStreakProtectionToken to avoid React rules-of-hooks lint error)
+  - performWeeklyReset(): called every Monday — resets weeklyXp to 0, runs promotion/demotion based on percentile, grants weekly rewards, records history events, respects streak protection tokens
+  - checkMilestoneBadges(), checkStreakBadge(): auto-grants badges when thresholds hit
+- Created 3 API routes:
+  - GET `/api/league/standings?userId=...&tier=...`: returns player record + all 4 cohort standings + current tier standings
+  - GET/POST `/api/league/rewards?userId=...`: GET returns reward inventory + streak token count; POST action:use_streak_protection consumes a token
+  - GET `/api/league/history?userId=...`: returns weekly reset history events
+- Created `/src/components/views/league-system.tsx` (565 lines):
+  - PageHeader with Trophy icon
+  - Hero card: tier-colored gradient background, tier icon, rank badge, weekly XP, progress bar to next tier, streak protection tokens with "Use Token" button
+  - 4-tab layout: Standings / Rewards / Badges / History
+  - Standings tab: current tier cohort list (with rank, name, XP, projected change badge), 4-tier overview cards showing cohort size + avg XP
+  - Rewards tab: player's reward inventory (with type icon, description, grant date, expiry badge, used indicator) + tier rewards catalog (4 cards showing locked/unlocked rewards per tier)
+  - Badges tab: grid of earned badges with icon, name, description, category, tier color
+  - History tab: timeline of weekly reset events showing tier-before → tier-after with change badge (promoted/demoted/stayed), XP earned, rewards granted, streak protection used indicator
+- Wired into router (`src/app/page.tsx`): case 'league' → <LeagueSystemView />
+- Added 'league' to View type union (`src/lib/types.ts`)
+- Added to sidebar (`src/components/app-shell.tsx`) under "Competition" group with Trophy icon and "League System" label (reusing existing Trophy import)
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results/exam-runner/mock-exam-engine remain untouched)
+- `bun run lint` → 0 errors, 12 cosmetic warnings (all "unused eslint-disable" — harmless)
+- Initial lint failure: function `useStreakProtectionToken` in store.ts tripped react-hooks/rules-of-hooks because the linter thought it was a React hook. Renamed to `applyStreakProtectionToken` in both store.ts and the API route.
+- Dev server restarted cleanly on port 3000 (Next.js 16.1.3 Turbopack, ready in 878ms)
+- Manual API smoke tests with 5 scenarios:
+  - GET /api/league/standings?userId=demo_p1 → Aarav Sharma, Diamond tier, rank #1 of 5, 1850 weekly XP, 2 streak tokens, 2 badges (Diamond Tier + Monthly Master 30-day streak); Diamond cohort shows top 3 "stay" (no tier above) + bottom 2 "demote" (bottom 30% threshold); all 4 tiers have 5 players each ✓
+  - GET /api/league/rewards?userId=demo_p1 → 2 streak protection tokens + 1 feature access reward, with proper expiry dates ✓
+  - GET /api/league/history?userId=demo_p1 → 3 weekly reset events: Silver→Gold (720 XP), Gold→Gold (850 XP), Gold→Diamond (1850 XP) ✓
+  - POST /api/league/rewards action:use_streak_protection → used=true, remaining=1 (token consumed correctly) ✓
+  - GET /api/league/standings?userId=fresh_test_user → new player auto-created in Bronze, rank #6 of 6 (appended to cohort), 0 weekly XP, 200 XP needed for Silver ✓
+- Home page loads in 44ms with 200 status ✓
+
+Stage Summary:
+- Tier 2, Prompt #13 (Gamified League System) is fully built and verified end-to-end.
+- Four-tier cohort system with weekly resets:
+  - Bronze (0+ XP/week) → Silver (200+) → Gold (600+) → Diamond (1200+)
+  - Top 30%/25%/20% of each tier promote weekly; bottom 0%/20%/25%/30% demote
+  - Streak protection tokens (Gold: 1/week, Diamond: 2/week) can prevent demotion
+- Cost-free rewards (no real money, no premium currency):
+  - Badges: tier-promotion (🥉🥈🥇💎), streak (🔥⚔️🛡️👑⚒️🏛️), milestone (🎯🏃🎖️🏅🌟💎)
+  - Profile flair: custom colors per tier
+  - XP boosts: +5% Silver, +10% Gold, +15% Diamond (compounds engagement)
+  - Streak protection tokens: prevent streak from breaking on a missed day
+  - Feature access: Diamond gets early access to new features + mentor status on leaderboard
+  - Squad banner upgrades: visual flair for study squads
+- 20 seeded demo players (5 per tier) with realistic names, XP values, and progression history.
+- Promotion/demotion logic uses percentile within tier cohort — top performers promote, bottom performers demote, with streak protection token override.
+- The League System UI shows: hero card with tier gradient + progress bar + streak tokens, 4-tab layout (Standings/Rewards/Badges/History), full cohort lists with projected change indicators, reward inventory with expiry tracking, badge grid, weekly reset history timeline.
+- Sidebar: "League System" added to the Competition group (alongside Battle Arena + Error Journal) with Trophy icon.
+- This completes Tier 2 except for Prompt #14 (Voice Mentor Mode). Next prompts (Voice Mentor, then Tier 3: RAG-over-syllabus, Burnout/Wellbeing Signal Engine, Explainability panel, White-label mode) build on this league infrastructure for gamified progression.
+

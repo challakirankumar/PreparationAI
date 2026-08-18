@@ -29,7 +29,8 @@ export type View =
   | 'battle-arena'
   | 'error-journal'
   | 'parent-dashboard'
-  | 'nudge-bot';
+  | 'nudge-bot'
+  | 'league';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 
