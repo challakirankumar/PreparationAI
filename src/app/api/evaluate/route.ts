@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     const timeTaken: Record<string, number> = body.timeTaken || {};
     const attemptNumber: number = body.attemptNumber || 1;
     const previousAttempt: ExamAttempt | null = body.previousAttempt || null;
+    const clientDurationSec: number = body.totalDurationSec || 0;
 
     if (!exam || !exam.questions) {
       return NextResponse.json({ error: 'exam payload required' }, { status: 400 });
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
 
     for (const q of exam.questions) {
       const ans = answers[q.id];
-      const taken = timeTaken[q.id] ?? 60;
+      const taken = timeTaken[q.id] ?? 0;
       let correct = false;
       let partial = false;
       let awarded = 0;
@@ -137,7 +138,9 @@ export async function POST(request: Request) {
     const attempted = results.filter((r) => r.awardedMarks !== 0 || r.correct).length;
     const correctCount = results.filter((r) => r.correct).length;
     const accuracy = attempted > 0 ? parseFloat(((correctCount / attempted) * 100).toFixed(1)) : 0;
-    const totalTime = results.reduce((a, r) => a + r.timeTakenSec, 0);
+    // Use client-provided wall-clock duration for accuracy (per-question times may not sum perfectly)
+    const sumPerQuestion = results.reduce((a, r) => a + r.timeTakenSec, 0);
+    const totalTime = clientDurationSec > 0 ? clientDurationSec : sumPerQuestion;
     const avgTime = results.length > 0 ? Math.round(totalTime / results.length) : 0;
     const speed = totalTime > 0 ? parseFloat((results.length / (totalTime / 3600)).toFixed(1)) : 0;
 

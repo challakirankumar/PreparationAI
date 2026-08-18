@@ -48,12 +48,15 @@ export function ExamRunner({ onExit }: Props) {
   const [marked, setMarked] = React.useState<Set<number>>(new Set());
   const [visited, setVisited] = React.useState<Set<number>>(new Set([0]));
   const [timeLeft, setTimeLeft] = React.useState(currentExam?.durationSec ?? 0);
-  const [timeTaken, setTimeTaken] = React.useState<Record<string, number>>({});
   const [evaluating, setEvaluating] = React.useState(false);
   const [result, setResult] = React.useState<ExamAttempt | null>(null);
 
-  // Refs for the per-question timer
+  // Refs for accurate time tracking — avoids stale closure/state issues on submit
   const questionStartRef = React.useRef<number>(Date.now());
+  const timeTakenRef = React.useRef<Record<string, number>>({});
+  const answersRef = React.useRef<Record<string, AnswerValue>>({});
+  const examStartRef = React.useRef<number>(Date.now());
+  const submittedRef = React.useRef<boolean>(false);
 
   // Sync timer when currentExam changes
   React.useEffect(() => {
@@ -63,9 +66,12 @@ export function ExamRunner({ onExit }: Props) {
       setAnswers({});
       setMarked(new Set());
       setVisited(new Set([0]));
-      setTimeTaken({});
       setResult(null);
       questionStartRef.current = Date.now();
+      timeTakenRef.current = {};
+      answersRef.current = {};
+      examStartRef.current = Date.now();
+      submittedRef.current = false;
     }
   }, [currentExam?.id]);
 
@@ -114,10 +120,12 @@ export function ExamRunner({ onExit }: Props) {
   const section = currentExam.sections.find((s) => s.questionIds.includes(q.id));
 
   function recordCurrentTime() {
-    const elapsed = Math.max(0, Math.round((Date.now() - questionStartRef.current) / 1000));
-    if (!q) return;
-    setTimeTaken((prev) => ({ ...prev, [q.id]: (prev[q.id] || 0) + elapsed }));
-    questionStartRef.current = Date.now();
+    const now = Date.now();
+    const elapsed = Math.max(0, Math.round((now - questionStartRef.current) / 1000));
+    const currentQuestion = questions[currentIdx];
+    if (!currentQuestion) return;
+    timeTakenRef.current[currentQuestion.id] = (timeTakenRef.current[currentQuestion.id] || 0) + elapsed;
+    questionStartRef.current = now;
   }
 
   function goTo(idx: number) {
@@ -132,17 +140,20 @@ export function ExamRunner({ onExit }: Props) {
   }
 
   function setAnswer(v: AnswerValue) {
-    if (!q) return;
-    setAnswers((prev) => ({ ...prev, [q.id]: v }));
+    const currentQuestion = questions[currentIdx];
+    if (!currentQuestion) return;
+    const newAnswers = { ...answersRef.current, [currentQuestion.id]: v };
+    answersRef.current = newAnswers;
+    setAnswers(newAnswers);
   }
 
   function clearAnswer() {
-    if (!q) return;
-    setAnswers((prev) => {
-      const next = { ...prev };
-      delete next[q.id];
-      return next;
-    });
+    const currentQuestion = questions[currentIdx];
+    if (!currentQuestion) return;
+    const newAnswers = { ...answersRef.current };
+    delete newAnswers[currentQuestion.id];
+    answersRef.current = newAnswers;
+    setAnswers(newAnswers);
   }
 
   function toggleMark() {
@@ -155,27 +166,32 @@ export function ExamRunner({ onExit }: Props) {
   }
 
   async function handleSubmit(auto: boolean = false) {
-    recordCurrentTime();
     if (evaluating || !currentExam) return;
+    recordCurrentTime();
     setEvaluating(true);
 
     try {
-      // Find previous attempt of same exam
       const priorAttempts = attempts.filter((a) => a.examId === currentExam.examId);
       const previousAttempt = priorAttempts.length > 0
         ? [...priorAttempts].sort((a, b) => +new Date(b.submittedAt) - +new Date(a.submittedAt))[0]
         : null;
       const attemptNumber = priorAttempts.length + 1;
 
+      // Use refs for accurate data (avoids stale state on async submit)
+      const finalAnswers = { ...answersRef.current };
+      const finalTimeTaken = { ...timeTakenRef.current };
+      const totalDurationSec = Math.round((Date.now() - examStartRef.current) / 1000);
+
       const resp = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           exam: currentExam,
-          answers,
-          timeTaken,
+          answers: finalAnswers,
+          timeTaken: finalTimeTaken,
           attemptNumber,
           previousAttempt,
+          totalDurationSec,
         }),
       });
 
@@ -187,27 +203,24 @@ export function ExamRunner({ onExit }: Props) {
       const data = await resp.json();
       const attempt: ExamAttempt = data.attempt;
 
-      // Patch vsPrevious behavior with deltas if we have a prior attempt
+      // Patch vsPrevious with accurate percentage-based deltas
       if (previousAttempt && attempt.behavior) {
-        const scoreDelta = attempt.score - previousAttempt.score;
-        const speedDelta = attempt.speed - previousAttempt.speed;
-        const accuracyDelta = attempt.accuracy - previousAttempt.accuracy;
+        const prevPct = (previousAttempt.score / Math.max(1, previousAttempt.totalMarks)) * 100;
+        const currPct = (attempt.score / Math.max(1, attempt.totalMarks)) * 100;
+        const scoreDelta = currPct - prevPct;
         attempt.behavior.vsPrevious = {
-          scoreDelta: Math.round(scoreDelta * 100) / 100,
-          speedDelta: Math.round(speedDelta * 10) / 10,
-          accuracyDelta: Math.round(accuracyDelta * 10) / 10,
-          isImprovement: scoreDelta >= 0 && accuracyDelta >= 0,
+          scoreDelta: Math.round(scoreDelta * 10) / 10,
+          speedDelta: Math.round((attempt.speed - previousAttempt.speed) * 10) / 10,
+          accuracyDelta: Math.round((attempt.accuracy - previousAttempt.accuracy) * 10) / 10,
+          isImprovement: scoreDelta >= 0,
         };
       }
 
       addAttempt(attempt);
       setResult(attempt);
-      // NOTE: We intentionally do NOT call endExam() here — that would unmount
-      // the runner and lose the result state. The parent will handle cleanup
-      // via onExit (called when the user clicks Back / Retake on results).
       toast({
         title: auto ? 'Time up — auto-submitted' : 'Exam submitted',
-        description: `Score: ${attempt.score}/${attempt.totalMarks} · ${Math.round((attempt.score / Math.max(1, attempt.totalMarks)) * 100)}%`,
+        description: `Score: ${attempt.score}/${attempt.totalMarks} · ${Math.round((attempt.score / Math.max(1, attempt.totalMarks)) * 100)}% · ${fmtTime(totalDurationSec)} total`,
       });
     } catch (e) {
       toast({
