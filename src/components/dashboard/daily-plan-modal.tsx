@@ -158,7 +158,7 @@ export function DailyPlanModal() {
               {days} days <span className="text-sm font-normal text-muted-foreground">to go</span>
             </p>
           </div>
-          <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-200">
+          <Badge className="bg-blue-100 text-blue-700 border border-blue-200">
             {attempts.length} mocks done
           </Badge>
         </div>
@@ -167,10 +167,10 @@ export function DailyPlanModal() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-sm font-semibold text-stone-900 flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+              <Sparkles className="h-3.5 w-3.5 text-blue-600" />
               Today's tasks
             </h4>
-            <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700">
+            <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
               {completedCount}/{totalTasks} done · {progress}%
             </Badge>
           </div>
@@ -185,16 +185,16 @@ export function DailyPlanModal() {
                   className={cn(
                     'w-full flex items-center gap-2 rounded-lg border p-2.5 text-left transition palette-btn',
                     done
-                      ? 'border-emerald-300 bg-emerald-50/60'
-                      : 'border-stone-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/30'
+                      ? 'border-blue-300 bg-blue-50/60'
+                      : 'border-stone-200 bg-white hover:border-blue-300 hover:bg-blue-50/30'
                   )}
                 >
                   {done ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
                   ) : (
                     <Circle className="h-4 w-4 text-stone-300 flex-shrink-0" />
                   )}
-                  <Icon className={cn('h-3.5 w-3.5 flex-shrink-0', done ? 'text-emerald-600' : 'text-stone-400')} />
+                  <Icon className={cn('h-3.5 w-3.5 flex-shrink-0', done ? 'text-blue-600' : 'text-stone-400')} />
                   <span className={cn('flex-1 text-sm', done ? 'text-stone-500 line-through' : 'text-stone-800')}>
                     {t.title}
                   </span>
@@ -222,8 +222,8 @@ export function DailyPlanModal() {
         )}
 
         {/* Quote */}
-        <div className="rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 p-3 flex gap-2">
-          <Quote className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+        <div className="rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-blue-200 p-3 flex gap-2">
+          <Quote className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
           <p className="text-sm italic text-stone-700">{quote}</p>
         </div>
 
@@ -232,7 +232,7 @@ export function DailyPlanModal() {
           <Button variant="outline" className="flex-1" onClick={handleLater}>
             Later
           </Button>
-          <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={handleLetsGo}>
+          <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={handleLetsGo}>
             Let's go
           </Button>
         </div>

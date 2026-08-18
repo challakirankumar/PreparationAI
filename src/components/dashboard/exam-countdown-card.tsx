@@ -102,7 +102,7 @@ export function ExamCountdownCard({
         {/* Footer chips */}
         <div className="flex flex-wrap items-center gap-2">
           {focusArea && (
-            <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700">
+            <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
               <MapPin className="h-3 w-3" /> Focus: {focusArea}
             </Badge>
           )}

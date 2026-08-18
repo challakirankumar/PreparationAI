@@ -36,7 +36,7 @@ export function PerformanceAnalytics() {
           subtitle="Track your score, accuracy, speed, and topic mastery over time"
           accent="emerald"
           right={
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mock-exam')}>
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('mock-exam')}>
               <Trophy className="h-4 w-4" /> Take a mock
             </Button>
           }
@@ -49,7 +49,7 @@ export function PerformanceAnalytics() {
           <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
             Take your first mock test to unlock score trends, accuracy analysis, weak-topic insights, and more.
           </p>
-          <Button className="mt-4 bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mock-exam')}>
+          <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={() => setView('mock-exam')}>
             Take first mock
           </Button>
         </Card>
@@ -133,7 +133,7 @@ export function PerformanceAnalytics() {
         subtitle={`${attempts.length} attempts · ${latest.examName} · Latest ${(latest.score / latest.totalMarks * 100).toFixed(1)}%`}
         accent="emerald"
         right={
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mock-exam')}>
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('mock-exam')}>
             <Trophy className="h-4 w-4" /> Take another mock
           </Button>
         }
@@ -177,7 +177,7 @@ export function PerformanceAnalytics() {
         <Card className="border-stone-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="h-4 w-4 text-emerald-600" /> Score & Accuracy Trend
+              <TrendingUp className="h-4 w-4 text-blue-600" /> Score & Accuracy Trend
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -259,9 +259,9 @@ export function PerformanceAnalytics() {
 
       {/* Strengths & Weaknesses */}
       <div className="grid sm:grid-cols-2 gap-4">
-        <Card className="border-emerald-200 bg-emerald-50/50">
+        <Card className="border-blue-200 bg-blue-50/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base text-emerald-800">
+            <CardTitle className="flex items-center gap-2 text-base text-blue-800">
               <CheckCircle2 className="h-4 w-4" /> Strengths
             </CardTitle>
           </CardHeader>
@@ -272,7 +272,7 @@ export function PerformanceAnalytics() {
               strengths.map(([topic, count]) => (
                 <div key={topic} className="flex items-center justify-between p-2 rounded-lg bg-white border border-emerald-100">
                   <span className="text-sm font-medium text-stone-800">{topic}</span>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{count}×</Badge>
+                  <Badge className="bg-blue-100 text-blue-700 border-blue-200">{count}×</Badge>
                 </div>
               ))
             )}
@@ -317,7 +317,7 @@ export function PerformanceAnalytics() {
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className={cn(
                       'h-10 w-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0',
-                      accent === 'emerald' ? 'bg-emerald-100 text-emerald-700' : accent === 'amber' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+                      accent === 'emerald' ? 'bg-blue-100 text-blue-700' : accent === 'amber' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
                     )}>
                       {attempts.length - idx}
                     </div>
@@ -344,7 +344,7 @@ export function PerformanceAnalytics() {
                       </Badge>
                     )}
                     {a.strongTopics[0] && (
-                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px]">
                         Strong: {a.strongTopics[0]}
                       </Badge>
                     )}
@@ -360,7 +360,7 @@ export function PerformanceAnalytics() {
       <Card className="border-stone-200 bg-gradient-to-r from-emerald-50 to-amber-50">
         <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
               <Target className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -374,7 +374,7 @@ export function PerformanceAnalytics() {
             <Button variant="outline" onClick={() => setView('digital-twin')}>
               <Sparkles className="h-4 w-4" /> Digital Twin
             </Button>
-            <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('planner')}>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('planner')}>
               <Brain className="h-4 w-4" /> Get plan
             </Button>
           </div>

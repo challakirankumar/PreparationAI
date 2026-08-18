@@ -105,8 +105,8 @@ export function UniversityFinder() {
             className={cn(
               'px-3 py-1.5 rounded-full text-sm font-medium border transition flex items-center gap-1.5',
               country === c.country
-                ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                : 'bg-white border-stone-200 text-stone-600 hover:border-emerald-300 hover:text-emerald-700'
+                ? 'bg-blue-600 border-emerald-600 text-white shadow-sm'
+                : 'bg-white border-stone-200 text-stone-600 hover:border-blue-300 hover:text-blue-700'
             )}
           >
             <span>{c.flag}</span>
@@ -138,8 +138,8 @@ export function UniversityFinder() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mt-4">
-                  <div className="bg-emerald-50 rounded-lg p-2">
-                    <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-medium uppercase">
+                  <div className="bg-blue-50 rounded-lg p-2">
+                    <div className="flex items-center gap-1 text-[10px] text-blue-700 font-medium uppercase">
                       <DollarSign className="h-3 w-3" /> Tuition
                     </div>
                     <p className="text-xs text-stone-800 mt-0.5 line-clamp-2">{uni.tuitionFees.split('/')[0]}</p>
@@ -166,7 +166,7 @@ export function UniversityFinder() {
 
                 <div className="flex items-center justify-between mt-4">
                   <Badge variant="secondary" className="bg-stone-100 text-stone-700">World Rank #{uni.ranking}</Badge>
-                  <Button size="sm" variant="ghost" className="text-emerald-700 hover:bg-emerald-50">
+                  <Button size="sm" variant="ghost" className="text-blue-700 hover:bg-blue-50">
                     Details
                   </Button>
                 </div>
@@ -205,7 +205,7 @@ export function UniversityFinder() {
               <div className="space-y-4 mt-2">
                 <div className="bg-stone-50 rounded-lg p-3">
                   <h4 className="text-sm font-semibold mb-1 flex items-center gap-2">
-                    <Plane className="h-4 w-4 text-emerald-600" /> Visa Details
+                    <Plane className="h-4 w-4 text-blue-600" /> Visa Details
                   </h4>
                   <p className="text-sm text-muted-foreground">{selected.visaDetails}</p>
                 </div>
@@ -214,7 +214,7 @@ export function UniversityFinder() {
                   <h4 className="text-sm font-semibold mb-2">Scholarships</h4>
                   <div className="flex flex-wrap gap-1.5">
                     {selected.scholarships.map((s) => (
-                      <Badge key={s} variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <Badge key={s} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
                         {s}
                       </Badge>
                     ))}
@@ -242,7 +242,7 @@ export function UniversityFinder() {
                 <Button variant="outline" onClick={() => setView('scholarship')}>
                   <Award className="h-4 w-4" /> Find Scholarships
                 </Button>
-                <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mentor')}>
+                <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('mentor')}>
                   <Brain className="h-4 w-4" /> Ask Mentor
                 </Button>
               </DialogFooter>

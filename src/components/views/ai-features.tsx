@@ -96,14 +96,14 @@ export function DigitalTwin() {
         title="AI Digital Twin"
         subtitle="A simulation of your future academic self based on current trajectory"
         accent="emerald"
-        right={<Badge className="bg-emerald-100 text-emerald-700 border-emerald-200"><Sparkles className="h-3 w-3" /> AI Powered</Badge>}
+        right={<Badge className="bg-blue-100 text-blue-700 border-blue-200"><Sparkles className="h-3 w-3" /> AI Powered</Badge>}
       />
 
       {/* Hero */}
-      <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 via-teal-50 to-amber-50 overflow-hidden">
+      <Card className="border-blue-200 bg-gradient-to-br from-emerald-50 via-teal-50 to-amber-50 overflow-hidden">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg flex-shrink-0">
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg flex-shrink-0">
               <Brain className="h-8 w-8 text-white" />
             </div>
             <div className="flex-1">
@@ -111,7 +111,7 @@ export function DigitalTwin() {
               <p className="text-sm text-stone-700 mt-1">
                 If you maintain your current pace, in <strong>90 days</strong> your projected{' '}
                 <strong>{examName}</strong> score is{' '}
-                <strong className="text-emerald-700">{(trajectory[3].score * 100).toFixed(1)}%</strong> — that's{' '}
+                <strong className="text-blue-700">{(trajectory[3].score * 100).toFixed(1)}%</strong> — that's{' '}
                 <strong>{Math.round(trajectory[3].score * totalMarks)}</strong> / {totalMarks}.
               </p>
             </div>
@@ -131,7 +131,7 @@ export function DigitalTwin() {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingUp className="h-4 w-4 text-emerald-600" /> Predicted Score Trajectory
+            <TrendingUp className="h-4 w-4 text-blue-600" /> Predicted Score Trajectory
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -205,7 +205,7 @@ export function DigitalTwin() {
               <div key={d.label} className="flex items-center justify-between p-2.5 rounded-lg bg-stone-50">
                 <span className="text-sm text-stone-700">{d.label}</span>
                 <Badge variant="outline" className={cn(
-                  d.accent === 'emerald' && 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                  d.accent === 'emerald' && 'bg-blue-50 text-blue-700 border-blue-200',
                   d.accent === 'amber' && 'bg-amber-50 text-amber-700 border-amber-200',
                   d.accent === 'rose' && 'bg-rose-50 text-rose-700 border-rose-200',
                 )}>{d.impact}</Badge>
@@ -232,7 +232,7 @@ export function DigitalTwin() {
         </CardContent>
       </Card>
 
-      <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+      <Card className="border-blue-200 bg-gradient-to-r from-emerald-50 to-teal-50">
         <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h4 className="font-semibold text-stone-900">Want to improve your trajectory?</h4>
@@ -240,7 +240,7 @@ export function DigitalTwin() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setView('mentor')}><Brain className="h-4 w-4" /> Ask Mentor</Button>
-            <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('planner')}><Target className="h-4 w-4" /> Get Plan</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('planner')}><Target className="h-4 w-4" /> Get Plan</Button>
           </div>
         </CardContent>
       </Card>
@@ -288,7 +288,7 @@ export function ExamReadiness() {
   ];
 
   const accentBar = {
-    emerald: 'bg-emerald-500',
+    emerald: 'bg-blue-500',
     teal: 'bg-teal-500',
     amber: 'bg-amber-500',
     rose: 'bg-rose-500',
@@ -301,11 +301,11 @@ export function ExamReadiness() {
         title="Exam Readiness Index"
         subtitle={`Multi-dimensional readiness for ${examName}`}
         accent="amber"
-        right={<Badge className="bg-emerald-100 text-emerald-700 border-emerald-200"><Sparkles className="h-3 w-3" /> AI Powered</Badge>}
+        right={<Badge className="bg-blue-100 text-blue-700 border-blue-200"><Sparkles className="h-3 w-3" /> AI Powered</Badge>}
       />
 
       {/* Big readiness number */}
-      <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 overflow-hidden">
+      <Card className="border-blue-200 bg-gradient-to-br from-emerald-50 to-teal-50 overflow-hidden">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-6">
             <div className="flex-shrink-0 flex flex-col items-center">
@@ -319,11 +319,11 @@ export function ExamReadiness() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-bold text-emerald-700">{readiness}</span>
+                  <span className="text-3xl font-bold text-blue-700">{readiness}</span>
                   <span className="text-[10px] text-muted-foreground">/ 1000</span>
                 </div>
               </div>
-              <Badge className="mt-2 bg-emerald-100 text-emerald-700 border-emerald-200">
+              <Badge className="mt-2 bg-blue-100 text-blue-700 border-blue-200">
                 {readiness >= 850 ? 'Exam Ready' : readiness >= 700 ? 'On Track' : readiness >= 500 ? 'Needs Work' : 'At Risk'}
               </Badge>
             </div>
@@ -374,17 +374,17 @@ export function ExamReadiness() {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Target className="h-4 w-4 text-emerald-600" /> Path to 850+ Readiness
+            <Target className="h-4 w-4 text-blue-600" /> Path to 850+ Readiness
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {checklist.map((c, i) => (
             <div key={i} className={cn(
               'flex items-center gap-3 p-3 rounded-lg border',
-              c.done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-stone-200'
+              c.done ? 'bg-blue-50 border-blue-200' : 'bg-white border-stone-200'
             )}>
               {c.done ? (
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+                <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
               ) : (
                 <Circle className="h-5 w-5 text-stone-300 flex-shrink-0" />
               )}
@@ -394,13 +394,13 @@ export function ExamReadiness() {
         </CardContent>
       </Card>
 
-      <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+      <Card className="border-blue-200 bg-gradient-to-r from-emerald-50 to-teal-50">
         <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h4 className="font-semibold text-stone-900">Need a personalised readiness boost?</h4>
             <p className="text-sm text-muted-foreground mt-0.5">Ask the AI mentor for a tailored plan to cross 850+.</p>
           </div>
-          <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mentor')}>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('mentor')}>
             <Brain className="h-4 w-4" /> Ask AI Mentor
           </Button>
         </CardContent>
@@ -466,7 +466,7 @@ export function RankPredictor() {
         title="AI Rank Predictor"
         subtitle={`Predicted All-India Rank for ${examName}`}
         accent="amber"
-        right={<Badge className="bg-emerald-100 text-emerald-700 border-emerald-200"><Sparkles className="h-3 w-3" /> AI Powered</Badge>}
+        right={<Badge className="bg-blue-100 text-blue-700 border-blue-200"><Sparkles className="h-3 w-3" /> AI Powered</Badge>}
       />
 
       {/* Big predicted AIR */}
@@ -514,13 +514,13 @@ export function RankPredictor() {
                 <span className="text-muted-foreground">You: {m.you} · Top: {m.top}</span>
               </div>
               <div className="relative h-3 bg-stone-100 rounded-full overflow-hidden">
-                <div className="absolute h-full bg-emerald-500/40 rounded-full" style={{ width: `${(m.you / m.max) * 100}%` }} />
+                <div className="absolute h-full bg-blue-500/40 rounded-full" style={{ width: `${(m.you / m.max) * 100}%` }} />
                 <div className="absolute h-full bg-amber-500 rounded-full" style={{ width: `${(m.top / m.max) * 100}%`, opacity: 0.6 }} />
               </div>
             </div>
           ))}
           <div className="flex gap-3 text-xs text-muted-foreground mt-3">
-            <span className="flex items-center gap-1"><span className="h-2 w-2 bg-emerald-500/40 rounded" /> You</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 bg-blue-500/40 rounded" /> You</span>
             <span className="flex items-center gap-1"><span className="h-2 w-2 bg-amber-500 rounded" /> Top Ranker</span>
           </div>
         </CardContent>
@@ -530,7 +530,7 @@ export function RankPredictor() {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingUp className="h-4 w-4 text-emerald-600" /> Rank Trajectory (latest 5 attempts)
+            <TrendingUp className="h-4 w-4 text-blue-600" /> Rank Trajectory (latest 5 attempts)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -559,26 +559,26 @@ export function RankPredictor() {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Target className="h-4 w-4 text-emerald-600" /> Reach Your Target Rank
+            <Target className="h-4 w-4 text-blue-600" /> Reach Your Target Rank
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {actionPlan.map((p, i) => (
-            <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-100">
-              <div className="h-6 w-6 rounded-full bg-emerald-200 text-emerald-800 flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</div>
+            <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 border border-emerald-100">
+              <div className="h-6 w-6 rounded-full bg-emerald-200 text-blue-800 flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</div>
               <p className="text-sm text-stone-700">{p}</p>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-amber-50">
+      <Card className="border-blue-200 bg-gradient-to-r from-emerald-50 to-amber-50">
         <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h4 className="font-semibold text-stone-900">Want to fast-track your rank?</h4>
             <p className="text-sm text-muted-foreground mt-0.5">Get a mentor-led improvement plan.</p>
           </div>
-          <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mentor')}>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('mentor')}>
             <Brain className="h-4 w-4" /> Ask Mentor
           </Button>
         </CardContent>
@@ -631,7 +631,7 @@ export function SuccessSimulator() {
         title="AI Success Simulator"
         subtitle="Simulate how your daily study hours translate into score gains"
         accent="amber"
-        right={<Badge className="bg-emerald-100 text-emerald-700 border-emerald-200"><Sparkles className="h-3 w-3" /> AI Powered</Badge>}
+        right={<Badge className="bg-blue-100 text-blue-700 border-blue-200"><Sparkles className="h-3 w-3" /> AI Powered</Badge>}
       />
 
       {/* Hero with slider */}
@@ -689,7 +689,7 @@ export function SuccessSimulator() {
             Studying <strong>{hours} hours/day</strong> with consistent focus could lift your{' '}
             <strong>{examName}</strong> score from{' '}
             <strong>{Math.round(currentScorePct * totalMarks)}</strong> to{' '}
-            <strong className="text-emerald-700">{predictedScore}</strong> / {totalMarks} in 30 days.
+            <strong className="text-blue-700">{predictedScore}</strong> / {totalMarks} in 30 days.
           </p>
           <div className="mt-3 p-3 rounded-lg bg-amber-50 border border-amber-100 flex items-start gap-2">
             <Brain className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -702,7 +702,7 @@ export function SuccessSimulator() {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Activity className="h-4 w-4 text-emerald-600" /> Comparison: 2hr vs 5hr vs 8hr/day
+            <Activity className="h-4 w-4 text-blue-600" /> Comparison: 2hr vs 5hr vs 8hr/day
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -731,7 +731,7 @@ export function SuccessSimulator() {
         </CardContent>
       </Card>
 
-      <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-amber-50">
+      <Card className="border-blue-200 bg-gradient-to-r from-emerald-50 to-amber-50">
         <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h4 className="font-semibold text-stone-900">Ready to commit to {hours} hours/day?</h4>
@@ -739,7 +739,7 @@ export function SuccessSimulator() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setView('mentor')}><Brain className="h-4 w-4" /> Ask Mentor</Button>
-            <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('planner')}><Target className="h-4 w-4" /> Get Plan</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('planner')}><Target className="h-4 w-4" /> Get Plan</Button>
           </div>
         </CardContent>
       </Card>

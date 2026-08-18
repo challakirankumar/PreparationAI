@@ -29,12 +29,12 @@ const ACCENTS: Record<
   }
 > = {
   emerald: {
-    iconBg: 'bg-gradient-to-br from-emerald-500 to-teal-600',
+    iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-600',
     iconText: 'text-white',
-    blob: 'bg-emerald-100',
-    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    ring: 'group-hover:border-emerald-300',
-    cta: 'text-emerald-700 hover:text-emerald-800',
+    blob: 'bg-blue-100',
+    badge: 'bg-blue-50 text-blue-700 border-blue-200',
+    ring: 'group-hover:border-blue-300',
+    cta: 'text-blue-700 hover:text-blue-800',
   },
   amber: {
     iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',

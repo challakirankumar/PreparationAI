@@ -64,11 +64,11 @@ export function ExamResults({ attempt, onRetake, onExit }: Props) {
   return (
     <div className="space-y-6">
       {/* Score hero */}
-      <Card className="bg-hero-emerald border-emerald-200">
+      <Card className="bg-hero-emerald border-blue-200">
         <CardContent className="pt-6">
           <div className="flex flex-col lg:flex-row lg:items-center gap-4 justify-between">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-md flex-shrink-0">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
                 <Trophy className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -161,11 +161,11 @@ export function ExamResults({ attempt, onRetake, onExit }: Props) {
       </Tabs>
 
       {/* Footer CTA */}
-      <Card className="border-emerald-200 bg-emerald-50/40">
+      <Card className="border-blue-200 bg-blue-50/40">
         <CardContent className="pt-6 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
             <h3 className="font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-emerald-600" /> Want deeper AI analysis?
+              <Sparkles className="h-4 w-4 text-blue-600" /> Want deeper AI analysis?
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
               Unlock richer projections with your digital twin, weakness radar, or full analytics dashboard.
@@ -200,7 +200,7 @@ function SubjectsTab({ attempt }: { attempt: ExamAttempt }) {
   const weaknesses = attempt.weakTopics.slice(0, 6);
 
   function colorFor(pct: number): { bar: string; text: string; bg: string } {
-    if (pct >= 75) return { bar: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50' };
+    if (pct >= 75) return { bar: 'bg-blue-500', text: 'text-blue-700', bg: 'bg-blue-50' };
     if (pct >= 50) return { bar: 'bg-amber-500', text: 'text-amber-700', bg: 'bg-amber-50' };
     return { bar: 'bg-rose-500', text: 'text-rose-700', bg: 'bg-rose-50' };
   }
@@ -210,7 +210,7 @@ function SubjectsTab({ attempt }: { attempt: ExamAttempt }) {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-emerald-600" /> Subject-wise performance
+            <BookOpen className="h-4 w-4 text-blue-600" /> Subject-wise performance
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -244,9 +244,9 @@ function SubjectsTab({ attempt }: { attempt: ExamAttempt }) {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-emerald-200 bg-emerald-50/40">
+        <Card className="border-blue-200 bg-blue-50/40">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2 text-emerald-800">
+            <CardTitle className="text-base flex items-center gap-2 text-blue-800">
               <CheckCircle2 className="h-4 w-4" /> Strengths
             </CardTitle>
             <CardDescription>Topics you aced (accuracy ≥ 75%)</CardDescription>
@@ -255,7 +255,7 @@ function SubjectsTab({ attempt }: { attempt: ExamAttempt }) {
             {strengths.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {strengths.map((t) => (
-                  <Badge key={t} className="bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <Badge key={t} className="bg-blue-100 text-blue-800 border border-blue-200">
                     <CheckCircle2 className="h-3 w-3" /> {t}
                   </Badge>
                 ))}
@@ -296,8 +296,8 @@ function SubjectsTab({ attempt }: { attempt: ExamAttempt }) {
 function TopicsTab({ attempt }: { attempt: ExamAttempt }) {
   const topics = attempt.topicScores;
   function colorFor(acc: number): string {
-    if (acc >= 75) return 'bg-emerald-500 text-white';
-    if (acc >= 60) return 'bg-emerald-300 text-emerald-900';
+    if (acc >= 75) return 'bg-blue-500 text-white';
+    if (acc >= 60) return 'bg-blue-300 text-blue-900';
     if (acc >= 45) return 'bg-amber-300 text-amber-900';
     if (acc >= 30) return 'bg-amber-500 text-white';
     return 'bg-rose-500 text-white';
@@ -306,7 +306,7 @@ function TopicsTab({ attempt }: { attempt: ExamAttempt }) {
     <Card className="border-stone-200">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Flame className="h-4 w-4 text-emerald-600" /> Topic-wise accuracy heatmap
+          <Flame className="h-4 w-4 text-blue-600" /> Topic-wise accuracy heatmap
         </CardTitle>
         <CardDescription>Color-coded by accuracy — hover for details</CardDescription>
       </CardHeader>
@@ -336,8 +336,8 @@ function TopicsTab({ attempt }: { attempt: ExamAttempt }) {
           <span className="h-2.5 w-6 bg-rose-500 rounded" />
           <span className="h-2.5 w-6 bg-amber-500 rounded" />
           <span className="h-2.5 w-6 bg-amber-300 rounded" />
-          <span className="h-2.5 w-6 bg-emerald-300 rounded" />
-          <span className="h-2.5 w-6 bg-emerald-500 rounded" />
+          <span className="h-2.5 w-6 bg-blue-300 rounded" />
+          <span className="h-2.5 w-6 bg-blue-500 rounded" />
           <span>High</span>
         </div>
       </CardContent>
@@ -378,7 +378,7 @@ function BehaviorPanel({ attempt }: { attempt: ExamAttempt }) {
 
   const paceStyle =
     b.paceTrend === 'speeding-up'
-      ? { bg: 'bg-emerald-50 border-emerald-200 text-emerald-800', icon: TrendingUp, label: 'Speeding up', desc: 'You picked up pace through the paper — momentum built nicely. Watch for rushed answers near the end.' }
+      ? { bg: 'bg-blue-50 border-blue-200 text-blue-800', icon: TrendingUp, label: 'Speeding up', desc: 'You picked up pace through the paper — momentum built nicely. Watch for rushed answers near the end.' }
       : b.paceTrend === 'slowing-down'
         ? { bg: 'bg-amber-50 border-amber-200 text-amber-800', icon: AlertTriangle, label: 'Slowing down', desc: 'Fatigue may have set in during the second half. Consider endurance drills and shorter focused sessions.' }
         : { bg: 'bg-teal-50 border-teal-200 text-teal-800', icon: Activity, label: 'Steady', desc: 'You maintained a consistent pace throughout. Strong exam discipline.' };
@@ -413,7 +413,7 @@ function BehaviorPanel({ attempt }: { attempt: ExamAttempt }) {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-emerald-600" /> Speed Progression (deciles)
+            <BarChart3 className="h-4 w-4 text-blue-600" /> Speed Progression (deciles)
           </CardTitle>
           <CardDescription>
             Average seconds per question, split into 10 equal buckets across the paper. Green = on-pace, Amber = rushing, Rose = fatigue.
@@ -429,7 +429,7 @@ function BehaviorPanel({ attempt }: { attempt: ExamAttempt }) {
                   ? 'bg-amber-400'
                   : delta > overallAvg * 0.3
                     ? 'bg-rose-400'
-                    : 'bg-emerald-500';
+                    : 'bg-blue-500';
               return (
                 <div key={d.decile} className="flex-1 flex flex-col items-center gap-1">
                   <span className="text-[10px] text-muted-foreground">{d.avgSec}s</span>
@@ -448,7 +448,7 @@ function BehaviorPanel({ attempt }: { attempt: ExamAttempt }) {
           <div className="flex items-center justify-between text-xs text-muted-foreground mt-3 pt-2 border-t border-stone-100">
             <span>Average: <strong className="text-stone-700">{overallAvg}s/Q</strong></span>
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1"><span className="h-2 w-3 bg-emerald-500 rounded-sm" /> On-pace</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-3 bg-blue-500 rounded-sm" /> On-pace</span>
               <span className="flex items-center gap-1"><span className="h-2 w-3 bg-amber-400 rounded-sm" /> Rushing</span>
               <span className="flex items-center gap-1"><span className="h-2 w-3 bg-rose-400 rounded-sm" /> Fatigue</span>
             </div>
@@ -461,7 +461,7 @@ function BehaviorPanel({ attempt }: { attempt: ExamAttempt }) {
         <Card className="border-stone-200">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-4 w-4 text-emerald-600" /> Time per subject
+              <Clock className="h-4 w-4 text-blue-600" /> Time per subject
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -487,14 +487,14 @@ function BehaviorPanel({ attempt }: { attempt: ExamAttempt }) {
         <Card className="border-stone-200">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Gauge className="h-4 w-4 text-emerald-600" /> Difficulty vs Time
+              <Gauge className="h-4 w-4 text-blue-600" /> Difficulty vs Time
             </CardTitle>
             <CardDescription>Extra seconds on hard questions vs easy ones</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-end gap-3">
               <div className="flex-1">
-                <p className="text-4xl font-bold text-emerald-700">
+                <p className="text-4xl font-bold text-blue-700">
                   +{b.difficultyTimeGap > 0 ? fmtDuration(b.difficultyTimeGap) : '0s'}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -556,14 +556,14 @@ function ComparisonCard({ vs, attempt }: { vs: NonNullable<BehaviorAnalysis['vsP
                 c.neutral
                   ? 'bg-stone-50 border-stone-200'
                   : c.good
-                    ? 'bg-emerald-50 border-emerald-200'
+                    ? 'bg-blue-50 border-blue-200'
                     : 'bg-rose-50 border-rose-200',
               )}
             >
               <p className="text-xs text-muted-foreground">{c.label}</p>
               <p className={cn(
                 'text-xl font-bold mt-1',
-                c.neutral ? 'text-stone-700' : c.good ? 'text-emerald-700' : 'text-rose-700',
+                c.neutral ? 'text-stone-700' : c.good ? 'text-blue-700' : 'text-rose-700',
               )}>
                 {c.value > 0 ? '+' : ''}{c.value}{c.suffix}
               </p>
@@ -617,20 +617,20 @@ function CoachingCard({ b, attempt }: { b: BehaviorAnalysis; attempt: ExamAttemp
   const isExcellent = recs.length === 0;
 
   return (
-    <Card className="border-emerald-200 bg-emerald-50/30">
+    <Card className="border-blue-200 bg-blue-50/30">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Lightbulb className="h-4 w-4 text-emerald-600" /> AI Behaviour Coaching
+          <Lightbulb className="h-4 w-4 text-blue-600" /> AI Behaviour Coaching
         </CardTitle>
         <CardDescription>Personalised recommendations based on your exam behaviour</CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         {isExcellent ? (
-          <div className="flex items-start gap-3 p-3 rounded-md bg-emerald-100 border border-emerald-300">
-            <CheckCircle2 className="h-5 w-5 text-emerald-700 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-3 rounded-md bg-blue-100 border border-blue-300">
+            <CheckCircle2 className="h-5 w-5 text-blue-700 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-emerald-900">Excellent exam discipline!</p>
-              <p className="text-sm text-emerald-800 mt-1">
+              <p className="font-semibold text-blue-900">Excellent exam discipline!</p>
+              <p className="text-sm text-blue-800 mt-1">
                 You kept a steady pace, avoided excessive idle time, and didn&apos;t rush. Keep this rhythm — you&apos;re in great shape for the real exam.
               </p>
             </div>
@@ -645,14 +645,14 @@ function CoachingCard({ b, attempt }: { b: BehaviorAnalysis; attempt: ExamAttemp
                   ? 'bg-amber-50 border-amber-200'
                   : r.tone === 'tip'
                     ? 'bg-teal-50 border-teal-200'
-                    : 'bg-emerald-50 border-emerald-200',
+                    : 'bg-blue-50 border-blue-200',
               )}
             >
               {r.tone === 'warn'
                 ? <AlertTriangle className="h-5 w-5 text-amber-700 flex-shrink-0 mt-0.5" />
                 : r.tone === 'tip'
                   ? <Lightbulb className="h-5 w-5 text-teal-700 flex-shrink-0 mt-0.5" />
-                  : <CheckCircle2 className="h-5 w-5 text-emerald-700 flex-shrink-0 mt-0.5" />}
+                  : <CheckCircle2 className="h-5 w-5 text-blue-700 flex-shrink-0 mt-0.5" />}
               <div>
                 <p className="font-semibold text-sm text-stone-900">{r.title}</p>
                 <p className="text-sm text-stone-700 mt-0.5 leading-relaxed">{r.body}</p>
@@ -693,12 +693,12 @@ function InsightsTab({ attempt }: { attempt: ExamAttempt }) {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Gauge className="h-4 w-4 text-emerald-600" /> Confidence distribution
+            <Gauge className="h-4 w-4 text-blue-600" /> Confidence distribution
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {[
-            { label: 'High confidence', count: highConf, color: 'bg-emerald-500', text: 'text-emerald-700' },
+            { label: 'High confidence', count: highConf, color: 'bg-blue-500', text: 'text-blue-700' },
             { label: 'Medium confidence', count: medConf, color: 'bg-amber-400', text: 'text-amber-700' },
             { label: 'Low confidence', count: lowConf, color: 'bg-rose-400', text: 'text-rose-700' },
           ].map((c) => (
@@ -719,7 +719,7 @@ function InsightsTab({ attempt }: { attempt: ExamAttempt }) {
       <Card className="border-stone-200">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Clock className="h-4 w-4 text-emerald-600" /> Slowest questions (time sinks)
+            <Clock className="h-4 w-4 text-blue-600" /> Slowest questions (time sinks)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -745,22 +745,22 @@ function InsightsTab({ attempt }: { attempt: ExamAttempt }) {
       </Card>
 
       {/* AI improvement plan */}
-      <Card className="border-emerald-200 bg-emerald-50/40">
+      <Card className="border-blue-200 bg-blue-50/40">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Lightbulb className="h-4 w-4 text-emerald-600" /> AI Improvement Plan
+            <Lightbulb className="h-4 w-4 text-blue-600" /> AI Improvement Plan
           </CardTitle>
           <CardDescription>Targeted next steps based on this attempt</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-md bg-white border border-emerald-200 p-3">
+            <div className="rounded-md bg-white border border-blue-200 p-3">
               <p className="text-xs text-muted-foreground">Recommended study hours / week</p>
-              <p className="text-2xl font-bold text-emerald-700">{studyHours}h</p>
+              <p className="text-2xl font-bold text-blue-700">{studyHours}h</p>
             </div>
-            <div className="rounded-md bg-white border border-emerald-200 p-3">
+            <div className="rounded-md bg-white border border-blue-200 p-3">
               <p className="text-xs text-muted-foreground">Projected next-attempt percentile</p>
-              <p className="text-2xl font-bold text-emerald-700">{projected}</p>
+              <p className="text-2xl font-bold text-blue-700">{projected}</p>
             </div>
           </div>
 
@@ -770,7 +770,7 @@ function InsightsTab({ attempt }: { attempt: ExamAttempt }) {
               {attempt.weakTopics.slice(0, 5).map((t, i) => (
                 <div key={t} className="flex items-center justify-between gap-2 text-sm border border-stone-200 rounded-md px-3 py-1.5 bg-white">
                   <span className="flex items-center gap-2">
-                    <span className="h-5 w-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">D{i + 1}</span>
+                    <span className="h-5 w-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">D{i + 1}</span>
                     <span className="font-medium">{t}</span>
                   </span>
                   <span className="text-xs text-muted-foreground">{i + 1}h study + practice set</span>

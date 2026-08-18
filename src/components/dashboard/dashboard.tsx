@@ -358,7 +358,7 @@ function ScoreTrendCard({ scores }: { scores: { label: string; value: number }[]
     return (
       <Card className="p-5 border-stone-200 h-full">
         <p className="text-sm font-semibold text-stone-900 mb-2 flex items-center gap-1.5">
-          <TrendingUp className="h-4 w-4 text-emerald-600" /> Score trend
+          <TrendingUp className="h-4 w-4 text-blue-600" /> Score trend
         </p>
         <p className="text-xs text-muted-foreground">No attempts yet. Take your first mock to see your trend.</p>
       </Card>
@@ -382,9 +382,9 @@ function ScoreTrendCard({ scores }: { scores: { label: string; value: number }[]
     <Card className="p-5 border-stone-200 h-full">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold text-stone-900 flex items-center gap-1.5">
-          <TrendingUp className="h-4 w-4 text-emerald-600" /> Score trend
+          <TrendingUp className="h-4 w-4 text-blue-600" /> Score trend
         </p>
-        <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700">
+        <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
           <ArrowUpRight className="h-3 w-3" /> {scores.length} attempts
         </Badge>
       </div>
@@ -454,7 +454,7 @@ export function Dashboard() {
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-2">
-                <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-200">
+                <Badge className="bg-blue-100 text-blue-700 border border-blue-200">
                   <Target className="h-3 w-3" /> {goals.length} target exam{goals.length === 1 ? '' : 's'}
                 </Badge>
                 <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700">
@@ -490,7 +490,7 @@ export function Dashboard() {
                         'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border',
                         isPrimary
                           ? 'bg-amber-50 border-amber-300 text-amber-700'
-                          : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                          : 'bg-blue-50 border-blue-200 text-blue-700'
                       )}
                     >
                       {isPrimary && <Star className="h-3 w-3 fill-amber-500 text-amber-500" />}
@@ -500,7 +500,7 @@ export function Dashboard() {
                 })}
                 <button
                   onClick={() => setManageOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border border-stone-300 text-stone-600 hover:border-emerald-300 hover:text-emerald-700 transition"
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border border-stone-300 text-stone-600 hover:border-blue-300 hover:text-blue-700 transition"
                 >
                   <Settings2 className="h-3 w-3" /> Manage
                 </button>
@@ -508,10 +508,10 @@ export function Dashboard() {
 
               {/* Action buttons */}
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button onClick={() => setView('mock-exam')} className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={() => setView('mock-exam')} className="bg-blue-600 hover:bg-blue-700">
                   <PlayCircle className="h-4 w-4" /> Start Mock
                 </Button>
-                <Button variant="outline" onClick={() => setView('mentor')} className="border-emerald-300">
+                <Button variant="outline" onClick={() => setView('mentor')} className="border-blue-300">
                   <MessageSquare className="h-4 w-4" /> Ask Mentor
                 </Button>
                 <Button variant="ghost" onClick={() => setManageOpen(true)}>
@@ -554,7 +554,7 @@ export function Dashboard() {
         <div className="flex items-center justify-between mb-3">
           <div>
             <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-emerald-600" /> AI Agents
+              <Sparkles className="h-5 w-5 text-blue-600" /> AI Agents
             </h2>
             <p className="text-sm text-muted-foreground">Eleven specialised agents, one workspace.</p>
           </div>
@@ -612,7 +612,7 @@ export function Dashboard() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 text-xs text-emerald-700 hover:text-emerald-800"
+                      className="h-7 text-xs text-blue-700 hover:text-blue-800"
                       onClick={() => setView('weakness-radar')}
                     >
                       Fix <ChevronRight className="h-3 w-3" />
@@ -627,7 +627,7 @@ export function Dashboard() {
               <p className="text-sm text-muted-foreground">
                 Take a mock exam to get personalised weak-topic recommendations.
               </p>
-              <Button size="sm" className="mt-3 bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mock-exam')}>
+              <Button size="sm" className="mt-3 bg-blue-600 hover:bg-blue-700" onClick={() => setView('mock-exam')}>
                 <PlayCircle className="h-3.5 w-3.5" /> Take first mock
               </Button>
             </div>
@@ -641,15 +641,15 @@ export function Dashboard() {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setView('mock-exam')}
-              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-emerald-300 hover:bg-emerald-50/30 transition card-lift"
+              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
             >
-              <FileText className="h-5 w-5 text-emerald-600 mb-1.5" />
+              <FileText className="h-5 w-5 text-blue-600 mb-1.5" />
               <p className="text-sm font-semibold text-stone-900">Take a mock</p>
               <p className="text-[11px] text-muted-foreground">Full-length, AI-generated</p>
             </button>
             <button
               onClick={() => setView('mentor')}
-              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-emerald-300 hover:bg-emerald-50/30 transition card-lift"
+              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
             >
               <MessageSquare className="h-5 w-5 text-teal-600 mb-1.5" />
               <p className="text-sm font-semibold text-stone-900">Ask mentor</p>
@@ -657,7 +657,7 @@ export function Dashboard() {
             </button>
             <button
               onClick={() => setView('weakness-radar')}
-              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-emerald-300 hover:bg-emerald-50/30 transition card-lift"
+              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
             >
               <Radar className="h-5 w-5 text-rose-600 mb-1.5" />
               <p className="text-sm font-semibold text-stone-900">Fix weaknesses</p>
@@ -665,7 +665,7 @@ export function Dashboard() {
             </button>
             <button
               onClick={() => setView('planner')}
-              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-emerald-300 hover:bg-emerald-50/30 transition card-lift"
+              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
             >
               <CalendarDays className="h-5 w-5 text-amber-600 mb-1.5" />
               <p className="text-sm font-semibold text-stone-900">Plan today</p>

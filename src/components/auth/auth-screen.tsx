@@ -79,8 +79,8 @@ function ExamToggle({
       className={cn(
         'group relative text-left rounded-lg border p-3 transition-all palette-btn',
         selected
-          ? 'border-emerald-400 bg-emerald-50/70 ring-1 ring-emerald-300'
-          : 'border-stone-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/30'
+          ? 'border-blue-400 bg-blue-50/70 ring-1 ring-blue-300'
+          : 'border-stone-200 bg-white hover:border-blue-300 hover:bg-blue-50/30'
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -96,7 +96,7 @@ function ExamToggle({
         <span
           className={cn(
             'flex h-5 w-5 items-center justify-center rounded-md border flex-shrink-0 transition',
-            selected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-stone-300 bg-white text-transparent'
+            selected ? 'bg-blue-600 border-emerald-600 text-white' : 'border-stone-300 bg-white text-transparent'
           )}
         >
           <Check className="h-3 w-3" />
@@ -205,17 +205,15 @@ export function AuthScreen() {
         <div className="hidden lg:flex flex-col justify-between p-10 xl:p-14">
           <div>
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
-                <Brain className="h-6 w-6 text-white" />
-              </div>
+              <img src="/logo.jpeg" alt="PreparationAI" className="h-14 w-14 rounded-xl object-cover shadow-md" />
               <div>
-                <p className="text-xl font-bold tracking-tight">Preparation AI</p>
-                <p className="text-xs text-muted-foreground">AI Educational Operating System</p>
+                <p className="text-xl font-bold tracking-tight">Preparation<span className="text-blue-600">AI</span></p>
+                <p className="text-xs text-muted-foreground">EDUCATIONAL OS</p>
               </div>
             </div>
 
-            <h1 className="mt-10 text-4xl xl:text-5xl font-bold tracking-tight leading-tight">
-              Crack any exam with <span className="text-gradient-emerald">11 specialised AI agents</span> working for you 24/7.
+            <h1 className="mt-10 text-4xl xl:text-5xl font-bold tracking-tight leading-[1.1]">
+              Your path to <span className="text-gradient-emerald">exam mastery</span> starts here.
             </h1>
             <p className="mt-4 text-base text-muted-foreground max-w-xl">
               Real exam patterns, AI-generated mock papers, syllabus-weighted questions, behaviour analytics, and YouTube fixes for every weak topic — all in one workspace.
@@ -226,7 +224,7 @@ export function AuthScreen() {
                 const Icon = f.icon;
                 return (
                   <div key={f.title} className="rounded-xl border border-stone-200 bg-white p-4 card-lift">
-                    <div className="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
+                    <div className="h-9 w-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
                       <Icon className="h-4 w-4" />
                     </div>
                     <p className="font-semibold text-sm text-stone-900">{f.title}</p>
@@ -266,12 +264,10 @@ export function AuthScreen() {
           <Card className="w-full max-w-md p-6 sm:p-8 border-stone-200 shadow-xl">
             {/* Mobile brand header */}
             <div className="lg:hidden flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow">
-                <Brain className="h-5 w-5 text-white" />
-              </div>
+              <img src="/logo.jpeg" alt="PreparationAI" className="h-10 w-10 rounded-xl object-contain shadow" />
               <div>
-                <p className="font-bold">Preparation AI</p>
-                <p className="text-[11px] text-muted-foreground">AI Educational Operating System</p>
+                <p className="font-bold">Preparation<span className="text-blue-600">AI</span></p>
+                <p className="text-[11px] text-muted-foreground">EDUCATIONAL OS</p>
               </div>
             </div>
 
@@ -435,12 +431,12 @@ function AuthFormFields({
                 className={cn(
                   'rounded-lg border p-2.5 text-left transition palette-btn',
                   active
-                    ? 'border-emerald-400 bg-emerald-50/70 ring-1 ring-emerald-300'
-                    : 'border-stone-200 bg-white hover:border-emerald-300'
+                    ? 'border-blue-400 bg-blue-50/70 ring-1 ring-blue-300'
+                    : 'border-stone-200 bg-white hover:border-blue-300'
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <Icon className={cn('h-4 w-4', active ? 'text-emerald-600' : 'text-stone-500')} />
+                  <Icon className={cn('h-4 w-4', active ? 'text-blue-600' : 'text-stone-500')} />
                   <span className="text-sm font-medium text-stone-900">{u.label}</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-0.5">{u.description}</p>
@@ -454,12 +450,12 @@ function AuthFormFields({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="flex items-center gap-1.5">
-            <Target className="h-3.5 w-3.5 text-emerald-600" /> Target exams
+            <Target className="h-3.5 w-3.5 text-blue-600" /> Target exams
           </Label>
           <Badge
             variant="outline"
             className={cn(
-              'border-emerald-300 text-emerald-700 bg-emerald-50',
+              'border-blue-300 text-blue-700 bg-blue-50',
               selectedExams.length === 0 && 'border-rose-300 text-rose-700 bg-rose-50'
             )}
           >
@@ -490,7 +486,7 @@ function AuthFormFields({
                     'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border',
                     idx === 0
                       ? 'bg-amber-50 border-amber-200 text-amber-700'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                      : 'bg-blue-50 border-blue-200 text-blue-700'
                   )}
                 >
                   {idx === 0 && <Star className="h-3 w-3" />}
@@ -515,7 +511,7 @@ function AuthFormFields({
         )}
       </div>
 
-      <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">
+      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
         {tab === 'signup' ? 'Create account & start' : 'Log in'}
         <Sparkles className="h-4 w-4" />
       </Button>

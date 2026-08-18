@@ -32,12 +32,12 @@ const TABS: { id: StudyPlan['type']; label: string }[] = [
 ];
 
 const SUBJECT_COLORS: Record<string, string> = {
-  Physics: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  Physics: 'bg-blue-100 text-blue-700 border-blue-200',
   Chemistry: 'bg-teal-100 text-teal-700 border-teal-200',
   Mathematics: 'bg-amber-100 text-amber-700 border-amber-200',
   Math: 'bg-amber-100 text-amber-700 border-amber-200',
   Biology: 'bg-rose-100 text-rose-700 border-rose-200',
-  Botany: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  Botany: 'bg-blue-100 text-blue-700 border-blue-200',
   Zoology: 'bg-rose-100 text-rose-700 border-rose-200',
   English: 'bg-stone-100 text-stone-700 border-stone-200',
   Mock: 'bg-rose-100 text-rose-700 border-rose-200',
@@ -156,8 +156,8 @@ export function StudyPlanner() {
             className={cn(
               'px-3 py-2 rounded-lg text-xs sm:text-sm font-medium border transition text-center',
               activeTab === t.id
-                ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                : 'bg-white border-stone-200 text-stone-600 hover:border-emerald-300 hover:text-emerald-700'
+                ? 'bg-blue-600 border-emerald-600 text-white shadow-sm'
+                : 'bg-white border-stone-200 text-stone-600 hover:border-blue-300 hover:text-blue-700'
             )}
           >
             {t.label}
@@ -174,7 +174,7 @@ export function StudyPlanner() {
                 <CardTitle className="flex items-center gap-2 text-lg">
                   {currentPlan.title}
                   {currentPlan.aiGenerated && (
-                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">
                       <Sparkles className="h-3 w-3" /> AI-generated
                     </Badge>
                   )}
@@ -199,11 +199,11 @@ export function StudyPlanner() {
                       onClick={() => toggleBlock(id)}
                       className={cn(
                         'w-full flex items-center gap-3 p-3 rounded-lg border transition text-left',
-                        done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-stone-200 hover:border-emerald-300'
+                        done ? 'bg-blue-50 border-blue-200' : 'bg-white border-stone-200 hover:border-blue-300'
                       )}
                     >
                       {done ? (
-                        <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+                        <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
                       ) : (
                         <Circle className="h-5 w-5 text-stone-300 flex-shrink-0" />
                       )}
@@ -232,11 +232,11 @@ export function StudyPlanner() {
                     onClick={() => toggleBlock(id)}
                     className={cn(
                       'w-full flex items-start gap-3 p-3 rounded-lg border transition text-left',
-                      done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-stone-200 hover:border-emerald-300'
+                      done ? 'bg-blue-50 border-blue-200' : 'bg-white border-stone-200 hover:border-blue-300'
                     )}
                   >
                     {done ? (
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     ) : (
                       <Circle className="h-5 w-5 text-stone-300 flex-shrink-0 mt-0.5" />
                     )}
@@ -267,10 +267,10 @@ export function StudyPlanner() {
       )}
 
       {/* CTA card */}
-      <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+      <Card className="border-blue-200 bg-gradient-to-r from-emerald-50 to-teal-50">
         <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -280,7 +280,7 @@ export function StudyPlanner() {
               </p>
             </div>
           </div>
-          <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mentor')}>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('mentor')}>
             <Brain className="h-4 w-4" /> Ask AI Mentor
           </Button>
         </CardContent>
@@ -290,7 +290,7 @@ export function StudyPlanner() {
       <div className="grid sm:grid-cols-3 gap-3">
         <Card className="border-stone-200 p-4">
           <SectionTitle icon={BookOpen} title="Completed" />
-          <p className="text-2xl font-bold text-emerald-600">
+          <p className="text-2xl font-bold text-blue-600">
             {doneBlocks.size}
             <span className="text-sm font-normal text-muted-foreground"> / {currentPlan?.blocks.length || 0}</span>
           </p>

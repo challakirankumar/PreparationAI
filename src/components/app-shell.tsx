@@ -34,7 +34,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { useStore } from '@/lib/store';
+import { useStore, userExamGoals } from '@/lib/store';
 import { getPattern } from '@/lib/exams/patterns';
 import type { View } from '@/lib/types';
 
@@ -125,8 +125,8 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                   className={cn(
                     'w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-all palette-btn',
                     active
-                      ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-200'
-                      : 'text-stone-600 hover:bg-emerald-50 hover:text-emerald-700'
+                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
+                      : 'text-stone-600 hover:bg-blue-50 hover:text-blue-700'
                   )}
                 >
                   <Icon className={cn('h-4 w-4 flex-shrink-0', active ? 'text-white' : 'text-stone-500')} />
@@ -136,7 +136,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                       variant="outline"
                       className={cn(
                         'h-5 px-1.5 text-[10px] border-none',
-                        active ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'
+                        active ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'
                       )}
                     >
                       {attemptCount}
@@ -161,7 +161,7 @@ function TargetExamCard() {
   return (
     <div className="rounded-xl border border-stone-200 bg-gradient-to-br from-emerald-50 to-amber-50 p-3">
       <div className="flex items-center gap-2 mb-2">
-        <div className="h-7 w-7 rounded-lg bg-emerald-600 flex items-center justify-center">
+        <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center">
           <Target className="h-3.5 w-3.5 text-white" />
         </div>
         <div className="min-w-0 flex-1">
@@ -171,7 +171,7 @@ function TargetExamCard() {
       </div>
       <div className="flex items-center justify-between">
         <div>
-          <p className={cn('text-2xl font-bold tabular-nums', isNear ? 'text-rose-600' : 'text-emerald-700')}>
+          <p className={cn('text-2xl font-bold tabular-nums', isNear ? 'text-rose-600' : 'text-blue-700')}>
             {days}
           </p>
           <p className="text-[10px] text-muted-foreground">days to go</p>
@@ -193,13 +193,10 @@ function TargetExamCard() {
 
 function SidebarHeader() {
   return (
-    <div className="flex items-center gap-2.5 px-4 h-16 border-b border-stone-200 flex-shrink-0">
-      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-200">
-        <Brain className="h-5 w-5 text-white" />
-      </div>
+    <div className="flex items-center gap-3 px-4 h-16 border-b border-stone-200 flex-shrink-0">
+      <img src="/logo.jpeg" alt="PreparationAI" className="h-11 w-11 rounded-lg object-contain flex-shrink-0" />
       <div className="min-w-0">
-        <p className="font-bold text-sm leading-tight">Preparation AI</p>
-        <p className="text-[10px] text-muted-foreground leading-tight">AI Edu OS</p>
+        <p className="font-bold text-base leading-tight">Preparation<span className="text-blue-600">AI</span></p>
       </div>
     </div>
   );
@@ -213,7 +210,7 @@ function SidebarFooter() {
     <div className="border-t border-stone-200 p-3 flex-shrink-0">
       <div className="flex items-center gap-2 mb-2">
         <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-xs font-semibold">
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white text-xs font-semibold">
             {initials(user.name)}
           </AvatarFallback>
         </Avatar>
@@ -240,11 +237,7 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const setView = useStore((s) => s.setView);
   if (!user) return null;
 
-  const pattern = getPattern(user.examGoal);
-  const days = daysToExam(user.examDate);
-  const firstName = user.name.split(' ')[0] ?? 'aspirant';
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const goals = userExamGoals(user);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-stone-200 bg-white/80 backdrop-blur px-4 sm:px-6">
@@ -258,23 +251,12 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         <Menu className="h-5 w-5" />
       </Button>
 
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-muted-foreground hidden sm:block">{greeting},</p>
-        <p className="font-semibold text-stone-900 truncate text-sm sm:text-base">
-          {firstName} <span className="hidden sm:inline text-muted-foreground font-normal">·</span>{' '}
-          <span className="hidden sm:inline text-muted-foreground font-normal">{pattern?.name ?? user.examGoal}</span>
-        </p>
+      {/* Logo on mobile */}
+      <div className="lg:hidden flex items-center gap-2">
+        <img src="/logo.jpeg" alt="PreparationAI" className="h-8 w-8 rounded-lg object-contain" />
       </div>
 
-      <Button
-        variant={days <= 30 ? 'destructive' : 'outline'}
-        size="sm"
-        className="hidden sm:inline-flex"
-        onClick={() => setView('planner')}
-      >
-        <Calendar className="h-3.5 w-3.5" />
-        {days} days to {pattern?.name ?? 'exam'}
-      </Button>
+      <div className="flex-1" />
 
       <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
         <Bell className="h-4 w-4" />
@@ -302,9 +284,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-72 flex-col bg-white border-r border-stone-200 z-40">
         <SidebarHeader />
         <NavList />
-        <div className="px-3 pb-3">
-          <TargetExamCard />
-        </div>
         <SidebarFooter />
       </aside>
 
@@ -314,9 +293,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <SidebarHeader />
           <NavList onNavigate={() => setMobileOpen(false)} />
-          <div className="px-3 pb-3">
-            <TargetExamCard />
-          </div>
           <SidebarFooter />
         </SheetContent>
       </Sheet>

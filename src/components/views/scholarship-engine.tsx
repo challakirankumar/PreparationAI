@@ -86,7 +86,7 @@ export function ScholarshipEngine() {
         subtitle="AI-matched scholarships based on your profile and exam goal"
         accent="amber"
         right={
-          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+          <Badge className="bg-blue-100 text-blue-700 border-blue-200">
             {matched.length} matched
           </Badge>
         }
@@ -139,8 +139,8 @@ export function ScholarshipEngine() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {matched.map((s) => {
-            const scoreColor = s.score >= 80 ? 'text-emerald-600' : s.score >= 60 ? 'text-amber-600' : 'text-stone-600';
-            const barColor = s.score >= 80 ? 'bg-emerald-500' : s.score >= 60 ? 'bg-amber-500' : 'bg-stone-400';
+            const scoreColor = s.score >= 80 ? 'text-blue-600' : s.score >= 60 ? 'text-amber-600' : 'text-stone-600';
+            const barColor = s.score >= 80 ? 'bg-blue-500' : s.score >= 60 ? 'bg-amber-500' : 'bg-stone-400';
             return (
               <Card key={s.id} className="border-stone-200 hover:shadow-md transition overflow-hidden flex flex-col">
                 <CardContent className="p-5 flex flex-col flex-1">
@@ -164,8 +164,8 @@ export function ScholarshipEngine() {
                     <Building2 className="h-3 w-3" /> {s.provider}
                   </p>
 
-                  <div className="bg-emerald-50 rounded-lg p-2 mt-3">
-                    <p className="text-[10px] text-emerald-700 font-medium uppercase">Amount</p>
+                  <div className="bg-blue-50 rounded-lg p-2 mt-3">
+                    <p className="text-[10px] text-blue-700 font-medium uppercase">Amount</p>
                     <p className="text-xs text-stone-800 mt-0.5 line-clamp-2">{s.amount}</p>
                   </div>
 
@@ -188,7 +188,7 @@ export function ScholarshipEngine() {
                     </div>
                     <Button
                       size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700"
+                      className="bg-blue-600 hover:bg-blue-700"
                       asChild
                     >
                       <a href={s.link} target="_blank" rel="noopener noreferrer">

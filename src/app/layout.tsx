@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "11 specialised AI agents for exam prep, university admissions, scholarships and career coaching. Real exam patterns, AI-generated mock papers, syllabus weightage, and YouTube fixes for every weak topic.",
   keywords: ["JEE", "NEET", "GRE", "GMAT", "GATE", "UPSC", "SAT", "IELTS", "TOEFL", "CAT", "AI mock exam", "exam coach", "study abroad", "scholarships"],
   authors: [{ name: "Preparation AI" }],
-  icons: { icon: "/logo.svg" },
+  icons: { icon: "/logo.jpeg" },
   openGraph: {
     title: "Preparation AI — AI Educational Operating System",
     description: "Crack any exam with 11 specialised AI agents working for you 24/7.",

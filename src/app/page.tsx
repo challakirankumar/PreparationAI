@@ -77,13 +77,8 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center animate-pulse">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2a10 10 0 1 0 10 10" />
-              <path d="M12 2v10l7 7" />
-            </svg>
-          </div>
-          <p className="text-sm text-muted-foreground">Loading Preparation AI...</p>
+          <img src="/logo.jpeg" alt="PreparationAI" className="h-14 w-14 rounded-xl object-cover animate-pulse" />
+          <p className="text-sm text-muted-foreground">Loading PreparationAI...</p>
         </div>
       </div>
     );

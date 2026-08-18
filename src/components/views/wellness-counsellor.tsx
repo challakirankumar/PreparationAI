@@ -145,12 +145,12 @@ const ACCENT_MAP: Record<AccentKey, {
     numberBg: 'bg-teal-100 text-teal-700',
   },
   emerald: {
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
-    gradient: 'from-emerald-500 to-teal-600',
-    iconBg: 'bg-emerald-500',
-    numberBg: 'bg-emerald-100 text-emerald-700',
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
+    border: 'border-blue-200',
+    gradient: 'from-blue-500 to-cyan-600',
+    iconBg: 'bg-blue-500',
+    numberBg: 'bg-blue-100 text-blue-700',
   },
 };
 
@@ -245,10 +245,10 @@ export function WellnessCounsellor() {
       </Card>
 
       {/* CTA card */}
-      <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+      <Card className="border-blue-200 bg-gradient-to-r from-emerald-50 to-teal-50">
         <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -258,7 +258,7 @@ export function WellnessCounsellor() {
               </p>
             </div>
           </div>
-          <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mentor')}>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('mentor')}>
             <Brain className="h-4 w-4" /> Talk to AI Mentor
           </Button>
         </CardContent>

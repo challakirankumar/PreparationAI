@@ -61,7 +61,7 @@ function renderOption(opt: unknown): string {
 
 function difficultyStyle(d: Question['difficulty']): { label: string; cls: string } {
   switch (d) {
-    case 'easy': return { label: 'Easy', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    case 'easy': return { label: 'Easy', cls: 'bg-blue-50 text-blue-700 border-blue-200' };
     case 'medium': return { label: 'Medium', cls: 'bg-amber-50 text-amber-700 border-amber-200' };
     case 'hard': return { label: 'Hard', cls: 'bg-rose-50 text-rose-700 border-rose-200' };
     default: return { label: d, cls: 'bg-stone-50 text-stone-700 border-stone-200' };
@@ -94,7 +94,7 @@ export function QuestionCard({ question, index, total, value, onChange }: Props)
     <Card className="border-stone-200">
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge className="bg-emerald-600 text-white">
+          <Badge className="bg-blue-600 text-white">
             <FileText className="h-3 w-3" /> Q {index + 1} / {total}
           </Badge>
           <Badge variant="outline" className="border-stone-300">{question.subject}</Badge>
@@ -103,7 +103,7 @@ export function QuestionCard({ question, index, total, value, onChange }: Props)
             <Gauge className="h-3 w-3" /> {diff.label}
           </Badge>
           <div className="flex items-center gap-1 ml-auto">
-            <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50">
+            <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
               <Plus className="h-3 w-3" /> +{question.marks}
             </Badge>
             {question.negativeMarks > 0 && (
@@ -200,7 +200,7 @@ function AnswerInput({
                 className={cn(
                   'flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-all',
                   selected
-                    ? 'border-emerald-400 bg-emerald-50 ring-1 ring-emerald-300'
+                    ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-300'
                     : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50',
                 )}
               >
@@ -227,7 +227,7 @@ function AnswerInput({
                 <span
                   className={cn(
                     'flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold',
-                    selected ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-600',
+                    selected ? 'bg-blue-600 text-white' : 'bg-stone-100 text-stone-600',
                   )}
                 >
                   {LETTERS[idx] ?? String(idx + 1)}
@@ -236,7 +236,7 @@ function AnswerInput({
                   {opt}
                 </span>
                 {selected && (
-                  <Check className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <Check className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
                 )}
               </label>
             );

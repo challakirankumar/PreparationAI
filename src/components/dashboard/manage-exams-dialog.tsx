@@ -76,7 +76,7 @@ export function ManageExamsDialog({ open, onOpenChange }: {
               <Star className="h-3.5 w-3.5 text-amber-500" />
               Your target exams
             </h4>
-            <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700">
+            <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
               {goals.length} selected
             </Badge>
           </div>
@@ -88,7 +88,7 @@ export function ManageExamsDialog({ open, onOpenChange }: {
               return (
                 <Card
                   key={id}
-                  className={`p-3 flex items-center justify-between gap-3 border-stone-200 ${isPrimary ? 'ring-1 ring-amber-300 bg-amber-50/40' : 'bg-emerald-50/30'}`}
+                  className={`p-3 flex items-center justify-between gap-3 border-stone-200 ${isPrimary ? 'ring-1 ring-amber-300 bg-amber-50/40' : 'bg-blue-50/30'}`}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -138,7 +138,7 @@ export function ManageExamsDialog({ open, onOpenChange }: {
         <div className="flex-1 min-h-0 flex flex-col">
           <div className="flex items-center justify-between mb-2 mt-1">
             <h4 className="text-sm font-semibold text-stone-900 flex items-center gap-1.5">
-              <Plus className="h-3.5 w-3.5 text-emerald-600" />
+              <Plus className="h-3.5 w-3.5 text-blue-600" />
               Add more exams
             </h4>
             <Badge variant="outline" className="bg-stone-50 border-stone-200 text-stone-600">
@@ -157,7 +157,7 @@ export function ManageExamsDialog({ open, onOpenChange }: {
                 {addable.map((p) => (
                   <Card
                     key={p.id}
-                    className="p-3 flex items-center justify-between gap-3 border-stone-200 hover:border-emerald-300 hover:bg-emerald-50/30 transition"
+                    className="p-3 flex items-center justify-between gap-3 border-stone-200 hover:border-blue-300 hover:bg-blue-50/30 transition"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -174,7 +174,7 @@ export function ManageExamsDialog({ open, onOpenChange }: {
                     <Button
                       size="sm"
                       onClick={() => handleAdd(p.id)}
-                      className="bg-emerald-600 hover:bg-emerald-700"
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
                       <Plus className="h-3.5 w-3.5" /> Add
                     </Button>
@@ -186,7 +186,7 @@ export function ManageExamsDialog({ open, onOpenChange }: {
         </div>
 
         <div className="text-xs text-muted-foreground bg-stone-50 border border-stone-200 rounded-md p-3 flex items-start gap-2">
-          <Check className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+          <Check className="h-3.5 w-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
           <span>
             Your primary exam is used as the default for dashboard, planner, and analytics. You can change it anytime by clicking <span className="font-medium">Primary</span> on another exam.
           </span>

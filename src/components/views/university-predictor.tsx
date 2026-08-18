@@ -75,11 +75,11 @@ const BUCKET_INFO: Record<Bucket, {
     label: 'Safe',
     description: '≥70% admission chance — likely admits',
     icon: ShieldCheck,
-    border: 'border-emerald-200',
-    text: 'text-emerald-700',
-    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    bar: 'bg-emerald-500',
-    gradient: 'from-emerald-500 to-teal-600',
+    border: 'border-blue-200',
+    text: 'text-blue-700',
+    badge: 'bg-blue-50 text-blue-700 border-blue-200',
+    bar: 'bg-blue-500',
+    gradient: 'from-blue-500 to-cyan-600',
   },
   reach: {
     label: 'Reach',
@@ -104,7 +104,7 @@ const BUCKET_INFO: Record<Bucket, {
 };
 
 const ACCENT_BAR: Record<Bucket, string> = {
-  safe: 'bg-emerald-500',
+  safe: 'bg-blue-500',
   reach: 'bg-amber-500',
   ambitious: 'bg-rose-500',
 };
@@ -150,7 +150,7 @@ export function UniversityPredictor() {
         subtitle="AI-powered admission probability across 24 global universities"
         accent="emerald"
         right={
-          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+          <Badge className="bg-blue-100 text-blue-700 border-blue-200">
             <Sparkles className="h-3 w-3" /> AI Powered
           </Badge>
         }
@@ -159,12 +159,12 @@ export function UniversityPredictor() {
       {/* Status banner */}
       <Card className={cn(
         'border',
-        hasAttempt ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'
+        hasAttempt ? 'border-blue-200 bg-blue-50' : 'border-amber-200 bg-amber-50'
       )}>
         <CardContent className="p-4 flex items-center gap-3">
           <div className={cn(
             'h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0',
-            hasAttempt ? 'bg-emerald-600' : 'bg-amber-600'
+            hasAttempt ? 'bg-blue-600' : 'bg-amber-600'
           )}>
             {hasAttempt ? <TrendingUp className="h-5 w-5 text-white" /> : <Sparkles className="h-5 w-5 text-white" />}
           </div>
@@ -293,7 +293,7 @@ export function UniversityPredictor() {
       <Card className="border-stone-200 bg-gradient-to-r from-emerald-50 to-teal-50">
         <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
               <Globe className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -303,7 +303,7 @@ export function UniversityPredictor() {
               </p>
             </div>
           </div>
-          <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('planner')}>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('planner')}>
             <Target className="h-4 w-4" /> Get a study plan
           </Button>
         </CardContent>

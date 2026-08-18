@@ -59,7 +59,7 @@ function uid(): string {
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2 mb-3">
-      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
         <Brain className="h-4 w-4 text-white" />
       </div>
       <div className="bg-white border border-stone-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
@@ -152,7 +152,7 @@ export function MentorRoom() {
   }
 
   const capabilityAccents = {
-    emerald: 'from-emerald-500 to-teal-600 bg-emerald-50 text-emerald-700',
+    emerald: 'from-blue-500 to-cyan-600 bg-blue-50 text-blue-700',
     amber: 'from-amber-500 to-orange-500 bg-amber-50 text-amber-700',
     rose: 'from-rose-500 to-pink-500 bg-rose-50 text-rose-700',
   };
@@ -177,7 +177,7 @@ export function MentorRoom() {
           <CardTitle className="flex items-center gap-2 text-base">
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
             </span>
             PrepMentor · Online
           </CardTitle>
@@ -189,7 +189,7 @@ export function MentorRoom() {
           >
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center px-4">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg mb-4">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg mb-4">
                   <Brain className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-stone-900">Hi {userName}, I'm your AI mentor</h3>
@@ -203,9 +203,9 @@ export function MentorRoom() {
                       <button
                         key={p.label}
                         onClick={() => sendMessage(p.prompt)}
-                        className="flex flex-col items-start gap-1 p-3 rounded-xl border border-stone-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50 transition text-left"
+                        className="flex flex-col items-start gap-1 p-3 rounded-xl border border-stone-200 bg-white hover:border-blue-300 hover:bg-blue-50/50 transition text-left"
                       >
-                        <Icon className="h-4 w-4 text-emerald-600" />
+                        <Icon className="h-4 w-4 text-blue-600" />
                         <span className="text-xs font-medium text-stone-700">{p.label}</span>
                       </button>
                     );
@@ -231,7 +231,7 @@ export function MentorRoom() {
                           </AvatarFallback>
                         </Avatar>
                       ) : (
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
                           <Brain className="h-4 w-4 text-white" />
                         </div>
                       )}
@@ -239,7 +239,7 @@ export function MentorRoom() {
                         className={cn(
                           'max-w-[80%] sm:max-w-[70%] px-4 py-2.5 text-sm rounded-2xl shadow-sm whitespace-pre-wrap break-words',
                           isUser
-                            ? 'bg-emerald-600 text-white rounded-br-sm'
+                            ? 'bg-blue-600 text-white rounded-br-sm'
                             : 'bg-white border border-stone-200 text-stone-800 rounded-bl-sm'
                         )}
                       >
@@ -267,7 +267,7 @@ export function MentorRoom() {
               <Button
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || loading}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                className="bg-blue-600 hover:bg-blue-700"
                 size="icon"
               >
                 <Send className="h-4 w-4" />

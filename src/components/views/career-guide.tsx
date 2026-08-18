@@ -44,7 +44,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 const CATEGORIES = ['All', 'Engineering', 'Medical', 'Management', 'Science', 'Design', 'Law'] as const;
 
 const CATEGORY_ACCENTS: Record<string, string> = {
-  Engineering: 'from-emerald-500 to-teal-600',
+  Engineering: 'from-blue-500 to-cyan-600',
   Medical: 'from-rose-500 to-pink-600',
   Management: 'from-amber-500 to-orange-500',
   Science: 'from-teal-500 to-cyan-600',
@@ -78,8 +78,8 @@ export function CareerGuide() {
             className={cn(
               'px-4 py-1.5 rounded-full text-sm font-medium border transition',
               category === cat
-                ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                : 'bg-white border-stone-200 text-stone-600 hover:border-emerald-300 hover:text-emerald-700'
+                ? 'bg-blue-600 border-emerald-600 text-white shadow-sm'
+                : 'bg-white border-stone-200 text-stone-600 hover:border-blue-300 hover:text-blue-700'
             )}
           >
             {cat}
@@ -111,8 +111,8 @@ export function CareerGuide() {
                 <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{course.overview}</p>
 
                 <div className="grid grid-cols-2 gap-2 mt-4">
-                  <div className="bg-emerald-50 rounded-lg p-2">
-                    <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-medium uppercase">
+                  <div className="bg-blue-50 rounded-lg p-2">
+                    <div className="flex items-center gap-1 text-[10px] text-blue-700 font-medium uppercase">
                       <IndianRupee className="h-3 w-3" /> Avg Salary
                     </div>
                     <p className="text-xs text-stone-800 mt-0.5 line-clamp-2">{course.averageSalary.split('.')[0]}</p>
@@ -130,7 +130,7 @@ export function CareerGuide() {
                     <Building2 className="h-3.5 w-3.5" />
                     {course.topRecruiters.length} recruiters
                   </div>
-                  <Button size="sm" variant="ghost" className="text-emerald-700 hover:bg-emerald-50">
+                  <Button size="sm" variant="ghost" className="text-blue-700 hover:bg-blue-50">
                     Details
                   </Button>
                 </div>
@@ -170,11 +170,11 @@ export function CareerGuide() {
                 <div className="space-y-4 mt-2">
                   <div>
                     <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <Scale className="h-4 w-4 text-emerald-600" /> Skill Requirements
+                      <Scale className="h-4 w-4 text-blue-600" /> Skill Requirements
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selected.skillRequirements.map((s) => (
-                        <Badge key={s} variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                        <Badge key={s} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
                           {s}
                         </Badge>
                       ))}
@@ -210,7 +210,7 @@ export function CareerGuide() {
                   <Button variant="outline" onClick={() => setView('scholarship')}>
                     <Award className="h-4 w-4" /> Scholarships
                   </Button>
-                  <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setView('mentor')}>
+                  <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setView('mentor')}>
                     <ExternalLink className="h-4 w-4" /> Ask Mentor
                   </Button>
                 </DialogFooter>

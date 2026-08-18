@@ -252,7 +252,7 @@ export function ExamRunner({ onExit }: Props) {
   const overallPct = Math.round((answeredCount / total) * 100);
 
   const timerColor = timeLeft > 1800
-    ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+    ? 'text-blue-700 bg-blue-50 border-blue-200'
     : timeLeft > 600
       ? 'text-amber-700 bg-amber-50 border-amber-200'
       : 'text-rose-700 bg-rose-50 border-rose-200 timer-critical';
@@ -376,7 +376,7 @@ export function ExamRunner({ onExit }: Props) {
           <Card className="border-stone-200">
             <CardHeader className="pb-2">
               <p className="text-sm font-semibold flex items-center gap-2">
-                <Layers className="h-4 w-4 text-emerald-600" /> Question Palette
+                <Layers className="h-4 w-4 text-blue-600" /> Question Palette
               </p>
               <Progress value={overallPct} className="h-1.5" />
               <p className="text-xs text-muted-foreground">
@@ -390,7 +390,7 @@ export function ExamRunner({ onExit }: Props) {
                   const isCurrent = idx === currentIdx;
                   const cls =
                     state === 'answered'
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white'
                       : state === 'marked'
                         ? 'bg-amber-400 hover:bg-amber-500 text-white'
                         : state === 'visited'
@@ -403,7 +403,7 @@ export function ExamRunner({ onExit }: Props) {
                       className={cn(
                         'palette-btn h-8 rounded-md text-xs font-semibold flex items-center justify-center',
                         cls,
-                        isCurrent && 'ring-2 ring-offset-1 ring-emerald-600',
+                        isCurrent && 'ring-2 ring-offset-1 ring-blue-600',
                       )}
                       title={`Q${idx + 1} · ${state}`}
                     >
@@ -415,7 +415,7 @@ export function ExamRunner({ onExit }: Props) {
 
               {/* Legend */}
               <div className="mt-3 grid grid-cols-2 gap-1.5 text-[10px] text-muted-foreground">
-                <LegendDot color="bg-emerald-500" label="Answered" />
+                <LegendDot color="bg-blue-500" label="Answered" />
                 <LegendDot color="bg-amber-400" label="Marked" />
                 <LegendDot color="bg-stone-300" label="Visited" />
                 <LegendDot color="bg-stone-100 border border-stone-200" label="Not visited" />
@@ -427,7 +427,7 @@ export function ExamRunner({ onExit }: Props) {
           <Card className="border-stone-200">
             <CardHeader className="pb-2">
               <p className="text-sm font-semibold flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-emerald-600" /> Sections
+                <BookOpen className="h-4 w-4 text-blue-600" /> Sections
               </p>
             </CardHeader>
             <CardContent className="space-y-2.5">
@@ -452,9 +452,9 @@ export function ExamRunner({ onExit }: Props) {
           </Card>
 
           {/* Tip */}
-          <div className="rounded-md bg-emerald-50 border border-emerald-200 p-3 flex items-start gap-2">
-            <Lightbulb className="h-4 w-4 text-emerald-700 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-emerald-900">
+          <div className="rounded-md bg-blue-50 border border-blue-200 p-3 flex items-start gap-2">
+            <Lightbulb className="h-4 w-4 text-blue-700 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-900">
               Mark tough questions for review and move on — you can revisit any question from the palette before submitting.
             </p>
           </div>

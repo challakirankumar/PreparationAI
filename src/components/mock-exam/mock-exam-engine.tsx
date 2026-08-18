@@ -121,11 +121,11 @@ export function MockExamEngine({ onStart }: Props = {}) {
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <Card className="bg-hero-emerald border-emerald-200">
+      <Card className="bg-hero-emerald border-blue-200">
         <CardContent className="pt-6">
           <div className="flex flex-col lg:flex-row lg:items-center gap-4 justify-between">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-md flex-shrink-0">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
                 <Atom className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -135,7 +135,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
                   tracks every question you&apos;ve seen and avoids repeats — so every mock is fresh.
                 </p>
                 <div className="flex flex-wrap items-center gap-2 mt-3">
-                  <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-white/60">
+                  <Badge variant="outline" className="border-blue-300 text-blue-700 bg-white/60">
                     <Sparkles className="h-3 w-3" /> AI-generated questions
                   </Badge>
                   <Badge variant="outline" className="border-amber-300 text-amber-700 bg-white/60">
@@ -177,7 +177,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold flex items-center gap-2">
-                <ListChecks className="h-4 w-4 text-emerald-600" /> Available Mock Papers
+                <ListChecks className="h-4 w-4 text-blue-600" /> Available Mock Papers
               </h2>
               <Button variant="ghost" size="sm" onClick={() => setManageOpen(true)}>
                 <Settings2 className="h-3.5 w-3.5" /> Manage
@@ -193,7 +193,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
                     <CardHeader>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 min-w-0">
-                          <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                          <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">
                             <IconFor name={p.icon} />
                           </div>
                           <div className="min-w-0">
@@ -227,12 +227,12 @@ export function MockExamEngine({ onStart }: Props = {}) {
                       {count > 0 ? (
                         <div className="flex items-center justify-between gap-2 text-xs bg-stone-50 border border-stone-200 rounded-md p-2.5">
                           <div className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-emerald-600" />
+                            <TrendingUp className="h-4 w-4 text-blue-600" />
                             <span className="text-muted-foreground">
                               {count} attempt{count > 1 ? 's' : ''} · Best
                             </span>
                           </div>
-                          <span className="font-semibold text-emerald-700">
+                          <span className="font-semibold text-blue-700">
                             {best?.score}/{best?.total} · {best?.pct}%
                           </span>
                         </div>
@@ -258,7 +258,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
             <Card className="border-stone-200">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-emerald-600" /> Recent attempts
+                  <Clock className="h-4 w-4 text-blue-600" /> Recent attempts
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -267,7 +267,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
                   return (
                     <div key={a.id} className="flex items-center justify-between gap-3 text-sm border border-stone-200 rounded-md p-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                        <div className="h-9 w-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">
                           <FileText className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
@@ -281,7 +281,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="font-semibold text-emerald-700">{a.score}/{a.totalMarks}</p>
+                        <p className="font-semibold text-blue-700">{a.score}/{a.totalMarks}</p>
                         <p className="text-xs text-muted-foreground">{pct}% · Acc {a.accuracy}%</p>
                       </div>
                     </div>
@@ -359,7 +359,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
                   </Select>
                 </div>
 
-                <div className="flex items-start gap-2 text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md p-2.5">
+                <div className="flex items-start gap-2 text-xs bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-2.5">
                   <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
                   <span>
                     The engine tracks every question you have seen across all attempts and avoids repeating them.
@@ -414,7 +414,7 @@ function SummaryTile({ label, value, icon: Icon }: {
 }) {
   return (
     <div className="border border-stone-200 rounded-md p-2.5 text-center bg-stone-50/40">
-      <Icon className="h-4 w-4 text-emerald-600 mx-auto mb-1" />
+      <Icon className="h-4 w-4 text-blue-600 mx-auto mb-1" />
       <p className="text-base font-bold leading-none">{value}</p>
       <p className="text-[10px] text-muted-foreground uppercase tracking-wide mt-1">{label}</p>
     </div>

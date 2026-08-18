@@ -11,7 +11,7 @@ export function PageHeader({ icon: Icon, title, subtitle, accent = 'emerald', ri
   right?: React.ReactNode;
 }) {
   const grads = {
-    emerald: 'from-emerald-600 to-teal-600',
+    emerald: 'from-blue-600 to-cyan-600',
     amber: 'from-amber-500 to-orange-500',
     teal: 'from-teal-600 to-cyan-600',
     rose: 'from-rose-500 to-pink-500',
@@ -40,7 +40,7 @@ export function StatCard({ label, value, sub, icon: Icon, accent = 'emerald' }: 
   accent?: 'emerald' | 'amber' | 'teal' | 'rose';
 }) {
   const bgs = {
-    emerald: 'bg-emerald-50 text-emerald-600',
+    emerald: 'bg-blue-50 text-blue-600',
     amber: 'bg-amber-50 text-amber-600',
     teal: 'bg-teal-50 text-teal-600',
     rose: 'bg-rose-50 text-rose-600',
@@ -63,7 +63,7 @@ export function SectionTitle({ icon: Icon, title, right }: { icon: React.Compone
   return (
     <div className="flex items-center justify-between mb-3">
       <h3 className="font-semibold flex items-center gap-2">
-        <Icon className="h-4 w-4 text-emerald-600" /> {title}
+        <Icon className="h-4 w-4 text-blue-600" /> {title}
       </h3>
       {right}
     </div>
