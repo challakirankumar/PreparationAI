@@ -15,12 +15,16 @@ import {
   Trophy, Target, Gauge, TrendingUp, AlertTriangle, Youtube, ExternalLink, RotateCcw,
   ArrowRight, Zap, Brain, Award, Flame, BookOpen, Lightbulb, FileText, Clock,
   CheckCircle2, Circle, AlertCircle, ChevronRight, BarChart3, Activity, Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
+import { IntegrityReportTab } from '@/components/proctoring/integrity-report';
+import type { IntegrityReport } from '@/lib/types';
 
 interface Props {
   attempt: ExamAttempt;
   onRetake: () => void;
   onExit: () => void;
+  integrityReport?: IntegrityReport | null;
 }
 
 function gradeFor(pct: number): string {
@@ -43,7 +47,7 @@ function fmtDuration(sec: number): string {
   return mm > 0 ? `${h}h ${mm}m` : `${h}h`;
 }
 
-export function ExamResults({ attempt, onRetake, onExit }: Props) {
+export function ExamResults({ attempt, onRetake, onExit, integrityReport }: Props) {
   const setView = useStore((s) => s.setView);
   const user = useStore((s) => s.user);
   const { toast } = useToast();
@@ -132,6 +136,7 @@ export function ExamResults({ attempt, onRetake, onExit }: Props) {
           <TabsTrigger value="behavior"><Brain className="h-3.5 w-3.5" /> Behavior</TabsTrigger>
           <TabsTrigger value="insights"><Lightbulb className="h-3.5 w-3.5" /> Insights</TabsTrigger>
           <TabsTrigger value="youtube"><Youtube className="h-3.5 w-3.5" /> YouTube Fixes</TabsTrigger>
+          <TabsTrigger value="integrity"><ShieldCheck className="h-3.5 w-3.5" /> Integrity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="subjects" className="mt-4">
@@ -157,6 +162,10 @@ export function ExamResults({ attempt, onRetake, onExit }: Props) {
               toast({ title: 'Opening AI Mentor', description: 'Ask about your weak topics.' });
             }}
           />
+        </TabsContent>
+
+        <TabsContent value="integrity" className="mt-4">
+          <IntegrityReportTab report={integrityReport} />
         </TabsContent>
       </Tabs>
 

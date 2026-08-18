@@ -10,14 +10,18 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
 } from '@/components/ui/alert-dialog';
 import { useStore } from '@/lib/store';
-import type { AnswerValue, ExamAttempt } from '@/lib/types';
+import type { AnswerValue, ExamAttempt, ProctoringEvent, IntegrityReport } from '@/lib/types';
 import { QuestionCard } from './question-card';
 import { ExamResults } from './exam-results';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ProctoringConsentDialog } from '@/components/proctoring/consent-dialog';
+import { ProctoringIndicator } from '@/components/proctoring/status-indicator';
+import { ProctoringSDK } from '@/lib/proctoring/sdk';
+import { getProfile } from '@/lib/proctoring/profiles';
 import {
   Clock, Flag, ChevronLeft, ChevronRight, X, CheckCircle2, Circle, AlertCircle,
-  Loader2, Send, BookOpen, Layers, Lightbulb,
+  Loader2, Send, BookOpen, Layers, Lightbulb, ShieldCheck,
 } from 'lucide-react';
 
 interface Props {
@@ -50,6 +54,16 @@ export function ExamRunner({ onExit }: Props) {
   const [timeLeft, setTimeLeft] = React.useState(currentExam?.durationSec ?? 0);
   const [evaluating, setEvaluating] = React.useState(false);
   const [result, setResult] = React.useState<ExamAttempt | null>(null);
+
+  // Proctoring state
+  const [showConsent, setShowConsent] = React.useState(false);
+  const [proctoringActive, setProctoringActive] = React.useState(false);
+  const [proctoringDegraded, setProctoringDegraded] = React.useState(false);
+  const [proctoringEvents, setProctoringEvents] = React.useState<ProctoringEvent[]>([]);
+  const [integrityReport, setIntegrityReport] = React.useState<IntegrityReport | null>(null);
+  const proctoringSDKRef = React.useRef<ProctoringSDK | null>(null);
+  const proctoringSessionIdRef = React.useRef<string>('');
+  const examStartTimeRef = React.useRef<number>(0);
 
   // Refs for accurate time tracking — avoids stale closure/state issues on submit
   const questionStartRef = React.useRef<number>(Date.now());
@@ -111,13 +125,94 @@ export function ExamRunner({ onExit }: Props) {
   }
 
   if (result) {
-    return <ExamResults attempt={result} onRetake={onExit} onExit={onExit} />;
+    return <ExamResults attempt={result} onRetake={onExit} onExit={onExit} integrityReport={integrityReport} />;
+  }
+
+  // Proctoring consent gate — show before exam starts if not yet active
+  if (!proctoringActive && !showConsent && !result) {
+    return (
+      <Card className="border-stone-200">
+        <CardContent className="pt-10 pb-10 flex flex-col items-center text-center gap-4">
+          <div className="h-14 w-14 rounded-2xl bg-blue-50 flex items-center justify-center">
+            <ShieldCheck className="h-7 w-7 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-lg">Ready to start your {currentExam.examName} mock?</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-md">
+              Enable AI Proctoring to simulate real exam conditions. The system monitors your
+              environment using your camera and browser activity — all processing happens on your device.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onExit}>Cancel</Button>
+            <Button variant="ghost" onClick={() => { setProctoringActive(true); examStartTimeRef.current = Date.now(); }}>Skip Proctoring</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setShowConsent(true)}>
+              <ShieldCheck className="h-4 w-4 mr-2" /> Enable AI Proctoring
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   const questions = currentExam.questions;
   const total = questions.length;
   const q = questions[currentIdx];
   const section = currentExam.sections.find((s) => s.questionIds.includes(q.id));
+
+  // Start exam without proctoring
+  function startExamWithoutProctoring() {
+    setProctoringActive(true);
+    examStartTimeRef.current = Date.now();
+  }
+
+  // Start exam with proctoring after consent
+  async function startExamWithProctoring(cameraEnabled: boolean, micEnabled: boolean) {
+    setShowConsent(false);
+    
+    // Create proctoring session via API
+    const sessionId = `ps_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    proctoringSessionIdRef.current = sessionId;
+    
+    try {
+      await fetch('/api/proctoring/session?XTransformPort=3000', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create_session',
+          userId: user?.id || 'unknown',
+          examType: currentExam.examId,
+          mockAttemptId: currentExam.id,
+          cameraEnabled,
+          micEnabled,
+        }),
+      });
+    } catch { /* non-blocking */ }
+    
+    // Initialize SDK
+    const profile = getProfile(currentExam.examId);
+    const sdk = new ProctoringSDK({
+      sessionId,
+      profile,
+      onEvent: (event) => {
+        setProctoringEvents(prev => [...prev, event]);
+        // Show real-time coaching toast for high/critical
+        if (event.severity === 'high' || event.severity === 'critical') {
+          toast({
+            title: event.severity === 'critical' ? '⚠️ Critical flag' : 'Proctoring alert',
+            description: event.eventType.replace(/_/g, ' '),
+            variant: 'destructive',
+          });
+        }
+      },
+    });
+    
+    const granted = await sdk.start(cameraEnabled, micEnabled);
+    proctoringSDKRef.current = sdk;
+    setProctoringDegraded(!granted);
+    setProctoringActive(true);
+    examStartTimeRef.current = Date.now();
+  }
 
   function recordCurrentTime() {
     const now = Date.now();
@@ -218,6 +313,35 @@ export function ExamRunner({ onExit }: Props) {
 
       addAttempt(attempt);
       setResult(attempt);
+      
+      // Close proctoring session and generate integrity report
+      if (proctoringSDKRef.current) {
+        proctoringSDKRef.current.stop();
+        const allEvents = [...proctoringEvents, ...proctoringSDKRef.current.getBufferedEvents()];
+        
+        try {
+          const reportResp = await fetch('/api/proctoring/session?XTransformPort=3000', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'close_session',
+              sessionId: proctoringSessionIdRef.current,
+              events: allEvents,
+              examType: currentExam.examId,
+              userId: user?.id || 'unknown',
+              startedAt: new Date(examStartRef.current).toISOString(),
+              proctoringDegraded,
+              cameraEnabled: !proctoringDegraded,
+              micEnabled: false,
+            }),
+          });
+          const reportData = await reportResp.json();
+          if (reportData.report) {
+            setIntegrityReport(reportData.report);
+          }
+        } catch { /* non-blocking */ }
+      }
+      
       toast({
         title: auto ? 'Time up — auto-submitted' : 'Exam submitted',
         description: `Score: ${attempt.score}/${attempt.totalMarks} · ${Math.round((attempt.score / Math.max(1, attempt.totalMarks)) * 100)}% · ${fmtTime(totalDurationSec)} total`,
@@ -274,6 +398,7 @@ export function ExamRunner({ onExit }: Props) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ProctoringIndicator active={proctoringActive} degraded={proctoringDegraded} />
             <Badge variant="outline" className={cn('border font-mono', timerColor)}>
               <Clock className="h-3 w-3" /> {fmtTime(timeLeft)}
             </Badge>
@@ -460,6 +585,14 @@ export function ExamRunner({ onExit }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Proctoring consent dialog */}
+      <ProctoringConsentDialog
+        open={showConsent}
+        onOpenChange={setShowConsent}
+        onAccept={startExamWithProctoring}
+        examName={currentExam.examName}
+      />
     </div>
   );
 }

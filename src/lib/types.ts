@@ -298,3 +298,126 @@ export interface StudyPlan {
   blocks: { time: string; task: string; subject: string; duration: string }[];
   aiGenerated?: boolean;
 }
+
+// ============================================================================
+// AI PROCTORING TYPES — based on NTA's Unfair Means (UFM) taxonomy
+// ============================================================================
+
+export type ProctoringEventType =
+  | 'face_absent'
+  | 'multiple_faces_detected'
+  | 'gaze_away_sustained'
+  | 'prohibited_object_suspected'
+  | 'audio_anomaly'
+  | 'tab_switch'
+  | 'fullscreen_exited'
+  | 'input_restriction_bypass_attempt'
+  | 'devtools_suspected'
+  | 'multi_monitor_detected'
+  | 'identity_mismatch_at_start'
+  | 'identity_mismatch_midexam'
+  | 'session_abandoned'
+  | 'connection_gap';
+
+export type Severity = 'low' | 'medium' | 'high' | 'critical';
+
+export type SessionStatus = 'pending' | 'active' | 'completed' | 'terminated';
+
+export type VerdictTier = 'clean' | 'minor_flags' | 'flagged_for_review' | 'simulated_invalid';
+
+// NTA UFM category mapping
+export type UFACategory =
+  | 'Candidate Conduct — Attention'
+  | 'Communication / Assistance'
+  | 'Identity Verification'
+  | 'Prohibited Items'
+  | 'Exam Environment Integrity'
+  | 'Session Continuity';
+
+export interface ProctoringEvent {
+  id: string;
+  sessionId: string;
+  eventType: ProctoringEventType;
+  severity: Severity;
+  confidenceScore: number; // 0-1
+  timestamp: number; // ms into exam
+  metadata?: Record<string, unknown>;
+  evidenceSnapshotUrl?: string;
+}
+
+export interface ProctoringSession {
+  id: string;
+  mockAttemptId?: string;
+  userId: string;
+  examType: string;
+  status: SessionStatus;
+  startedAt: string;
+  endedAt?: string;
+  consentGivenAt?: string;
+  referenceSelfieUrl?: string;
+  proctoringDegraded: boolean;
+  cameraEnabled: boolean;
+  micEnabled: boolean;
+}
+
+export interface ProctoringProfile {
+  examType: string;
+  version: number;
+  modules: {
+    facePresence: { enabled: boolean; thresholdSec: number; severity: Severity };
+    multipleFaces: { enabled: boolean; severity: Severity };
+    gazeAway: { enabled: boolean; thresholdSec: number; severity: Severity };
+    objectDetection: { enabled: boolean; severity: Severity };
+    audioAnomaly: { enabled: boolean; severity: Severity };
+    browserLockdown: { enabled: boolean; severity: Severity };
+    identityVerification: { enabled: boolean; severity: Severity };
+  };
+  scoring: {
+    lowDeduction: number;
+    mediumDeduction: number;
+    highDeduction: number;
+    criticalDeduction: number;
+    lowCategoryCap: number; // max total deduction from any single low-severity category
+  };
+}
+
+export interface CategoryBreakdown {
+  category: UFACategory;
+  eventCount: number;
+  maxSeverity: Severity;
+  totalDeduction: number;
+  events: ProctoringEvent[];
+}
+
+export interface SessionVerdict {
+  sessionId: string;
+  integrityScore: number; // 0-100
+  verdictTier: VerdictTier;
+  categoryBreakdown: CategoryBreakdown[];
+  totalEvents: number;
+  computedAt: string;
+}
+
+export interface ConsentRecord {
+  userId: string;
+  consentType: 'camera' | 'mic' | 'guardian_approval';
+  grantedAt: string;
+  revokedAt?: string;
+  guardianUserId?: string;
+}
+
+export interface IntegrityReport {
+  session: ProctoringSession;
+  verdict: SessionVerdict;
+  disclaimer: string;
+  coachingText: string;
+  evidenceTimeline: {
+    timestamp: number;
+    formattedTime: string;
+    eventType: ProctoringEventType;
+    category: UFACategory;
+    severity: Severity;
+    description: string;
+    evidenceUrl?: string;
+  }[];
+}
