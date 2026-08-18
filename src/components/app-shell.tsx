@@ -29,6 +29,7 @@ import {
   Shield,
   Building2,
   Camera,
+  TrendingUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +56,6 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'mock-exam', label: 'Mock Exam', icon: FileText },
-      { id: 'doubt-solver', label: 'Doubt Solver', icon: Camera },
       { id: 'study-material', label: 'Study Material', icon: BookOpen },
       { id: 'analytics', label: 'Analytics', icon: BarChart3 },
       { id: 'planner', label: 'Planner', icon: CalendarDays },
@@ -65,6 +65,8 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: 'AI Agents',
     items: [
       { id: 'mentor', label: 'AI Mentor', icon: MessageSquare },
+      { id: 'doubt-solver', label: 'Doubt Solver', icon: Camera },
+      { id: 'pyq-trends', label: 'PYQ Trends', icon: TrendingUp },
       { id: 'digital-twin', label: 'Digital Twin', icon: UserCog },
       { id: 'success-simulator', label: 'Success Simulator', icon: Sparkles },
       { id: 'readiness', label: 'Readiness Index', icon: Gauge },

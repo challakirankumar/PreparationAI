@@ -21,6 +21,7 @@ import { StudyMaterialView } from '@/components/views/study-material';
 import { GuardrailDashboardView } from '@/components/views/guardrail-dashboard';
 import { InstitutionDashboardView } from '@/components/views/institution-dashboard';
 import { DoubtSolverView } from '@/components/views/doubt-solver';
+import { PyqTrendPredictorView } from '@/components/views/pyq-trend-predictor';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
 import type { View } from '@/lib/types';
 
@@ -68,6 +69,8 @@ function ViewRouter({ view }: { view: View }) {
       return <InstitutionDashboardView />;
     case 'doubt-solver':
       return <DoubtSolverView />;
+    case 'pyq-trends':
+      return <PyqTrendPredictorView />;
     default:
       return <Dashboard />;
   }

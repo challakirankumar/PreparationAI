@@ -22,7 +22,8 @@ export type View =
   | 'guardrail'
   | 'institution'
   | 'teacher'
-  | 'doubt-solver';
+  | 'doubt-solver'
+  | 'pyq-trends';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 
