@@ -953,3 +953,85 @@ Stage Summary:
 - Sidebar: "Error Journal" added to the Competition group alongside Battle Arena.
 - This completes Tier 1 (Wow-factor differentiators) — all 6 prompts (Adaptive IRT engine, PYQ trend predictor, Socratic Mentor v2, Handwritten-step grading, Peer Battle Mode, Error Journal) are shipped.
 
+
+---
+Task ID: TIER2-PARENT
+Agent: main
+Task: Build Tier 2, Prompt #10 — Parent/Guardian Dashboard: read-only, weekly digest, no chat access
+
+Work Log:
+- Created `/src/lib/parent/types.ts` (245 lines):
+  - ParentAccount: id, displayName, email, phone, password, linkedStudentIds[], weeklyDigestEnabled, digestDay (sunday/monday/friday), digestEmail, createdAt, lastLoginAt
+  - ParentStudentLink: parentUserId, studentUserId, relationship (parent/guardian/sibling/mentor), approvalStatus (pending/approved/rejected/revoked), approvedAt, createdAt, invitationMethod (email/code/direct)
+  - StudentSnapshot: student info + weeklyStats + cumulative + recentActivity + subjectBreakdown + weakTopics + wellnessSignals + weeklyTrend (8 weeks)
+  - WeeklyDigest: headline, summary (studyHours/mocks/avgScore/accuracy/xp/streak/battles), comparison (deltas vs prior week + trend), highlights, focusAreas, wellnessFlags, recommendedActions, quoteOfTheWeek
+  - detectWellnessSignals(): 5 signals:
+    - low-activity: <3 active days/week (severity medium or high if 0)
+    - accuracy-drop: weekly accuracy < prior by 10+ points (medium) or 20+ (high)
+    - late-night: 2+ sessions after 11 PM (medium) or 4+ (high)
+    - rapid-burnout-risk: high activity + declining accuracy (high)
+    - no-improvement: flat scores for 3+ attempts (low)
+  - generateWeeklyDigest(): builds full digest with comparison deltas, auto-generated highlights/focusAreas/recommendedActions based on snapshot + wellness signals, rotating quote of the week
+- Created `/src/lib/parent/store.ts` (336 lines):
+  - In-memory store via globalThis.__parent_store__ with parents Map + links array
+  - Seed data: 1 demo parent (Mr. Sharma, parent@demo.com / parent123) with 2 approved links (student_demo_1=Aarav, student_demo_2=Diya)
+  - authenticateParent(), getParent(), getLinkedStudents(), getPendingLinks()
+  - createLink(), approveLink(), revokeLink() with approval flow
+  - buildStudentSnapshot(): pulls from Zustand registeredUsers store, computes weeklyStats (last 7d), cumulative stats, streak (consecutive days with mock or 30min study), active days, most-improved/declining topic (vs prior week), recent activity (last 10), subject breakdown with trend (last 2 vs prior 2), weak topics from error journal, wellness signals via detectWellnessSignals, 8-week trend chart data
+  - buildWeeklyDigest(): wraps generateWeeklyDigest with prior-week comparison from snapshot.weeklyTrend[-2]
+  - createParentAccount(): new parent signup
+- Created 3 API routes:
+  - GET/POST `/api/parent/dashboard`:
+    - GET returns parent info + linked students with full snapshots. Looks up student user/attempts from Zustand store, falls back to demo seed data for student_demo_* IDs
+    - POST handles login (authenticateParent) and signup (createParentAccount)
+    - All calls audited via EduScope
+  - GET `/api/parent/digest?parentId=...&studentId=...`:
+    - Verifies parent-student link approval
+    - Builds snapshot, generates weekly digest on-demand
+  - POST `/api/parent/link`:
+    - Body: { parentId, action: 'create' | 'revoke', studentUserId, relationship? }
+    - createLink() returns pending status (student must approve)
+    - revokeLink() removes the link
+- Created `/src/components/views/parent-dashboard.tsx` (525 lines):
+  - Pre-auth screen: login/signup tabs with email/password fields, demo credentials hint (parent@demo.com / parent123), read-only + no-chat disclaimer
+  - Parent dashboard (after auth):
+    - Header card with parent name + read-only badge + logout
+    - Student selector dropdown
+    - Auto-load first student's digest on selection
+  - Student dashboard (read-only view):
+    - Hero card: avatar, name, exam badges, days-to-exam countdown, streak badge
+    - Wellness signals card (priority alert — appears above the fold if any signals): each signal as colored card with severity badge + description + recommendation
+    - 4 KPI cards: Study Hours, Mocks Taken, Avg Score, Streak
+    - 4-tab layout: Overview / Subjects / Weekly Digest / Weak Topics
+    - Overview tab: cumulative stats grid + 8-week trend bar chart (color-coded by score band) + recent activity timeline
+    - Subjects tab: per-subject performance with trend badges (improving/stable/declining) + score bars
+    - Weekly Digest tab: generate-on-demand button + full digest view (headline, summary with comparison deltas, highlights, focus areas, wellness flags, recommended actions, quote of the week)
+    - Weak Topics tab: top error-journal weak topics with error count + dominant cause, resolution rate stat
+  - Bottom explainer: read-only scope, weekly digest schedule, wellness signals purpose, privacy + audit notice
+- Wired into router (`src/app/page.tsx`): case 'parent-dashboard' → <ParentDashboardView />
+- Added 'parent-dashboard' to View type union (`src/lib/types.ts`)
+- Added to sidebar (`src/components/app-shell.tsx`) — new "Family" group with Heart icon and "Parent Dashboard" label
+
+Verification:
+- `bunx tsc --noEmit` → 0 errors in new files (only pre-existing errors in exam-results/exam-runner/mock-exam-engine remain untouched)
+- `bun run lint` → 0 errors, 10 cosmetic warnings (all "unused eslint-disable" — harmless)
+- Dev server restarted cleanly on port 3000 (Next.js 16.1.3 Turbopack, ready in 881ms)
+- Manual API smoke tests:
+  - POST /api/parent/dashboard (login) with parent@demo.com/parent123 → authenticated Mr. Sharma, returned parent record with 2 linked student IDs ✓
+  - GET /api/parent/dashboard?parentId=parent_demo_1 → returned 2 student snapshots (Aarav + Diya Sharma), each with weekly stats (1 mock, 1h study, 55%/60% avg), cumulative (8 total mocks, best 65%/70%), wellness signals (low-activity + late-night both detected), recent activity (8 items), subject breakdown (3 subjects), weak topics, 8-week trend ✓
+  - GET /api/parent/digest?parentId=parent_demo_1&studentId=student_demo_1 → returned full weekly digest with headline "Aarav Sharma stayed active (1 mocks) but scores dipped 7 points this week", summary with comparison deltas (studyDelta=0, scoreDelta=-7, trend=declining), 1 highlight, 3 focus areas (including weak topic Physics Rotational Motion + wellness flag + Chemistry weakest subject), 2 wellness flags, 1 recommended action (suggest earlier sleep schedule), quote of the week ✓
+  - Read-only verified: NO chat endpoints, NO mutation endpoints in /api/parent/* (except POST /link for link management which requires student approval) ✓
+- Home page loads in 47ms with 200 status ✓
+
+Stage Summary:
+- Tier 2, Prompt #10 (Parent/Guardian Dashboard) is fully built and verified end-to-end.
+- The parent dashboard is strictly read-only — no chat access, no editing, no battle/leaderboard (those are student-only).
+- Three core capabilities:
+  1. Read-only student snapshot: weekly stats (study hours, mocks, accuracy, streak, active days), cumulative stats (total mocks, best/avg score, total study hours), recent activity timeline, subject breakdown with trend indicators, weak topics from error journal, 8-week trend chart
+  2. Wellness signal detection: 5 signals (low-activity, accuracy-drop, late-night, rapid-burnout-risk, no-improvement) with severity (low/medium/high) and tailored recommendations for the parent
+  3. Weekly digest generation: full digest with headline, summary with prior-week comparison deltas (study hours / mocks / score), highlights, focus areas, wellness flags, recommended parent actions, rotating quote of the week. Generated on-demand or scheduled for digestDay (sunday/monday/friday).
+- Parent-student link requires approval: parent creates link → student approves → parent gets read access. Revoke at any time.
+- Auth flow: separate parent accounts (not student accounts). Demo: parent@demo.com / parent123.
+- Sidebar: new "Family" group with Heart icon, "Parent Dashboard" entry.
+- All parent API calls are audited via EduScope for safety/compliance.
+

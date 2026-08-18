@@ -33,6 +33,7 @@ import {
   PenTool,
   Swords,
   BookX,
+  Heart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -92,6 +93,12 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { id: 'battle-arena', label: 'Battle Arena', icon: Swords },
       { id: 'error-journal', label: 'Error Journal', icon: BookX },
+    ],
+  },
+  {
+    title: 'Family',
+    items: [
+      { id: 'parent-dashboard', label: 'Parent Dashboard', icon: Heart },
     ],
   },
   {

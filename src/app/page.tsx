@@ -26,6 +26,7 @@ import { SocraticMentorView } from '@/components/views/socratic-mentor';
 import { HandwrittenGraderView } from '@/components/views/handwritten-grader';
 import { BattleArenaView } from '@/components/views/battle-arena';
 import { ErrorJournalView } from '@/components/views/error-journal';
+import { ParentDashboardView } from '@/components/views/parent-dashboard';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
 import type { View } from '@/lib/types';
 
@@ -83,6 +84,8 @@ function ViewRouter({ view }: { view: View }) {
       return <BattleArenaView />;
     case 'error-journal':
       return <ErrorJournalView />;
+    case 'parent-dashboard':
+      return <ParentDashboardView />;
     default:
       return <Dashboard />;
   }

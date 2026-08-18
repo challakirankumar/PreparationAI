@@ -27,7 +27,8 @@ export type View =
   | 'socratic-mentor'
   | 'handwritten-grader'
   | 'battle-arena'
-  | 'error-journal';
+  | 'error-journal'
+  | 'parent-dashboard';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 
