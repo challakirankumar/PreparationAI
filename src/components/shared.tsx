@@ -2,7 +2,13 @@
 
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
+// ============================================================================
+// PageHeader — premium glass header used at the top of secondary pages.
+// Smaller than PremiumHeader (no time widget) but uses the same glossy
+// gradient + inner sheen + soft glow treatment.
+// ============================================================================
 export function PageHeader({ icon: Icon, title, subtitle, accent = 'emerald', right }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
@@ -18,17 +24,30 @@ export function PageHeader({ icon: Icon, title, subtitle, accent = 'emerald', ri
     blue: 'from-blue-600 to-cyan-600',
   };
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-      <div className="flex items-start gap-3">
-        <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${grads[accent]} flex items-center justify-center shadow-md flex-shrink-0`}>
-          <Icon className="h-5 w-5 text-white" />
+    <div className={cn(
+      // Glossy pill header with the gradient, soft glow, and inner top sheen
+      'relative overflow-hidden rounded-2xl shadow-lg mb-6',
+      'bg-gradient-to-r', grads[accent],
+      'before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/40 before:to-transparent'
+    )}>
+      {/* Decorative glossy bloom */}
+      <div className="pointer-events-none absolute -top-12 -right-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+      <div className="relative flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className={cn(
+            'h-11 w-11 rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/25 flex items-center justify-center flex-shrink-0'
+          )}>
+            <Icon className="h-5 w-5 text-white" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white truncate">
+              {title}
+            </h1>
+            {subtitle && <p className="text-xs sm:text-sm text-white/85 mt-0.5 max-w-xl truncate">{subtitle}</p>}
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
-        </div>
+        {right}
       </div>
-      {right}
     </div>
   );
 }

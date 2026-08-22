@@ -10,11 +10,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+          // Premium glossy primary button — blue gradient + top sheen
+          "relative overflow-hidden text-primary-foreground bg-gradient-to-b from-blue-500 to-blue-700 shadow-[0_1px_2px_rgba(0,123,255,0.3),0_4px_12px_-2px_rgba(0,123,255,0.25)] hover:from-blue-600 hover:to-blue-800 hover:shadow-[0_2px_4px_rgba(0,123,255,0.4),0_8px_20px_-4px_rgba(0,123,255,0.35)] active:scale-[0.98]",
         destructive:
           "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border border-stone-200 bg-white/80 backdrop-blur-sm shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
         ghost:

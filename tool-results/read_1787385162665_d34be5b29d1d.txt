@@ -1,0 +1,700 @@
+     1→'use client';
+     2→
+     3→import * as React from 'react';
+     4→import {
+     5→  Sparkles,
+     6→  Star,
+     7→  Target,
+     8→  Trophy,
+     9→  Award,
+    10→  Gauge,
+    11→  Activity,
+    12→  FileText,
+    13→  BarChart3,
+    14→  MessageSquare,
+    15→  UserCog,
+    16→  Radar,
+    17→  Briefcase,
+    18→  GraduationCap,
+    19→  CalendarDays,
+    20→  HeartPulse,
+    21→  ChevronRight,
+    22→  PlayCircle,
+    23→  Lightbulb,
+    24→  Settings2,
+    25→  TrendingUp,
+    26→  Flame,
+    27→  Brain,
+    28→  ArrowUpRight,
+    29→} from 'lucide-react';
+    30→import { Card, CardContent } from '@/components/ui/card';
+    31→import { Button } from '@/components/ui/button';
+    32→import { Badge } from '@/components/ui/badge';
+    33→import { cn } from '@/lib/utils';
+    34→import { useStore, userExamGoals } from '@/lib/store';
+    35→import { getPattern } from '@/lib/exams/patterns';
+    36→import { StatCard } from '@/components/shared';
+    37→import { FeatureCard, type FeatureAccent } from './feature-card';
+    38→import { ExamCountdownCard } from './exam-countdown-card';
+    39→import { ManageExamsDialog } from './manage-exams-dialog';
+    40→import { DailyPlanModal } from './daily-plan-modal';
+    41→import { LiveCountdownCard, WeakAreaTriggerCard, ExamNewsFeed } from './live-dashboard-cards';
+    42→import type { View } from '@/lib/types';
+    43→
+    44→interface FeatureDef {
+    45→  view: View;
+    46→  icon: React.ComponentType<{ className?: string }>;
+    47→  title: string;
+    48→  subtitle: string;
+    49→  accent: FeatureAccent;
+    50→  badge?: string;
+    51→  detailTitle?: string;
+    52→  detailDescription?: string;
+    53→  detailBody?: React.ReactNode;
+    54→  ctaLabel?: string;
+    55→}
+    56→
+    57→const FEATURES: FeatureDef[] = [
+    58→  {
+    59→    view: 'mock-exam',
+    60→    icon: FileText,
+    61→    title: 'Mock Exam Engine',
+    62→    subtitle: 'Real-pattern papers, AI-generated, with cross-attempt deduplication.',
+    63→    accent: 'emerald',
+    64→    badge: 'AI',
+    65→    detailTitle: 'Mock Exam Engine',
+    66→    detailDescription: 'Take full-length, syllabus-weighted mock exams in real exam patterns.',
+    67→    detailBody: (
+    68→      <ul className="space-y-1.5">
+    69→        <li>• 17 exam patterns supported (JEE, NEET, GRE, GMAT, GATE, UPSC, SAT, IELTS, TOEFL and more)</li>
+    70→        <li>• Cross-attempt question signature dedup so you never see the same question twice</li>
+    71→        <li>• Subject-wise timing, confidence tagging, and negative marking</li>
+    72→        <li>• Auto-evaluation with percentile + rank estimation</li>
+    73→      </ul>
+    74→    ),
+    75→    ctaLabel: 'Start a mock',
+    76→  },
+    77→  {
+    78→    view: 'analytics',
+    79→    icon: BarChart3,
+    80→    title: 'Performance Analytics',
+    81→    subtitle: 'Subject-wise breakdown, accuracy trends, and behaviour insights.',
+    82→    accent: 'teal',
+    83→    detailTitle: 'Performance Analytics',
+    84→    detailDescription: 'Deep insights into your attempt history.',
+    85→    detailBody: (
+    86→      <ul className="space-y-1.5">
+    87→        <li>• Subject-wise score, accuracy, and time distribution</li>
+    88→        <li>• Behaviour analysis: pace trend, rapid guesses, answer changes</li>
+    89→        <li>• Per-question time spent with confidence levels</li>
+    90→        <li>• Compare attempts side-by-side</li>
+    91→      </ul>
+    92→    ),
+    93→  },
+    94→  {
+    95→    view: 'mentor',
+    96→    icon: MessageSquare,
+    97→    title: 'AI Mentor Room',
+    98→    subtitle: '24/7 chat with GLM-4.6 — concepts, strategy, motivation.',
+    99→    accent: 'emerald',
+   100→    badge: 'Live',
+   101→    detailTitle: 'AI Mentor Room',
+   102→    detailDescription: 'Chat with your personal academic mentor anytime.',
+   103→    detailBody: (
+   104→      <ul className="space-y-1.5">
+   105→        <li>• Ask concept doubts, get step-by-step explanations</li>
+   106→        <li>• Personalised score-improvement strategy</li>
+   107→        <li>• Stress & burnout support</li>
+   108→        <li>• Time-management & study planning advice</li>
+   109→      </ul>
+   110→    ),
+   111→  },
+   112→  {
+   113→    view: 'digital-twin',
+   114→    icon: UserCog,
+   115→    title: 'Digital Twin',
+   116→    subtitle: 'A virtual clone of you that simulates attempts and predicts outcomes.',
+   117→    accent: 'teal',
+   118→    badge: 'New',
+   119→    detailTitle: 'Digital Twin',
+   120→    detailDescription: 'Your AI replica for safe experiments.',
+   121→    detailBody: (
+   122→      <ul className="space-y-1.5">
+   123→        <li>• Builds a behavioural model from your past attempts</li>
+   124→        <li>• Simulates how you would perform under different strategies</li>
+   125→        <li>• Identifies optimal attempt ordering & time allocation</li>
+   126→      </ul>
+   127→    ),
+   128→  },
+   129→  {
+   130→    view: 'success-simulator',
+   131→    icon: Sparkles,
+   132→    title: 'Success Simulator',
+   133→    subtitle: 'What-if scenarios: if you score X, what ranks & colleges open up?',
+   134→    accent: 'amber',
+   135→    detailTitle: 'Success Simulator',
+   136→    detailDescription: 'Map scores to outcomes.',
+   137→    detailBody: (
+   138→      <ul className="space-y-1.5">
+   139→        <li>• Score → Percentile → Rank → College chain</li>
+   140→        <li>• Compare target vs. projected scores</li>
+   141→        <li>• Identify the gap you need to close</li>
+   142→      </ul>
+   143→    ),
+   144→  },
+   145→  {
+   146→    view: 'readiness',
+   147→    icon: Gauge,
+   148→    title: 'Readiness Index',
+   149→    subtitle: 'A single 0-100 score combining accuracy, coverage & consistency.',
+   150→    accent: 'emerald',
+   151→    detailTitle: 'Readiness Index',
+   152→    detailDescription: 'Your exam readiness in one number.',
+   153→    detailBody: (
+   154→      <ul className="space-y-1.5">
+   155→        <li>• Composite of accuracy, syllabus coverage, and consistency</li>
+   156→        <li>• Tracks progress week-over-week</li>
+   157→        <li>• Tells you exactly when you are exam-ready</li>
+   158→      </ul>
+   159→    ),
+   160→  },
+   161→  {
+   162→    view: 'rank-predictor',
+   163→    icon: Trophy,
+   164→    title: 'Rank Predictor',
+   165→    subtitle: 'Estimate your rank from the latest mock score & percentile.',
+   166→    accent: 'amber',
+   167→    detailTitle: 'Rank Predictor',
+   168→    detailDescription: 'Forecast your all-India rank.',
+   169→    detailBody: (
+   170→      <ul className="space-y-1.5">
+   171→        <li>• Uses historical normalised distributions</li>
+   172→        <li>• Confidence bands on predictions</li>
+   173→        <li>• Compares across attempts</li>
+   174→      </ul>
+   175→    ),
+   176→  },
+   177→  {
+   178→    view: 'university-predictor',
+   179→    icon: GraduationCap,
+   180→    title: 'University Predictor',
+   181→    subtitle: 'See which colleges your projected rank makes you eligible for.',
+   182→    accent: 'teal',
+   183→    detailTitle: 'University Predictor',
+   184→    detailDescription: 'College shortlist from your rank.',
+   185→    detailBody: (
+   186→      <ul className="space-y-1.5">
+   187→        <li>• Match your rank to college cutoffs</li>
+   188→        <li>• Filter by location, fees, branch</li>
+   189→        <li>• Save favourites for later</li>
+   190→      </ul>
+   191→    ),
+   192→  },
+   193→  {
+   194→    view: 'weakness-radar',
+   195→    icon: Radar,
+   196→    title: 'Weakness Radar',
+   197→    subtitle: 'Detect weak topics and fix them with curated YouTube lessons.',
+   198→    accent: 'rose',
+   199→    detailTitle: 'Weakness Radar',
+   200→    detailDescription: 'Find & fix weak topics.',
+   201→    detailBody: (
+   202→      <ul className="space-y-1.5">
+   203→        <li>• Topic-level accuracy heatmaps</li>
+   204→        <li>• Curated YouTube video recommendations per weak topic</li>
+   205→        <li>• Track fix progress over time</li>
+   206→      </ul>
+   207→    ),
+   208→  },
+   209→  {
+   210→    view: 'career',
+   211→    icon: Briefcase,
+   212→    title: 'Career Guide',
+   213→    subtitle: 'Explore careers — salaries, demand, future scope, recruiters.',
+   214→    accent: 'amber',
+   215→    detailTitle: 'Career Guide',
+   216→    detailDescription: 'Plan beyond the exam.',
+   217→    detailBody: (
+   218→      <ul className="space-y-1.5">
+   219→        <li>• 20+ career paths with deep profiles</li>
+   220→        <li>• Salary, demand forecast, work-life balance</li>
+   221→        <li>• Skill requirements & top recruiters</li>
+   222→      </ul>
+   223→    ),
+   224→  },
+   225→  {
+   226→    view: 'university',
+   227→    icon: GraduationCap,
+   228→    title: 'University Finder',
+   229→    subtitle: 'Search 30+ global universities by ranking, fees, country.',
+   230→    accent: 'emerald',
+   231→    detailTitle: 'University Finder',
+   232→    detailDescription: 'Discover universities worldwide.',
+   233→    detailBody: (
+   234→      <ul className="space-y-1.5">
+   235→        <li>• Filter by country, ranking, fees, acceptance rate</li>
+   236→        <li>• Scholarships & accommodation details</li>
+   237→        <li>• Visa & employment rate insights</li>
+   238→      </ul>
+   239→    ),
+   240→  },
+   241→  {
+   242→    view: 'scholarship',
+   243→    icon: Award,
+   244→    title: 'Scholarship Engine',
+   245→    subtitle: 'Match scholarships to your profile, country, and level.',
+   246→    accent: 'amber',
+   247→    detailTitle: 'Scholarship Engine',
+   248→    detailDescription: 'Fund your education.',
+   249→    detailBody: (
+   250→      <ul className="space-y-1.5">
+   251→        <li>• Curated scholarships across 10+ countries</li>
+   252→        <li>• Filter by eligibility, deadline, level</li>
+   253→        <li>• Direct application links</li>
+   254→      </ul>
+   255→    ),
+   256→  },
+   257→  {
+   258→    view: 'planner',
+   259→    icon: CalendarDays,
+   260→    title: 'Study Planner',
+   261→    subtitle: 'Daily, weekly, monthly & revision plans — AI-personalised.',
+   262→    accent: 'teal',
+   263→    detailTitle: 'Study Planner',
+   264→    detailDescription: 'Structured study schedules.',
+   265→    detailBody: (
+   266→      <ul className="space-y-1.5">
+   267→        <li>• Daily / weekly / monthly / revision / mock plan templates</li>
+   268→        <li>• AI-generated plans tuned to your weak topics</li>
+   269→        <li>• Drag-and-drop time blocks</li>
+   270→      </ul>
+   271→    ),
+   272→  },
+   273→  {
+   274→    view: 'counsellor',
+   275→    icon: HeartPulse,
+   276→    title: 'Wellness Counsellor',
+   277→    subtitle: 'Stress, sleep, focus, motivation — your mental wellness ally.',
+   278→    accent: 'rose',
+   279→    detailTitle: 'Wellness Counsellor',
+   280→    detailDescription: 'Stay mentally sharp.',
+   281→    detailBody: (
+   282→      <ul className="space-y-1.5">
+   283→        <li>• Daily mood & energy check-ins</li>
+   284→        <li>• Burnout risk detection from behaviour patterns</li>
+   285→        <li>• Guided breathing & focus exercises</li>
+   286→      </ul>
+   287→    ),
+   288→  },
+   289→  {
+   290→    view: 'analytics',
+   291→    icon: Activity,
+   292→    title: 'Behaviour Insights',
+   293→    subtitle: 'Pace, idle time, guess patterns — your hidden exam habits.',
+   294→    accent: 'rose',
+   295→    detailTitle: 'Behaviour Insights',
+   296→    detailDescription: 'See how you actually attempt exams.',
+   297→    detailBody: (
+   298→      <ul className="space-y-1.5">
+   299→        <li>• Speed progression across the paper</li>
+   300→        <li>• Idle pauses and rapid-guess detection</li>
+   301→        <li>• Difficulty-vs-time gap analysis</li>
+   302→      </ul>
+   303→    ),
+   304→  },
+   305→];
+   306→
+   307→function daysToExam(examDate?: string): number {
+   308→  if (!examDate) return 0;
+   309→  const today = new Date();
+   310→  today.setHours(0, 0, 0, 0);
+   311→  const target = new Date(examDate);
+   312→  target.setHours(0, 0, 0, 0);
+   313→  return Math.max(0, Math.ceil((target.getTime() - today.getTime()) / 86400000));
+   314→}
+   315→
+   316→function ReadinessRing({ value }: { value: number }) {
+   317→  const radius = 32;
+   318→  const circ = 2 * Math.PI * radius;
+   319→  const offset = circ - (Math.min(100, Math.max(0, value)) / 100) * circ;
+   320→  const color = value >= 75 ? '#10b981' : value >= 50 ? '#f59e0b' : '#f43f5e';
+   321→  return (
+   322→    <div className="relative h-20 w-20 flex-shrink-0">
+   323→      <svg className="h-20 w-20 -rotate-90" viewBox="0 0 80 80">
+   324→        <defs>
+   325→          <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1">
+   326→            <stop offset="0%" stopColor="#10b981" />
+   327→            <stop offset="60%" stopColor="#0d9488" />
+   328→            <stop offset="100%" stopColor="#f59e0b" />
+   329→          </linearGradient>
+   330→        </defs>
+   331→        <circle cx="40" cy="40" r={radius} stroke="#f5f5f4" strokeWidth="6" fill="none" />
+   332→        <circle
+   333→          cx="40"
+   334→          cy="40"
+   335→          r={radius}
+   336→          stroke="url(#ring-grad)"
+   337→          strokeWidth="6"
+   338→          fill="none"
+   339→          strokeDasharray={circ}
+   340→          strokeDashoffset={offset}
+   341→          strokeLinecap="round"
+   342→          style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+   343→        />
+   344→      </svg>
+   345→      <div className="absolute inset-0 flex flex-col items-center justify-center">
+   346→        <span className="text-xl font-bold tabular-nums text-stone-900">{value}</span>
+   347→        <span className="text-[9px] text-muted-foreground uppercase tracking-wider">ready</span>
+   348→      </div>
+   349→      <span
+   350→        className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white"
+   351→        style={{ backgroundColor: color }}
+   352→      />
+   353→    </div>
+   354→  );
+   355→}
+   356→
+   357→function ScoreTrendCard({ scores }: { scores: { label: string; value: number }[] }) {
+   358→  if (scores.length === 0) {
+   359→    return (
+   360→      <Card className="p-5 border-stone-200 h-full">
+   361→        <p className="text-sm font-semibold text-stone-900 mb-2 flex items-center gap-1.5">
+   362→          <TrendingUp className="h-4 w-4 text-blue-600" /> Score trend
+   363→        </p>
+   364→        <p className="text-xs text-muted-foreground">No attempts yet. Take your first mock to see your trend.</p>
+   365→      </Card>
+   366→    );
+   367→  }
+   368→
+   369→  const max = Math.max(...scores.map((s) => s.value), 1);
+   370→  const min = Math.min(...scores.map((s) => s.value), 0);
+   371→  const range = Math.max(max - min, 1);
+   372→  const w = 240;
+   373→  const h = 80;
+   374→  const pts = scores.map((s, i) => {
+   375→    const x = (i / Math.max(scores.length - 1, 1)) * w;
+   376→    const y = h - ((s.value - min) / range) * h;
+   377→    return { x, y, ...s };
+   378→  });
+   379→  const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+   380→  const area = `${path} L${w},${h} L0,${h} Z`;
+   381→
+   382→  return (
+   383→    <Card className="p-5 border-stone-200 h-full">
+   384→      <div className="flex items-center justify-between mb-3">
+   385→        <p className="text-sm font-semibold text-stone-900 flex items-center gap-1.5">
+   386→          <TrendingUp className="h-4 w-4 text-blue-600" /> Score trend
+   387→        </p>
+   388→        <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+   389→          <ArrowUpRight className="h-3 w-3" /> {scores.length} attempts
+   390→        </Badge>
+   391→      </div>
+   392→      <div className="flex items-end gap-1">
+   393→        <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-20" preserveAspectRatio="none">
+   394→          <defs>
+   395→            <linearGradient id="area-grad" x1="0" y1="0" x2="0" y2="1">
+   396→              <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+   397→              <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+   398→            </linearGradient>
+   399→          </defs>
+   400→          <path d={area} fill="url(#area-grad)" />
+   401→          <path d={path} fill="none" stroke="#10b981" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+   402→          {pts.map((p, i) => (
+   403→            <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#047857" />
+   404→          ))}
+   405→        </svg>
+   406→      </div>
+   407→      <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+   408→        {scores.map((s, i) => (
+   409→          <span key={i}>{s.label}</span>
+   410→        ))}
+   411→      </div>
+   412→    </Card>
+   413→  );
+   414→}
+   415→
+   416→export function Dashboard() {
+   417→  const user = useStore((s) => s.user);
+   418→  const attempts = useStore((s) => s.attempts);
+   419→  const setView = useStore((s) => s.setView);
+   420→  const [manageOpen, setManageOpen] = React.useState(false);
+   421→
+   422→  if (!user) return null;
+   423→
+   424→  const goals = userExamGoals(user);
+   425→  const primaryPattern = getPattern(user.examGoal);
+   426→  const days = daysToExam(user.examDate);
+   427→
+   428→  // Stats
+   429→  const avgScore =
+   430→    attempts.length > 0
+   431→      ? Math.round(attempts.reduce((a, t) => a + (t.score / Math.max(t.totalMarks, 1)) * 100, 0) / attempts.length)
+   432→      : 0;
+   433→  const mocksTaken = attempts.length;
+   434→  const bestPercentile = attempts.length > 0 ? Math.max(...attempts.map((t) => t.percentile)) : 0;
+   435→  const avgAccuracy =
+   436→    attempts.length > 0
+   437→      ? Math.round(attempts.reduce((a, t) => a + t.accuracy, 0) / attempts.length)
+   438→      : 0;
+   439→  const readiness = Math.min(100, Math.round((avgScore + avgAccuracy) / 2));
+   440→
+   441→  // Latest weak topics
+   442→  const latest = attempts[0];
+   443→  const weakTopics = latest?.weakTopics?.slice(0, 4) ?? [];
+   444→
+   445→  const scorePoints = attempts
+   446→    .slice(0, 6)
+   447→    .reverse()
+   448→    .map((a, i) => ({ label: `A${i + 1}`, value: Math.round((a.score / Math.max(a.totalMarks, 1)) * 100) }));
+   449→
+   450→  return (
+   451→    <div className="space-y-6">
+   452→      {/* Hero card */}
+   453→      <Card className="bg-hero-emerald border-stone-200 overflow-hidden">
+   454→        <CardContent className="p-5 sm:p-6 lg:p-8">
+   455→          <div className="flex flex-col lg:flex-row gap-6">
+   456→            <div className="flex-1 min-w-0">
+   457→              <div className="flex items-center gap-2 flex-wrap mb-2">
+   458→                <Badge className="bg-blue-100 text-blue-700 border border-blue-200">
+   459→                  <Target className="h-3 w-3" /> {goals.length} target exam{goals.length === 1 ? '' : 's'}
+   460→                </Badge>
+   461→                <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700">
+   462→                  <CalendarDays className="h-3 w-3" /> {days} days to {primaryPattern?.name ?? 'exam'}
+   463→                </Badge>
+   464→                {latest && (
+   465→                  <Badge variant="outline" className="bg-stone-50 border-stone-200 text-stone-600">
+   466→                    Last mock: {latest.percentile} percentile
+   467→                  </Badge>
+   468→                )}
+   469→              </div>
+   470→              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">
+   471→                Welcome back, <span className="text-gradient-emerald">{user.name.split(' ')[0]}</span>
+   472→              </h1>
+   473→              <p className="text-sm text-muted-foreground mt-1 max-w-xl">
+   474→                You're preparing for <span className="font-medium text-stone-700">{primaryPattern?.name}</span>
+   475→                {goals.length > 1 && (
+   476→                  <> and {goals.length - 1} more exam{goals.length === 2 ? '' : 's'}</>
+   477→                )}
+   478→                . Stay consistent — small daily reps compound into exam-day confidence.
+   479→              </p>
+   480→
+   481→              {/* Target exam chips */}
+   482→              <div className="mt-3 flex flex-wrap gap-1.5">
+   483→                {goals.map((id) => {
+   484→                  const p = getPattern(id);
+   485→                  if (!p) return null;
+   486→                  const isPrimary = id === user.examGoal;
+   487→                  return (
+   488→                    <span
+   489→                      key={id}
+   490→                      className={cn(
+   491→                        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border',
+   492→                        isPrimary
+   493→                          ? 'bg-amber-50 border-amber-300 text-amber-700'
+   494→                          : 'bg-blue-50 border-blue-200 text-blue-700'
+   495→                      )}
+   496→                    >
+   497→                      {isPrimary && <Star className="h-3 w-3 fill-amber-500 text-amber-500" />}
+   498→                      {p.name}
+   499→                    </span>
+   500→                  );
+   501→                })}
+   502→                <button
+   503→                  onClick={() => setManageOpen(true)}
+   504→                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border border-stone-300 text-stone-600 hover:border-blue-300 hover:text-blue-700 transition"
+   505→                >
+   506→                  <Settings2 className="h-3 w-3" /> Manage
+   507→                </button>
+   508→              </div>
+   509→
+   510→              {/* Action buttons */}
+   511→              <div className="mt-4 flex flex-wrap gap-2">
+   512→                <Button onClick={() => setView('mock-exam')} className="bg-blue-600 hover:bg-blue-700">
+   513→                  <PlayCircle className="h-4 w-4" /> Start Mock
+   514→                </Button>
+   515→                <Button variant="outline" onClick={() => setView('mentor')} className="border-blue-300">
+   516→                  <MessageSquare className="h-4 w-4" /> Ask Mentor
+   517→                </Button>
+   518→                <Button variant="ghost" onClick={() => setManageOpen(true)}>
+   519→                  <Settings2 className="h-4 w-4" /> Manage Exams
+   520→                </Button>
+   521→              </div>
+   522→            </div>
+   523→
+   524→            {/* Readiness ring */}
+   525→            <div className="flex flex-col items-center justify-center gap-2 lg:border-l lg:border-stone-200 lg:pl-6">
+   526→              <ReadinessRing value={readiness} />
+   527→              <p className="text-xs text-center text-muted-foreground max-w-[160px]">
+   528→                {readiness >= 75
+   529→                  ? 'You are exam-ready. Keep refining.'
+   530→                  : readiness >= 50
+   531→                  ? 'Steady progress. Push weak topics.'
+   532→                  : 'Build fundamentals. Take more mocks.'}
+   533→              </p>
+   534→            </div>
+   535→          </div>
+   536→        </CardContent>
+   537→      </Card>
+   538→
+   539→      {/* Quick stats */}
+   540→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+   541→        <StatCard label="Avg Score" value={`${avgScore}%`} sub="across all mocks" icon={TrendingUp} accent="emerald" />
+   542→        <StatCard label="Mocks Taken" value={mocksTaken} sub="last 30 days" icon={FileText} accent="teal" />
+   543→        <StatCard label="Best Percentile" value={bestPercentile} sub="all-time" icon={Trophy} accent="amber" />
+   544→        <StatCard label="Accuracy" value={`${avgAccuracy}%`} sub="average" icon={Target} accent="rose" />
+   545→      </div>
+   546→
+   547→      {/* Live countdown + weak areas + news */}
+   548→      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+   549→        <LiveCountdownCard
+   550→          examId={user.examGoal}
+   551→          examDate={user.examDate}
+   552→          examName={getPattern(user.examGoal)?.name ?? 'Target Exam'}
+   553→        />
+   554→        <WeakAreaTriggerCard attempts={attempts} />
+   555→        <ExamNewsFeed
+   556→          examId={user.examGoal}
+   557→          examName={getPattern(user.examGoal)?.name ?? 'exam'}
+   558→          country={user.country}
+   559→        />
+   560→      </div>
+   561→
+   562→      {/* Countdown + trend */}
+   563→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   564→        <ExamCountdownCard focusArea={weakTopics[0]} streak={mocksTaken > 0 ? Math.min(mocksTaken, 7) : 0} />
+   565→        <ScoreTrendCard scores={scorePoints} />
+   566→      </div>
+   567→
+   568→      {/* Feature grid */}
+   569→      <div>
+   570→        <div className="flex items-center justify-between mb-3">
+   571→          <div>
+   572→            <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
+   573→              <Sparkles className="h-5 w-5 text-blue-600" /> AI Agents
+   574→            </h2>
+   575→            <p className="text-sm text-muted-foreground">Eleven specialised agents, one workspace.</p>
+   576→          </div>
+   577→          <Badge variant="outline" className="bg-stone-50 border-stone-200 text-stone-600">
+   578→            {FEATURES.length} tools
+   579→          </Badge>
+   580→        </div>
+   581→        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+   582→          {FEATURES.map((f) => (
+   583→            <FeatureCard
+   584→              key={f.title}
+   585→              icon={f.icon}
+   586→              title={f.title}
+   587→              subtitle={f.subtitle}
+   588→              accent={f.accent}
+   589→              badge={f.badge}
+   590→              detailTitle={f.detailTitle}
+   591→              detailDescription={f.detailDescription}
+   592→              detailBody={f.detailBody}
+   593→              ctaLabel={f.ctaLabel}
+   594→              onClick={() => setView(f.view)}
+   595→            />
+   596→          ))}
+   597→        </div>
+   598→      </div>
+   599→
+   600→      {/* Today's focus + Quick start */}
+   601→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   602→        <Card className="p-5 border-stone-200">
+   603→          <div className="flex items-center justify-between mb-3">
+   604→            <h3 className="font-semibold text-stone-900 flex items-center gap-1.5">
+   605→              <Lightbulb className="h-4 w-4 text-amber-500" /> Today's focus
+   606→            </h3>
+   607→            {latest && (
+   608→              <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700">
+   609→                from latest mock
+   610→              </Badge>
+   611→            )}
+   612→          </div>
+   613→          {weakTopics.length > 0 ? (
+   614→            <div className="space-y-2">
+   615→              <p className="text-sm text-muted-foreground">
+   616→                Based on your latest attempt, focus on these weak topics:
+   617→              </p>
+   618→              <div className="space-y-1.5">
+   619→                {weakTopics.map((t, i) => (
+   620→                  <div
+   621→                    key={t}
+   622→                    className="flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 p-2.5"
+   623→                  >
+   624→                    <span className="h-6 w-6 rounded-md bg-rose-100 text-rose-600 text-xs font-semibold flex items-center justify-center">
+   625→                      {i + 1}
+   626→                    </span>
+   627→                    <span className="flex-1 text-sm text-stone-800">{t}</span>
+   628→                    <Button
+   629→                      size="sm"
+   630→                      variant="ghost"
+   631→                      className="h-7 text-xs text-blue-700 hover:text-blue-800"
+   632→                      onClick={() => setView('weakness-radar')}
+   633→                    >
+   634→                      Fix <ChevronRight className="h-3 w-3" />
+   635→                    </Button>
+   636→                  </div>
+   637→                ))}
+   638→              </div>
+   639→            </div>
+   640→          ) : (
+   641→            <div className="text-center py-6">
+   642→              <Brain className="h-8 w-8 mx-auto text-stone-300 mb-2" />
+   643→              <p className="text-sm text-muted-foreground">
+   644→                Take a mock exam to get personalised weak-topic recommendations.
+   645→              </p>
+   646→              <Button size="sm" className="mt-3 bg-blue-600 hover:bg-blue-700" onClick={() => setView('mock-exam')}>
+   647→                <PlayCircle className="h-3.5 w-3.5" /> Take first mock
+   648→              </Button>
+   649→            </div>
+   650→          )}
+   651→        </Card>
+   652→
+   653→        <Card className="p-5 border-stone-200 bg-gradient-to-br from-emerald-50 to-teal-50">
+   654→          <h3 className="font-semibold text-stone-900 flex items-center gap-1.5 mb-3">
+   655→            <Flame className="h-4 w-4 text-rose-500" /> Quick start
+   656→          </h3>
+   657→          <div className="grid grid-cols-2 gap-2">
+   658→            <button
+   659→              onClick={() => setView('mock-exam')}
+   660→              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
+   661→            >
+   662→              <FileText className="h-5 w-5 text-blue-600 mb-1.5" />
+   663→              <p className="text-sm font-semibold text-stone-900">Take a mock</p>
+   664→              <p className="text-[11px] text-muted-foreground">Full-length, AI-generated</p>
+   665→            </button>
+   666→            <button
+   667→              onClick={() => setView('mentor')}
+   668→              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
+   669→            >
+   670→              <MessageSquare className="h-5 w-5 text-teal-600 mb-1.5" />
+   671→              <p className="text-sm font-semibold text-stone-900">Ask mentor</p>
+   672→              <p className="text-[11px] text-muted-foreground">Doubts, strategy, motivation</p>
+   673→            </button>
+   674→            <button
+   675→              onClick={() => setView('weakness-radar')}
+   676→              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
+   677→            >
+   678→              <Radar className="h-5 w-5 text-rose-600 mb-1.5" />
+   679→              <p className="text-sm font-semibold text-stone-900">Fix weaknesses</p>
+   680→              <p className="text-[11px] text-muted-foreground">YouTube-curated fixes</p>
+   681→            </button>
+   682→            <button
+   683→              onClick={() => setView('planner')}
+   684→              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
+   685→            >
+   686→              <CalendarDays className="h-5 w-5 text-amber-600 mb-1.5" />
+   687→              <p className="text-sm font-semibold text-stone-900">Plan today</p>
+   688→              <p className="text-[11px] text-muted-foreground">AI-personalised schedule</p>
+   689→            </button>
+   690→          </div>
+   691→        </Card>
+   692→      </div>
+   693→
+   694→      {/* Dialogs */}
+   695→      <ManageExamsDialog open={manageOpen} onOpenChange={setManageOpen} />
+   696→      <DailyPlanModal />
+   697→    </div>
+   698→  );
+   699→}
+   700→

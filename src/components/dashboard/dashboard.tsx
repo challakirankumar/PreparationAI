@@ -39,6 +39,7 @@ import { ExamCountdownCard } from './exam-countdown-card';
 import { ManageExamsDialog } from './manage-exams-dialog';
 import { DailyPlanModal } from './daily-plan-modal';
 import { LiveCountdownCard, WeakAreaTriggerCard, ExamNewsFeed } from './live-dashboard-cards';
+import { PremiumHeader } from '@/components/shared/premium-header';
 import type { View } from '@/lib/types';
 
 interface FeatureDef {
@@ -449,92 +450,35 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Hero card */}
-      <Card className="bg-hero-emerald border-stone-200 overflow-hidden">
-        <CardContent className="p-5 sm:p-6 lg:p-8">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-2">
-                <Badge className="bg-blue-100 text-blue-700 border border-blue-200">
-                  <Target className="h-3 w-3" /> {goals.length} target exam{goals.length === 1 ? '' : 's'}
-                </Badge>
-                <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700">
-                  <CalendarDays className="h-3 w-3" /> {days} days to {primaryPattern?.name ?? 'exam'}
-                </Badge>
-                {latest && (
-                  <Badge variant="outline" className="bg-stone-50 border-stone-200 text-stone-600">
-                    Last mock: {latest.percentile} percentile
-                  </Badge>
-                )}
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">
-                Welcome back, <span className="text-gradient-emerald">{user.name.split(' ')[0]}</span>
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-                You're preparing for <span className="font-medium text-stone-700">{primaryPattern?.name}</span>
-                {goals.length > 1 && (
-                  <> and {goals.length - 1} more exam{goals.length === 2 ? '' : 's'}</>
-                )}
-                . Stay consistent — small daily reps compound into exam-day confidence.
-              </p>
-
-              {/* Target exam chips */}
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {goals.map((id) => {
-                  const p = getPattern(id);
-                  if (!p) return null;
-                  const isPrimary = id === user.examGoal;
-                  return (
-                    <span
-                      key={id}
-                      className={cn(
-                        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border',
-                        isPrimary
-                          ? 'bg-amber-50 border-amber-300 text-amber-700'
-                          : 'bg-blue-50 border-blue-200 text-blue-700'
-                      )}
-                    >
-                      {isPrimary && <Star className="h-3 w-3 fill-amber-500 text-amber-500" />}
-                      {p.name}
-                    </span>
-                  );
-                })}
-                <button
-                  onClick={() => setManageOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border border-stone-300 text-stone-600 hover:border-blue-300 hover:text-blue-700 transition"
-                >
-                  <Settings2 className="h-3 w-3" /> Manage
-                </button>
-              </div>
-
-              {/* Action buttons */}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button onClick={() => setView('mock-exam')} className="bg-blue-600 hover:bg-blue-700">
-                  <PlayCircle className="h-4 w-4" /> Start Mock
-                </Button>
-                <Button variant="outline" onClick={() => setView('mentor')} className="border-blue-300">
-                  <MessageSquare className="h-4 w-4" /> Ask Mentor
-                </Button>
-                <Button variant="ghost" onClick={() => setManageOpen(true)}>
-                  <Settings2 className="h-4 w-4" /> Manage Exams
-                </Button>
-              </div>
-            </div>
-
-            {/* Readiness ring */}
-            <div className="flex flex-col items-center justify-center gap-2 lg:border-l lg:border-stone-200 lg:pl-6">
-              <ReadinessRing value={readiness} />
-              <p className="text-xs text-center text-muted-foreground max-w-[160px]">
-                {readiness >= 75
-                  ? 'You are exam-ready. Keep refining.'
-                  : readiness >= 50
-                  ? 'Steady progress. Push weak topics.'
-                  : 'Build fundamentals. Take more mocks.'}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Premium gradient header — replaces the old hero card */}
+      <PremiumHeader
+        title={`Welcome back, ${user.name.split(' ')[0]}`}
+        subtitle={
+          primaryPattern
+            ? `Preparing for ${primaryPattern.name}${days > 0 ? ` · ${days} days to go` : ''}`
+            : 'Your AI Educational OS for exam preparation'
+        }
+        icon={Sparkles}
+        actions={
+          <>
+            <Button
+              size="sm"
+              className="hidden sm:inline-flex bg-white text-blue-700 hover:bg-blue-50 shadow-sm"
+              onClick={() => setView('mock-exam')}
+            >
+              <PlayCircle className="h-4 w-4" /> Start Mock
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="hidden sm:inline-flex bg-white/15 text-white border-white/30 backdrop-blur-sm hover:bg-white/25"
+              onClick={() => setView('mentor')}
+            >
+              <MessageSquare className="h-4 w-4" /> Ask Mentor
+            </Button>
+          </>
+        }
+      />
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

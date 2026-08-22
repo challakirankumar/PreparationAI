@@ -132,10 +132,10 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
       {NAV_GROUPS.map((group) => {
         return (
         <div key={group.title}>
-          <p className="px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+          <p className="px-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-2">
             {group.title}
           </p>
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = isParentActive(item.id, view);
@@ -150,29 +150,40 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                     onNavigate?.();
                   }}
                   className={cn(
-                    'w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-all palette-btn group',
+                    'relative w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 group overflow-hidden',
                     active
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md shadow-blue-200/60'
-                      : 'text-stone-600 hover:bg-blue-50 hover:text-blue-700 hover:shadow-sm',
-                    isHub && 'border border-blue-100/50'
+                      ? // Glossy active state — blue gradient + soft glow
+                        'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-[0_4px_12px_-2px_rgba(0,123,255,0.4)]'
+                      : // Glossy idle state — translucent glass surface
+                        'text-stone-600 hover:text-blue-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent hover:shadow-sm',
+                    isHub && !active && 'ring-1 ring-stone-200/60'
                   )}
                 >
+                  {/* Glossy top highlight for active state */}
+                  {active && (
+                    <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                  )}
                   <Icon className={cn(
-                    'h-4 w-4 flex-shrink-0 transition-transform group-hover:scale-110',
-                    active ? 'text-white' : 'text-stone-500'
+                    'h-4 w-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110',
+                    active ? 'text-white' : 'text-stone-500 group-hover:text-blue-600'
                   )} />
-                  <span className="flex-1 text-left truncate">{item.label}</span>
+                  <span className={cn(
+                    'flex-1 text-left truncate tracking-tight',
+                    active && 'font-semibold'
+                  )}>
+                    {item.label}
+                  </span>
                   {isHub && (
                     <ChevronRight className={cn(
-                      'h-3 w-3 transition-opacity',
-                      active ? 'text-white/80' : 'text-stone-400'
+                      'h-3 w-3 transition-all',
+                      active ? 'text-white/80' : 'text-stone-400 group-hover:text-blue-600 group-hover:translate-x-0.5'
                     )} />
                   )}
                   {isMockExam && attemptCount > 0 && (
                     <Badge
                       variant="outline"
                       className={cn(
-                        'h-5 px-1.5 text-[10px] border-none',
+                        'h-5 px-1.5 text-[10px] border-none font-semibold',
                         active ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'
                       )}
                     >
@@ -231,21 +242,15 @@ function TargetExamCard() {
 
 function SidebarHeader() {
   return (
-    <div className="flex items-center gap-3 px-4 h-16 border-b border-stone-200 flex-shrink-0 bg-gradient-to-r from-white via-blue-50/40 to-white relative overflow-hidden">
+    <div className="flex items-center gap-3 px-5 h-16 border-b border-stone-200 flex-shrink-0 bg-gradient-to-r from-white via-blue-50/40 to-white relative overflow-hidden">
       {/* Decorative glossy sheen */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-12 -left-8 h-32 w-32 rounded-full bg-blue-100/40 blur-3xl" />
       </div>
-      <div className="relative flex items-center gap-3">
-        <div className="relative flex-shrink-0">
-          <img src="/logo.jpeg" alt="PreparationAI" className="h-11 w-11 rounded-xl object-contain shadow-sm ring-1 ring-blue-100" />
-          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-        </div>
-        <div className="min-w-0">
-          <p className="font-bold text-lg leading-tight tracking-tight">
-            Preparation<span className="text-blue-600">AI</span>
-          </p>
-        </div>
+      <div className="relative flex items-center gap-2.5">
+        <p className="font-bold text-xl leading-tight tracking-tight">
+          Preparation<span className="text-blue-600">AI</span>
+        </p>
       </div>
     </div>
   );
@@ -300,9 +305,11 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         <Menu className="h-5 w-5" />
       </Button>
 
-      {/* Logo on mobile */}
+      {/* Brand text on mobile */}
       <div className="lg:hidden flex items-center gap-2">
-        <img src="/logo.jpeg" alt="PreparationAI" className="h-8 w-8 rounded-lg object-contain" />
+        <p className="font-bold text-base leading-tight tracking-tight">
+          Preparation<span className="text-blue-600">AI</span>
+        </p>
       </div>
 
       <div className="flex-1" />

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useStore } from '@/lib/store';
 import type { View } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { PremiumHeader } from '@/components/shared/premium-header';
 import {
   MessageSquare, Brain, Mic, HelpCircle, BookOpen, TrendingUp, UserCog,
   Sparkles, Gauge, Trophy, School, Radar, ArrowRight, Sparkle,
@@ -140,41 +141,21 @@ export function AiAgentsDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <div className="rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-500 text-white p-6 shadow-lg shadow-blue-200/50 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 h-32 w-32 rounded-full bg-cyan-200 blur-3xl" />
-        </div>
-        <div className="relative flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkle className="h-4 w-4" />
-              <span className="text-xs uppercase tracking-widest font-semibold text-blue-50">
-                AI Agents Hub
-              </span>
+      {/* Premium gradient header */}
+      <PremiumHeader
+        title="AI Agents Hub"
+        subtitle="Twelve specialised AI agents — conceptual mastery, behavior simulation, rank forecasting, weakness diagnosis. Tap any card to launch."
+        icon={Sparkles}
+        variant="indigo"
+        actions={
+          attempts.length > 0 ? (
+            <div className="hidden sm:block rounded-xl bg-white/15 backdrop-blur px-4 py-2.5 ring-1 ring-white/20">
+              <p className="text-[10px] uppercase tracking-wider text-blue-50 font-semibold">Mocks taken</p>
+              <p className="text-2xl font-bold leading-tight text-white">{attempts.length}</p>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">
-              Twelve specialised AI agents.
-              <br />
-              <span className="text-blue-50">One mission — your rank.</span>
-            </h1>
-            <p className="text-sm text-blue-50/90 mt-2 max-w-xl leading-relaxed">
-              Each agent below is a dedicated model trained on a single facet of exam
-              preparation — conceptual mastery, behavior simulation, rank forecasting,
-              or weakness diagnosis. Tap any card to launch the agent.
-            </p>
-          </div>
-          {attempts.length > 0 && (
-            <div className="flex gap-3 lg:flex-shrink-0">
-              <div className="rounded-xl bg-white/15 backdrop-blur px-4 py-2.5 ring-1 ring-white/20">
-                <p className="text-[10px] uppercase tracking-wider text-blue-50 font-semibold">Mocks taken</p>
-                <p className="text-2xl font-bold leading-tight">{attempts.length}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+          ) : null
+        }
+      />
 
       {/* Cards grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

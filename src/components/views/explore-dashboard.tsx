@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useStore } from '@/lib/store';
 import type { View } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { PremiumHeader } from '@/components/shared/premium-header';
 import {
   Briefcase, GraduationCap, Award, Settings2, ArrowRight, Compass,
 } from 'lucide-react';
@@ -87,33 +88,13 @@ export function ExploreDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <div className="rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-500 text-white p-6 shadow-lg shadow-blue-200/50 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 h-32 w-32 rounded-full bg-cyan-200 blur-3xl" />
-        </div>
-        <div className="relative flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Compass className="h-4 w-4" />
-              <span className="text-xs uppercase tracking-widest font-semibold text-blue-50">
-                Explore Hub
-              </span>
-            </div>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">
-              Beyond the exam hall.
-              <br />
-              <span className="text-blue-50">Plan the next ten years.</span>
-            </h1>
-            <p className="text-sm text-blue-50/90 mt-2 max-w-xl leading-relaxed">
-              Career paths, universities, scholarships, and account settings —
-              everything you need to turn an exam score into a long-term academic
-              trajectory. Tap any card to dive in.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Premium gradient header */}
+      <PremiumHeader
+        title="Explore Hub"
+        subtitle="Career paths, universities, scholarships, and account settings — everything you need to turn an exam score into a long-term academic trajectory. Tap any card to dive in."
+        icon={Compass}
+        variant="blue"
+      />
 
       {/* Cards grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

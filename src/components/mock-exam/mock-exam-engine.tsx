@@ -15,6 +15,7 @@ import { EXAM_PATTERNS, getPattern } from '@/lib/exams/patterns';
 import type { ExamAttempt, ExamPattern, GeneratedExam, User } from '@/lib/types';
 import { ManageExamsDialog } from '@/components/dashboard/manage-exams-dialog';
 import { ContestFormDialog } from '@/components/shared/dialogs';
+import { PremiumHeader } from '@/components/shared/premium-header';
 import { useToast } from '@/hooks/use-toast';
 import {
   Atom, Clock, FileText, ListChecks, Settings2, Sparkles, Trophy, Target,
@@ -131,39 +132,23 @@ export function MockExamEngine({ onStart }: Props = {}) {
       )}
       {!adaptiveFor && (
         <>
-      {/* Hero */}
-      <Card className="bg-hero-emerald border-blue-200">
-        <CardContent className="pt-6">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-4 justify-between">
-            <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
-                <Atom className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">AI Mock Exam Engine</h1>
-                <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-                  Each attempt generates a brand-new paper from your syllabus weights. Our engine
-                  tracks every question you&apos;ve seen and avoids repeats — so every mock is fresh.
-                </p>
-                <div className="flex flex-wrap items-center gap-2 mt-3">
-                  <Badge variant="outline" className="border-blue-300 text-blue-700 bg-white/60">
-                    <Sparkles className="h-3 w-3" /> AI-generated questions
-                  </Badge>
-                  <Badge variant="outline" className="border-amber-300 text-amber-700 bg-white/60">
-                    <ShieldCheck className="h-3 w-3" /> Cross-attempt dedup
-                  </Badge>
-                  <Badge variant="outline" className="border-teal-300 text-teal-700 bg-white/60">
-                    <Layers className="h-3 w-3" /> {available.length} active pattern{available.length !== 1 ? 's' : ''}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-            <Button onClick={() => setManageOpen(true)} variant="outline" className="flex-shrink-0">
-              <Settings2 className="h-4 w-4" /> Manage Exams
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Premium gradient header */}
+      <PremiumHeader
+        title="AI Mock Exam Engine"
+        subtitle="Each attempt generates a brand-new paper from your syllabus weights. The engine tracks every question you've seen and avoids repeats — so every mock is fresh."
+        icon={Atom}
+        variant="blue"
+        actions={
+          <Button
+            size="sm"
+            variant="outline"
+            className="hidden sm:inline-flex bg-white/15 text-white border-white/30 backdrop-blur-sm hover:bg-white/25"
+            onClick={() => setManageOpen(true)}
+          >
+            <Settings2 className="h-4 w-4" /> Manage Exams
+          </Button>
+        }
+      />
 
       {/* Empty state */}
       {available.length === 0 ? (
