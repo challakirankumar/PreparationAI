@@ -455,7 +455,7 @@ export function Dashboard() {
       <PremiumHeader
         title={`Welcome back, ${user.name.split(' ')[0]}`}
         icon={Sparkles}
-        showTime
+        showClock
       />
 
       {/* Live countdown + weak areas + news */}

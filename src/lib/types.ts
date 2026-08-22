@@ -38,6 +38,9 @@ export type View =
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 
+export type ClockFace = 'digital' | 'analog';
+export type ClockTheme = 'day' | 'dark';
+
 export interface User {
   id: string;
   name: string;
@@ -53,7 +56,12 @@ export interface User {
   phone?: string;
   avatar?: string;
   country?: string;
+  institution?: string;            // school / college / university name
   darkMode?: boolean;
+  // Clock widget preferences
+  clockTimezone?: string;          // IANA timezone name (e.g. "Asia/Kolkata")
+  clockFace?: ClockFace;           // "digital" | "analog"
+  clockTheme?: ClockTheme;         // "day" | "dark"
   academicRecords?: AcademicRecord[];
 }
 

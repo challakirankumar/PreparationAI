@@ -146,7 +146,7 @@ export function AiAgentsDashboard() {
         title="AI Agents Hub"
         subtitle="Twelve specialised AI agents — conceptual mastery, behavior simulation, rank forecasting, weakness diagnosis. Tap any card to launch."
         icon={Sparkles}
-        variant="midnight"
+        variant="sapphire"
         actions={
           attempts.length > 0 ? (
             <div className="hidden sm:block rounded-xl bg-white/15 backdrop-blur px-4 py-2.5 ring-1 ring-white/20">

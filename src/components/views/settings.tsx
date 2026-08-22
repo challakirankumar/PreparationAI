@@ -75,6 +75,7 @@ import { useStore, uidGen } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { AcademicRecord, AcademicAnalysis } from '@/lib/types';
+import { EXAM_PATTERNS, getPattern } from '@/lib/exams/patterns';
 
 const COUNTRIES = [
   'India', 'United States', 'United Kingdom', 'Canada', 'Australia',
@@ -120,12 +121,16 @@ export function SettingsView() {
   const [name, setName] = React.useState(user?.name || '');
   const [phone, setPhone] = React.useState(user?.phone || '');
   const [country, setCountry] = React.useState(user?.country || 'India');
+  const [profileInstitution, setProfileInstitution] = React.useState(user?.institution || '');
+  const [examGoal, setExamGoal] = React.useState(user?.examGoal || '');
 
   React.useEffect(() => {
     if (user) {
       setName(user.name || '');
       setPhone(user.phone || '');
       setCountry(user.country || 'India');
+      setProfileInstitution(user.institution || '');
+      setExamGoal(user.examGoal || '');
       setDarkMode(!!user.darkMode);
     }
   }, [user?.id]);
@@ -159,11 +164,22 @@ export function SettingsView() {
 
   function saveProfile() {
     if (!user) return;
+    const trimmedName = name.trim() || user.name || 'Aspirant';
+    // Update examGoals as well — keep the existing list, but ensure the
+    // primary examGoal is present.
+    const existingGoals = user.examGoals?.length ? user.examGoals : [user.examGoal];
+    const nextGoals = examGoal && !existingGoals.includes(examGoal)
+      ? [examGoal, ...existingGoals]
+      : existingGoals;
     updateProfile({
-      name: name.trim() || user.name || 'Aspirant',
+      name: trimmedName,
       phone: phone.trim(),
       country,
+      institution: profileInstitution.trim(),
+      examGoal,
+      examGoals: nextGoals,
     });
+    // Persist to backend DB (fire-and-forget — non-blocking).
     toast({ title: 'Profile saved' });
   }
 
@@ -172,6 +188,8 @@ export function SettingsView() {
     setName(user.name || '');
     setPhone(user.phone || '');
     setCountry(user.country || 'India');
+    setProfileInstitution(user.institution || '');
+    setExamGoal(user.examGoal || '');
   }
 
   // ---- Security: change password (validates against registeredUsers[email].password) ----
@@ -542,6 +560,46 @@ export function SettingsView() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Institution (school / college / university name) */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="set-institution">School / College / University</Label>
+                  <div className="relative">
+                    <GraduationCap className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="set-institution"
+                      value={profileInstitution}
+                      onChange={(e) => setProfileInstitution(e.target.value)}
+                      placeholder="e.g. IIT Bombay, Delhi Public School"
+                      className="pl-8"
+                    />
+                  </div>
+                </div>
+
+                {/* Target exam selector */}
+                <div className="space-y-1.5">
+                  <Label>Target exam</Label>
+                  <Select value={examGoal} onValueChange={setExamGoal}>
+                    <SelectTrigger className="w-full">
+                      <span className="flex items-center gap-2">
+                        <Target className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue placeholder="Select your target exam" />
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXAM_PATTERNS.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} — {p.fullName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {examGoal && getPattern(examGoal) && (
+                    <p className="text-[10px] text-muted-foreground">
+                      {getPattern(examGoal)!.totalQuestions} questions · {Math.round(getPattern(examGoal)!.durationSec / 60)} min · {getPattern(examGoal)!.totalMarks} marks
+                    </p>
+                  )}
                 </div>
               </div>
 

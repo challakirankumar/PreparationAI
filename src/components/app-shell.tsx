@@ -42,14 +42,14 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
   SheetContent,
   SheetTitle,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { useStore, userExamGoals } from '@/lib/store';
+import { useStore } from '@/lib/store';
 import { getPattern } from '@/lib/exams/patterns';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import type { View } from '@/lib/types';
@@ -261,8 +261,8 @@ function SidebarHeader() {
         <div className="absolute -top-12 -left-8 h-32 w-32 rounded-full bg-blue-100/40 blur-3xl" />
       </div>
       <div className="relative flex items-center gap-2.5">
-        <p className="font-bold text-xl leading-tight tracking-tight">
-          Preparation<span className="text-blue-600">AI</span>
+        <p className="font-bold text-2xl leading-tight tracking-tight">
+          Preparation<span className="text-blue-700">AI</span>
         </p>
       </div>
     </div>
@@ -304,10 +304,8 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const setView = useStore((s) => s.setView);
   if (!user) return null;
 
-  const goals = userExamGoals(user);
-
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 glass-topbar px-4 sm:px-6">
+    <header className="relative z-30 flex h-16 items-center gap-3 glass-topbar px-4 sm:px-6">
       <Button
         variant="ghost"
         size="icon"
@@ -318,10 +316,10 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         <Menu className="h-5 w-5" />
       </Button>
 
-      {/* Brand text on mobile */}
+      {/* Brand text on mobile (larger, matches sidebar size) */}
       <div className="lg:hidden flex items-center gap-2">
-        <p className="font-bold text-base leading-tight tracking-tight">
-          Preparation<span className="text-blue-600">AI</span>
+        <p className="font-bold text-xl leading-tight tracking-tight">
+          Preparation<span className="text-blue-700">AI</span>
         </p>
       </div>
 
@@ -329,8 +327,12 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
 
       <NotificationBell />
 
-      <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-white/80 hover:ring-blue-200 transition" onClick={() => setView('dashboard')}>
-        <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-xs font-semibold">
+      <Avatar
+        className="h-9 w-9 cursor-pointer ring-2 ring-white/80 hover:ring-blue-300 transition"
+        onClick={() => setView('settings')}
+      >
+        {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
+        <AvatarFallback className="bg-gradient-to-br from-blue-700 to-blue-900 text-white text-xs font-semibold">
           {initials(user.name)}
         </AvatarFallback>
       </Avatar>

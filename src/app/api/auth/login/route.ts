@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       email: row.email,
       phone: row.phone ?? undefined,
       country: row.country ?? undefined,
+      institution: row.institution ?? undefined,
       type: row.userType as User['type'],
       examGoal: row.examGoal,
       examGoals: safeParse<string[]>(row.examGoals, []),
@@ -52,6 +53,9 @@ export async function POST(request: Request) {
       avatar: row.avatar ?? undefined,
       darkMode: row.darkMode,
       emailVerified: row.emailVerified,
+      clockTimezone: row.clockTimezone ?? 'Asia/Kolkata',
+      clockFace: (row.clockFace as User['clockFace']) ?? 'digital',
+      clockTheme: (row.clockTheme as User['clockTheme']) ?? 'day',
       joinedAt: row.joinedAt.toISOString(),
     };
 

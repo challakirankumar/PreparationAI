@@ -1,0 +1,1363 @@
+     1→'use client';
+     2→
+     3→import * as React from 'react';
+     4→import {
+     5→  Settings as SettingsIcon,
+     6→  User as UserIcon,
+     7→  Mail,
+     8→  Phone,
+     9→  Globe,
+    10→  Camera,
+    11→  Shield,
+    12→  Lock,
+    13→  Trash2,
+    14→  CheckCircle2,
+    15→  GraduationCap,
+    16→  Plus,
+    17→  X,
+    18→  Upload,
+    19→  Loader2,
+    20→  Brain,
+    21→  Sparkles,
+    22→  TrendingUp,
+    23→  TrendingDown,
+    24→  Target,
+    25→  BookOpen,
+    26→  Calendar,
+    27→  Moon,
+    28→  Bell,
+    29→  AlertTriangle,
+    30→  Eye,
+    31→  EyeOff,
+    32→  Save,
+    33→  Lightbulb,
+    34→  Rocket,
+    35→  ClipboardList,
+    36→} from 'lucide-react';
+    37→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+    38→import { Button } from '@/components/ui/button';
+    39→import { Input } from '@/components/ui/input';
+    40→import { Label } from '@/components/ui/label';
+    41→import { Badge } from '@/components/ui/badge';
+    42→import { Progress } from '@/components/ui/progress';
+    43→import { Switch } from '@/components/ui/switch';
+    44→import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+    45→import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+    46→import {
+    47→  Dialog,
+    48→  DialogContent,
+    49→  DialogDescription,
+    50→  DialogFooter,
+    51→  DialogHeader,
+    52→  DialogTitle,
+    53→  DialogTrigger,
+    54→} from '@/components/ui/dialog';
+    55→import {
+    56→  AlertDialog,
+    57→  AlertDialogAction,
+    58→  AlertDialogCancel,
+    59→  AlertDialogContent,
+    60→  AlertDialogDescription,
+    61→  AlertDialogFooter,
+    62→  AlertDialogHeader,
+    63→  AlertDialogTitle,
+    64→  AlertDialogTrigger,
+    65→} from '@/components/ui/alert-dialog';
+    66→import {
+    67→  Select,
+    68→  SelectContent,
+    69→  SelectItem,
+    70→  SelectTrigger,
+    71→  SelectValue,
+    72→} from '@/components/ui/select';
+    73→import { PageHeader } from '@/components/shared';
+    74→import { useStore, uidGen } from '@/lib/store';
+    75→import { useToast } from '@/hooks/use-toast';
+    76→import { cn } from '@/lib/utils';
+    77→import type { AcademicRecord, AcademicAnalysis } from '@/lib/types';
+    78→
+    79→const COUNTRIES = [
+    80→  'India', 'United States', 'United Kingdom', 'Canada', 'Australia',
+    81→  'Germany', 'France', 'Singapore', 'United Arab Emirates',
+    82→  'Nepal', 'Bangladesh', 'Sri Lanka', 'Pakistan', 'Other',
+    83→];
+    84→
+    85→const USER_TYPE_LABEL: Record<string, string> = {
+    86→  'school-11': 'Class 11 Student',
+    87→  'school-12': 'Class 12 Student',
+    88→  'ug': 'Undergraduate',
+    89→  'grad': 'Graduate / Professional',
+    90→};
+    91→
+    92→interface SubjectRow {
+    93→  id: string;
+    94→  name: string;
+    95→  marks: string;
+    96→  maxMarks: string;
+    97→  grade: string;
+    98→}
+    99→
+   100→function emptySubjectRow(): SubjectRow {
+   101→  return { id: uidGen(), name: '', marks: '', maxMarks: '', grade: '' };
+   102→}
+   103→
+   104→function clampPct(n: number): number {
+   105→  if (!isFinite(n)) return 0;
+   106→  return Math.max(0, Math.min(100, n));
+   107→}
+   108→
+   109→export function SettingsView() {
+   110→  const user = useStore((s) => s.user);
+   111→  const updateProfile = useStore((s) => s.updateProfile);
+   112→  const addAcademicRecord = useStore((s) => s.addAcademicRecord);
+   113→  const updateAcademicRecord = useStore((s) => s.updateAcademicRecord);
+   114→  const removeAcademicRecord = useStore((s) => s.removeAcademicRecord);
+   115→  const logout = useStore((s) => s.logout);
+   116→  const registeredUsers = useStore((s) => s.registeredUsers);
+   117→  const { toast } = useToast();
+   118→
+   119→  // ---- Profile state (mirrors user until saved) ----
+   120→  const [name, setName] = React.useState(user?.name || '');
+   121→  const [phone, setPhone] = React.useState(user?.phone || '');
+   122→  const [country, setCountry] = React.useState(user?.country || 'India');
+   123→
+   124→  React.useEffect(() => {
+   125→    if (user) {
+   126→      setName(user.name || '');
+   127→      setPhone(user.phone || '');
+   128→      setCountry(user.country || 'India');
+   129→      setDarkMode(!!user.darkMode);
+   130→    }
+   131→  }, [user?.id]);
+   132→
+   133→  // ---- Avatar upload (FileReader → base64 → updateProfile) ----
+   134→  const fileInputRef = React.useRef<HTMLInputElement>(null);
+   135→
+   136→  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+   137→    const file = e.target.files?.[0];
+   138→    if (!file) return;
+   139→    if (file.size > 2 * 1024 * 1024) {
+   140→      toast({
+   141→        title: 'Image too large',
+   142→        description: 'Please pick an image under 2 MB.',
+   143→        variant: 'destructive',
+   144→      });
+   145→      return;
+   146→    }
+   147→    const reader = new FileReader();
+   148→    reader.onload = () => {
+   149→      const base64 = reader.result as string;
+   150→      updateProfile({ avatar: base64 });
+   151→      toast({ title: 'Avatar updated' });
+   152→    };
+   153→    reader.onerror = () =>
+   154→      toast({ title: 'Failed to read file', variant: 'destructive' });
+   155→    reader.readAsDataURL(file);
+   156→    // Reset the input so picking the same file again re-fires onChange
+   157→    e.target.value = '';
+   158→  }
+   159→
+   160→  function saveProfile() {
+   161→    if (!user) return;
+   162→    updateProfile({
+   163→      name: name.trim() || user.name || 'Aspirant',
+   164→      phone: phone.trim(),
+   165→      country,
+   166→    });
+   167→    toast({ title: 'Profile saved' });
+   168→  }
+   169→
+   170→  function resetProfile() {
+   171→    if (!user) return;
+   172→    setName(user.name || '');
+   173→    setPhone(user.phone || '');
+   174→    setCountry(user.country || 'India');
+   175→  }
+   176→
+   177→  // ---- Security: change password (validates against registeredUsers[email].password) ----
+   178→  const [currentPw, setCurrentPw] = React.useState('');
+   179→  const [newPw, setNewPw] = React.useState('');
+   180→  const [confirmPw, setConfirmPw] = React.useState('');
+   181→  const [showPw, setShowPw] = React.useState(false);
+   182→
+   183→  function changePassword() {
+   184→    if (!user) return;
+   185→    const email = user.email.toLowerCase().trim();
+   186→    const saved = registeredUsers[email];
+   187→    const storedPw = saved?.password || '';
+   188→    if (currentPw !== storedPw) {
+   189→      toast({ title: 'Current password is incorrect', variant: 'destructive' });
+   190→      return;
+   191→    }
+   192→    if (newPw.length < 6) {
+   193→      toast({
+   194→        title: 'New password too short',
+   195→        description: 'At least 6 characters.',
+   196→        variant: 'destructive',
+   197→      });
+   198→      return;
+   199→    }
+   200→    if (newPw !== confirmPw) {
+   201→      toast({ title: 'Passwords do not match', variant: 'destructive' });
+   202→      return;
+   203→    }
+   204→    // Update password in registeredUsers via useStore.setState.
+   205→    useStore.setState((s) => ({
+   206→      registeredUsers: {
+   207→        ...s.registeredUsers,
+   208→        [email]: {
+   209→          ...(s.registeredUsers[email] || { user, password: '', attempts: [], seenSignatures: [], mentorMessages: [] }),
+   210→          password: newPw,
+   211→        },
+   212→      },
+   213→    }));
+   214→    setCurrentPw('');
+   215→    setNewPw('');
+   216→    setConfirmPw('');
+   217→    toast({
+   218→      title: 'Password updated',
+   219→      description: 'Use your new password next time you log in.',
+   220→    });
+   221→  }
+   222→
+   223→  // ---- Security: delete account with AlertDialog confirmation ----
+   224→  function deleteAccount() {
+   225→    if (!user) return;
+   226→    const email = user.email.toLowerCase().trim();
+   227→    useStore.setState((s) => {
+   228→      const next = { ...s.registeredUsers };
+   229→      delete next[email];
+   230→      return { registeredUsers: next };
+   231→    });
+   232→    toast({
+   233→      title: 'Account deleted',
+   234→      description: 'All your data has been removed from this device.',
+   235→    });
+   236→    logout();
+   237→  }
+   238→
+   239→  // ---- Academic records: upload dialog state ----
+   240→  const [uploadOpen, setUploadOpen] = React.useState(false);
+   241→  const [examName, setExamName] = React.useState('');
+   242→  const [institution, setInstitution] = React.useState('');
+   243→  const [examDate, setExamDate] = React.useState(
+   244→    new Date().toISOString().slice(0, 10)
+   245→  );
+   246→  const [subjects, setSubjects] = React.useState<SubjectRow[]>([
+   247→    emptySubjectRow(),
+   248→    emptySubjectRow(),
+   249→    emptySubjectRow(),
+   250→  ]);
+   251→  const [analyzing, setAnalyzing] = React.useState(false);
+   252→
+   253→  const [analysisRecord, setAnalysisRecord] = React.useState<AcademicRecord | null>(null);
+   254→
+   255→  function resetUploadForm() {
+   256→    setExamName('');
+   257→    setInstitution('');
+   258→    setExamDate(new Date().toISOString().slice(0, 10));
+   259→    setSubjects([emptySubjectRow(), emptySubjectRow(), emptySubjectRow()]);
+   260→  }
+   261→
+   262→  function updateSubject(id: string, field: keyof SubjectRow, value: string) {
+   263→    setSubjects((curr) =>
+   264→      curr.map((s) => (s.id === id ? { ...s, [field]: value } : s))
+   265→    );
+   266→  }
+   267→
+   268→  function addSubject() {
+   269→    setSubjects((curr) => [...curr, emptySubjectRow()]);
+   270→  }
+   271→
+   272→  function removeSubject(id: string) {
+   273→    setSubjects((curr) => (curr.length <= 1 ? curr : curr.filter((s) => s.id !== id)));
+   274→  }
+   275→
+   276→  const totals = React.useMemo(() => {
+   277→    let totalMarks = 0;
+   278→    let maxMarks = 0;
+   279→    for (const s of subjects) {
+   280→      const m = parseFloat(s.marks);
+   281→      const mx = parseFloat(s.maxMarks);
+   282→      if (!isNaN(m)) totalMarks += m;
+   283→      if (!isNaN(mx)) maxMarks += mx;
+   284→    }
+   285→    const percentage = maxMarks > 0 ? (totalMarks / maxMarks) * 100 : 0;
+   286→    return { totalMarks, maxMarks, percentage };
+   287→  }, [subjects]);
+   288→
+   289→  async function saveAndAnalyze() {
+   290→    if (!user) return;
+   291→    if (!examName.trim()) {
+   292→      toast({ title: 'Enter exam name', variant: 'destructive' });
+   293→      return;
+   294→    }
+   295→    const validSubjects = subjects.filter(
+   296→      (s) => s.name.trim() && s.maxMarks.trim() !== ''
+   297→    );
+   298→    if (validSubjects.length === 0) {
+   299→      toast({
+   300→        title: 'Add at least one subject with marks',
+   301→        variant: 'destructive',
+   302→      });
+   303→      return;
+   304→    }
+   305→
+   306→    const record: AcademicRecord = {
+   307→      id: uidGen(),
+   308→      examName: examName.trim(),
+   309→      institution: institution.trim() || undefined,
+   310→      date: examDate,
+   311→      uploadedAt: new Date().toISOString(),
+   312→      subjects: validSubjects.map((s) => ({
+   313→        name: s.name.trim(),
+   314→        marks: parseFloat(s.marks) || 0,
+   315→        maxMarks: parseFloat(s.maxMarks) || 0,
+   316→        grade: s.grade.trim() || undefined,
+   317→      })),
+   318→      totalMarks: totals.totalMarks,
+   319→      maxMarks: totals.maxMarks,
+   320→      percentage: totals.percentage,
+   321→    };
+   322→
+   323→    addAcademicRecord(record);
+   324→    setUploadOpen(false);
+   325→    setAnalyzing(true);
+   326→    toast({
+   327→      title: 'Record saved',
+   328→      description: 'Running AI analysis…',
+   329→    });
+   330→
+   331→    try {
+   332→      const res = await fetch('/api/analyze-academic', {
+   333→        method: 'POST',
+   334→        headers: { 'Content-Type': 'application/json' },
+   335→        body: JSON.stringify({
+   336→          record,
+   337→          examGoal: user.examGoal,
+   338→          userName: user.name,
+   339→        }),
+   340→      });
+   341→      const data = await res.json();
+   342→      const analysis: AcademicAnalysis | undefined = data?.analysis;
+   343→      if (!analysis) {
+   344→        toast({
+   345→          title: 'Analysis failed',
+   346→          description: data?.error || 'No analysis returned.',
+   347→          variant: 'destructive',
+   348→        });
+   349→        return;
+   350→      }
+   351→      updateAcademicRecord(record.id, { aiAnalysis: analysis });
+   352→      if (data.fallback) {
+   353→        toast({
+   354→          title: 'Analysis ready (offline mode)',
+   355→          description: 'Used deterministic fallback. Try again later for full AI insights.',
+   356→        });
+   357→      } else {
+   358→        toast({
+   359→          title: 'AI analysis complete',
+   360→          description: 'Tap “View AI Analysis” on the record to read it.',
+   361→        });
+   362→      }
+   363→    } catch (e) {
+   364→      toast({
+   365→        title: 'Analysis failed',
+   366→        description: (e as Error).message,
+   367→        variant: 'destructive',
+   368→      });
+   369→    } finally {
+   370→      setAnalyzing(false);
+   371→      resetUploadForm();
+   372→    }
+   373→  }
+   374→
+   375→  function removeRecord(id: string) {
+   376→    removeAcademicRecord(id);
+   377→    toast({ title: 'Record removed' });
+   378→  }
+   379→
+   380→  // ---- Appearance: dark mode Switch → updateProfile({darkMode}) ----
+   381→  const [darkMode, setDarkMode] = React.useState<boolean>(!!user?.darkMode);
+   382→
+   383→  function toggleDarkMode(v: boolean) {
+   384→    setDarkMode(v);
+   385→    updateProfile({ darkMode: v });
+   386→    toast({ title: v ? 'Dark mode on' : 'Dark mode off' });
+   387→  }
+   388→
+   389→  // ---- Notifications: 3 UI-only Switches ----
+   390→  const [notifEmail, setNotifEmail] = React.useState(true);
+   391→  const [notifPush, setNotifPush] = React.useState(false);
+   392→  const [notifDigest, setNotifDigest] = React.useState(true);
+   393→
+   394→  if (!user) return null;
+   395→
+   396→  const records = user.academicRecords || [];
+   397→
+   398→  return (
+   399→    <div className="space-y-6">
+   400→      <PageHeader
+   401→        icon={SettingsIcon}
+   402→        title="Settings"
+   403→        subtitle="Manage your profile, security, academic records, and preferences"
+   404→        accent="emerald"
+   405→      />
+   406→
+   407→      <Tabs defaultValue="profile" className="w-full">
+   408→        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
+   409→          <TabsTrigger value="profile">
+   410→            <UserIcon className="h-3.5 w-3.5" /> Profile
+   411→          </TabsTrigger>
+   412→          <TabsTrigger value="security">
+   413→            <Shield className="h-3.5 w-3.5" /> Security
+   414→          </TabsTrigger>
+   415→          <TabsTrigger value="academic">
+   416→            <GraduationCap className="h-3.5 w-3.5" /> Academic
+   417→          </TabsTrigger>
+   418→          <TabsTrigger value="appearance">
+   419→            <Moon className="h-3.5 w-3.5" /> Appearance
+   420→          </TabsTrigger>
+   421→          <TabsTrigger value="notifications">
+   422→            <Bell className="h-3.5 w-3.5" /> Alerts
+   423→          </TabsTrigger>
+   424→        </TabsList>
+   425→
+   426→        {/* ============================================================= */}
+   427→        {/* PROFILE TAB                                                     */}
+   428→        {/* ============================================================= */}
+   429→        <TabsContent value="profile" className="mt-4">
+   430→          <Card className="border-stone-200">
+   431→            <CardHeader>
+   432→              <CardTitle className="flex items-center gap-2 text-base">
+   433→                <UserIcon className="h-4 w-4 text-blue-600" /> Profile
+   434→              </CardTitle>
+   435→            </CardHeader>
+   436→            <CardContent className="space-y-5">
+   437→              {/* Avatar upload */}
+   438→              <div className="flex items-center gap-4">
+   439→                <Avatar className="h-20 w-20 border-2 border-blue-100">
+   440→                  {user.avatar ? (
+   441→                    <AvatarImage src={user.avatar} alt={user.name} />
+   442→                  ) : null}
+   443→                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white text-xl font-semibold">
+   444→                    {(user.name || 'A').split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()}
+   445→                  </AvatarFallback>
+   446→                </Avatar>
+   447→                <div className="space-y-2">
+   448→                  <input
+   449→                    ref={fileInputRef}
+   450→                    type="file"
+   451→                    accept="image/*"
+   452→                    className="hidden"
+   453→                    onChange={handleAvatarChange}
+   454→                  />
+   455→                  <div className="flex gap-2">
+   456→                    <Button
+   457→                      type="button"
+   458→                      variant="outline"
+   459→                      size="sm"
+   460→                      onClick={() => fileInputRef.current?.click()}
+   461→                    >
+   462→                      <Camera className="h-4 w-4" /> Change avatar
+   463→                    </Button>
+   464→                    {user.avatar && (
+   465→                      <Button
+   466→                        type="button"
+   467→                        variant="ghost"
+   468→                        size="sm"
+   469→                        onClick={() => updateProfile({ avatar: undefined })}
+   470→                      >
+   471→                        Remove
+   472→                      </Button>
+   473→                    )}
+   474→                  </div>
+   475→                  <p className="text-xs text-muted-foreground">
+   476→                    PNG / JPG up to 2 MB. Stored locally in your browser.
+   477→                  </p>
+   478→                </div>
+   479→              </div>
+   480→
+   481→              <div className="grid sm:grid-cols-2 gap-4">
+   482→                <div className="space-y-1.5">
+   483→                  <Label htmlFor="set-name">Full name</Label>
+   484→                  <div className="relative">
+   485→                    <UserIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   486→                    <Input
+   487→                      id="set-name"
+   488→                      value={name}
+   489→                      onChange={(e) => setName(e.target.value)}
+   490→                      placeholder="Your name"
+   491→                      className="pl-8"
+   492→                    />
+   493→                  </div>
+   494→                </div>
+   495→
+   496→                <div className="space-y-1.5">
+   497→                  <Label htmlFor="set-email">Email</Label>
+   498→                  <div className="relative">
+   499→                    <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   500→                    <Input
+   501→                      id="set-email"
+   502→                      value={user.email}
+   503→                      readOnly
+   504→                      className="pl-8 pr-24 bg-stone-50 text-stone-600"
+   505→                    />
+   506→                    {user.emailVerified !== false && (
+   507→                      <Badge className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-100 text-blue-700 border-blue-200">
+   508→                        <CheckCircle2 className="h-3 w-3" /> Verified
+   509→                      </Badge>
+   510→                    )}
+   511→                  </div>
+   512→                </div>
+   513→
+   514→                <div className="space-y-1.5">
+   515→                  <Label htmlFor="set-phone">Phone</Label>
+   516→                  <div className="relative">
+   517→                    <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   518→                    <Input
+   519→                      id="set-phone"
+   520→                      value={phone}
+   521→                      onChange={(e) => setPhone(e.target.value)}
+   522→                      placeholder="+91 90000 00000"
+   523→                      className="pl-8"
+   524→                    />
+   525→                  </div>
+   526→                </div>
+   527→
+   528→                <div className="space-y-1.5">
+   529→                  <Label>Country</Label>
+   530→                  <Select value={country} onValueChange={setCountry}>
+   531→                    <SelectTrigger className="w-full">
+   532→                      <span className="flex items-center gap-2">
+   533→                        <Globe className="h-4 w-4 text-muted-foreground" />
+   534→                        <SelectValue placeholder="Select country" />
+   535→                      </span>
+   536→                    </SelectTrigger>
+   537→                    <SelectContent>
+   538→                      {COUNTRIES.map((c) => (
+   539→                        <SelectItem key={c} value={c}>
+   540→                          {c}
+   541→                        </SelectItem>
+   542→                      ))}
+   543→                    </SelectContent>
+   544→                  </Select>
+   545→                </div>
+   546→              </div>
+   547→
+   548→              {/* User type badge */}
+   549→              <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50/60 border border-blue-100">
+   550→                <div className="h-9 w-9 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
+   551→                  <GraduationCap className="h-4 w-4 text-white" />
+   552→                </div>
+   553→                <div>
+   554→                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+   555→                    User type
+   556→                  </p>
+   557→                  <Badge className="mt-0.5 bg-blue-100 text-blue-700 border-blue-200">
+   558→                    {USER_TYPE_LABEL[user.type] || user.type}
+   559→                  </Badge>
+   560→                </div>
+   561→              </div>
+   562→
+   563→              <div className="flex justify-end gap-2 pt-1">
+   564→                <Button variant="outline" onClick={resetProfile}>
+   565→                  Reset
+   566→                </Button>
+   567→                <Button
+   568→                  className="bg-blue-600 hover:bg-blue-700"
+   569→                  onClick={saveProfile}
+   570→                >
+   571→                  <Save className="h-4 w-4" /> Save changes
+   572→                </Button>
+   573→              </div>
+   574→            </CardContent>
+   575→          </Card>
+   576→        </TabsContent>
+   577→
+   578→        {/* ============================================================= */}
+   579→        {/* SECURITY TAB                                                   */}
+   580→        {/* ============================================================= */}
+   581→        <TabsContent value="security" className="mt-4">
+   582→          <div className="grid lg:grid-cols-2 gap-4">
+   583→            <Card className="border-stone-200">
+   584→              <CardHeader>
+   585→                <CardTitle className="flex items-center gap-2 text-base">
+   586→                  <Lock className="h-4 w-4 text-blue-600" /> Change password
+   587→                </CardTitle>
+   588→              </CardHeader>
+   589→              <CardContent className="space-y-3">
+   590→                <div className="space-y-1.5">
+   591→                  <Label htmlFor="cur-pw">Current password</Label>
+   592→                  <div className="relative">
+   593→                    <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   594→                    <Input
+   595→                      id="cur-pw"
+   596→                      type={showPw ? 'text' : 'password'}
+   597→                      value={currentPw}
+   598→                      onChange={(e) => setCurrentPw(e.target.value)}
+   599→                      className="pl-8 pr-9"
+   600→                      placeholder="••••••••"
+   601→                      autoComplete="current-password"
+   602→                    />
+   603→                    <button
+   604→                      type="button"
+   605→                      onClick={() => setShowPw((v) => !v)}
+   606→                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-stone-700"
+   607→                      aria-label="Toggle password visibility"
+   608→                    >
+   609→                      {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+   610→                    </button>
+   611→                  </div>
+   612→                </div>
+   613→                <div className="space-y-1.5">
+   614→                  <Label htmlFor="new-pw">New password</Label>
+   615→                  <div className="relative">
+   616→                    <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   617→                    <Input
+   618→                      id="new-pw"
+   619→                      type={showPw ? 'text' : 'password'}
+   620→                      value={newPw}
+   621→                      onChange={(e) => setNewPw(e.target.value)}
+   622→                      className="pl-8"
+   623→                      placeholder="At least 6 characters"
+   624→                      autoComplete="new-password"
+   625→                    />
+   626→                  </div>
+   627→                </div>
+   628→                <div className="space-y-1.5">
+   629→                  <Label htmlFor="confirm-pw">Confirm new password</Label>
+   630→                  <div className="relative">
+   631→                    <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   632→                    <Input
+   633→                      id="confirm-pw"
+   634→                      type={showPw ? 'text' : 'password'}
+   635→                      value={confirmPw}
+   636→                      onChange={(e) => setConfirmPw(e.target.value)}
+   637→                      className="pl-8"
+   638→                      placeholder="Repeat new password"
+   639→                      autoComplete="new-password"
+   640→                    />
+   641→                  </div>
+   642→                </div>
+   643→                <Button
+   644→                  className="w-full bg-blue-600 hover:bg-blue-700"
+   645→                  onClick={changePassword}
+   646→                >
+   647→                  <Shield className="h-4 w-4" /> Update password
+   648→                </Button>
+   649→              </CardContent>
+   650→            </Card>
+   651→
+   652→            <Card className="border-rose-200">
+   653→              <CardHeader>
+   654→                <CardTitle className="flex items-center gap-2 text-base text-rose-700">
+   655→                  <AlertTriangle className="h-4 w-4" /> Danger zone
+   656→                </CardTitle>
+   657→              </CardHeader>
+   658→              <CardContent className="space-y-3">
+   659→                <p className="text-sm text-muted-foreground">
+   660→                  Deleting your account permanently removes your profile, exam
+   661→                  attempts, mentor history, and academic records from this
+   662→                  browser. This cannot be undone.
+   663→                </p>
+   664→                <AlertDialog>
+   665→                  <AlertDialogTrigger asChild>
+   666→                    <Button variant="destructive" className="w-full">
+   667→                      <Trash2 className="h-4 w-4" /> Delete my account
+   668→                    </Button>
+   669→                  </AlertDialogTrigger>
+   670→                  <AlertDialogContent>
+   671→                    <AlertDialogHeader>
+   672→                      <AlertDialogTitle>
+   673→                        Are you absolutely sure?
+   674→                      </AlertDialogTitle>
+   675→                      <AlertDialogDescription>
+   676→                        This will permanently erase{' '}
+   677→                        <strong>{user.email}</strong> and all associated data
+   678→                        from this device. You will be signed out immediately.
+   679→                        This action cannot be undone.
+   680→                      </AlertDialogDescription>
+   681→                    </AlertDialogHeader>
+   682→                    <AlertDialogFooter>
+   683→                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+   684→                      <AlertDialogAction
+   685→                        className="bg-rose-600 hover:bg-rose-700 text-white"
+   686→                        onClick={deleteAccount}
+   687→                      >
+   688→                        Yes, delete my account
+   689→                      </AlertDialogAction>
+   690→                    </AlertDialogFooter>
+   691→                  </AlertDialogContent>
+   692→                </AlertDialog>
+   693→              </CardContent>
+   694→            </Card>
+   695→          </div>
+   696→        </TabsContent>
+   697→
+   698→        {/* ============================================================= */}
+   699→        {/* ACADEMIC RECORDS TAB                                           */}
+   700→        {/* ============================================================= */}
+   701→        <TabsContent value="academic" className="mt-4 space-y-4">
+   702→          <Card className="border-stone-200">
+   703→            <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+   704→              <div>
+   705→                <h3 className="font-semibold flex items-center gap-2">
+   706→                  <GraduationCap className="h-4 w-4 text-blue-600" /> Academic records
+   707→                </h3>
+   708→                <p className="text-sm text-muted-foreground mt-0.5">
+   709→                  Upload past exam marks and get an AI-powered readiness analysis.
+   710→                </p>
+   711→              </div>
+   712→              <Dialog
+   713→                open={uploadOpen}
+   714→                onOpenChange={(o) => {
+   715→                  setUploadOpen(o);
+   716→                  if (!o) resetUploadForm();
+   717→                }}
+   718→              >
+   719→                <DialogTrigger asChild>
+   720→                  <Button className="bg-blue-600 hover:bg-blue-700">
+   721→                    <Upload className="h-4 w-4" /> Upload marks
+   722→                  </Button>
+   723→                </DialogTrigger>
+   724→                <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+   725→                  <DialogHeader>
+   726→                    <DialogTitle>Upload academic record</DialogTitle>
+   727→                    <DialogDescription>
+   728→                      Add subjects with marks. Totals are computed automatically.
+   729→                    </DialogDescription>
+   730→                  </DialogHeader>
+   731→                  <div className="space-y-3">
+   732→                    <div className="grid sm:grid-cols-2 gap-3">
+   733→                      <div className="space-y-1.5">
+   734→                        <Label htmlFor="exam-name">Exam name</Label>
+   735→                        <Input
+   736→                          id="exam-name"
+   737→                          value={examName}
+   738→                          onChange={(e) => setExamName(e.target.value)}
+   739→                          placeholder="e.g. Class 12 Pre-Boards"
+   740→                        />
+   741→                      </div>
+   742→                      <div className="space-y-1.5">
+   743→                        <Label htmlFor="institution">Institution (optional)</Label>
+   744→                        <Input
+   745→                          id="institution"
+   746→                          value={institution}
+   747→                          onChange={(e) => setInstitution(e.target.value)}
+   748→                          placeholder="e.g. Delhi Public School"
+   749→                        />
+   750→                      </div>
+   751→                    </div>
+   752→                    <div className="space-y-1.5">
+   753→                      <Label htmlFor="exam-date">Date</Label>
+   754→                      <Input
+   755→                        id="exam-date"
+   756→                        type="date"
+   757→                        value={examDate}
+   758→                        onChange={(e) => setExamDate(e.target.value)}
+   759→                      />
+   760→                    </div>
+   761→
+   762→                    <div className="space-y-2">
+   763→                      <div className="flex items-center justify-between">
+   764→                        <Label>Subjects</Label>
+   765→                        <Button
+   766→                          type="button"
+   767→                          size="sm"
+   768→                          variant="outline"
+   769→                          onClick={addSubject}
+   770→                        >
+   771→                          <Plus className="h-3.5 w-3.5" /> Add subject
+   772→                        </Button>
+   773→                      </div>
+   774→                      <div className="space-y-2">
+   775→                        {subjects.map((s, idx) => (
+   776→                          <div
+   777→                            key={s.id}
+   778→                            className="grid grid-cols-12 gap-2 items-center"
+   779→                          >
+   780→                            <Input
+   781→                              className="col-span-12 sm:col-span-4"
+   782→                              placeholder="Subject name"
+   783→                              value={s.name}
+   784→                              onChange={(e) =>
+   785→                                updateSubject(s.id, 'name', e.target.value)
+   786→                              }
+   787→                            />
+   788→                            <Input
+   789→                              className="col-span-4 sm:col-span-2"
+   790→                              type="number"
+   791→                              placeholder="Marks"
+   792→                              min={0}
+   793→                              value={s.marks}
+   794→                              onChange={(e) =>
+   795→                                updateSubject(s.id, 'marks', e.target.value)
+   796→                              }
+   797→                            />
+   798→                            <Input
+   799→                              className="col-span-4 sm:col-span-2"
+   800→                              type="number"
+   801→                              placeholder="Max"
+   802→                              min={0}
+   803→                              value={s.maxMarks}
+   804→                              onChange={(e) =>
+   805→                                updateSubject(s.id, 'maxMarks', e.target.value)
+   806→                              }
+   807→                            />
+   808→                            <Input
+   809→                              className="col-span-3 sm:col-span-3"
+   810→                              placeholder="Grade"
+   811→                              value={s.grade}
+   812→                              onChange={(e) =>
+   813→                                updateSubject(s.id, 'grade', e.target.value)
+   814→                              }
+   815→                            />
+   816→                            <button
+   817→                              type="button"
+   818→                              onClick={() => removeSubject(s.id)}
+   819→                              disabled={subjects.length <= 1}
+   820→                              className="col-span-1 h-9 flex items-center justify-center rounded-md text-stone-400 hover:text-rose-600 hover:bg-rose-50 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-stone-400"
+   821→                              aria-label={`Remove subject ${idx + 1}`}
+   822→                            >
+   823→                              <X className="h-4 w-4" />
+   824→                            </button>
+   825→                          </div>
+   826→                        ))}
+   827→                      </div>
+   828→                    </div>
+   829→
+   830→                    {/* Auto-calculated totals */}
+   831→                    <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-blue-50/60 border border-blue-100">
+   832→                      <div>
+   833→                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+   834→                          Total
+   835→                        </p>
+   836→                        <p className="text-lg font-bold text-stone-900">
+   837→                          {totals.totalMarks} / {totals.maxMarks}
+   838→                        </p>
+   839→                      </div>
+   840→                      <div>
+   841→                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+   842→                          Percentage
+   843→                        </p>
+   844→                        <p className="text-lg font-bold text-blue-700">
+   845→                          {totals.percentage.toFixed(1)}%
+   846→                        </p>
+   847→                      </div>
+   848→                      <div>
+   849→                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+   850→                          Subjects
+   851→                        </p>
+   852→                        <p className="text-lg font-bold text-stone-900">
+   853→                          {subjects.filter((s) => s.name.trim()).length}
+   854→                        </p>
+   855→                      </div>
+   856→                    </div>
+   857→                  </div>
+   858→                  <DialogFooter>
+   859→                    <Button
+   860→                      variant="outline"
+   861→                      onClick={() => {
+   862→                        setUploadOpen(false);
+   863→                        resetUploadForm();
+   864→                      }}
+   865→                    >
+   866→                      Cancel
+   867→                    </Button>
+   868→                    <Button
+   869→                      className="bg-blue-600 hover:bg-blue-700"
+   870→                      onClick={saveAndAnalyze}
+   871→                      disabled={analyzing}
+   872→                    >
+   873→                      {analyzing ? (
+   874→                        <Loader2 className="h-4 w-4 animate-spin" />
+   875→                      ) : (
+   876→                        <Sparkles className="h-4 w-4" />
+   877→                      )}
+   878→                      Save &amp; analyze
+   879→                    </Button>
+   880→                  </DialogFooter>
+   881→                </DialogContent>
+   882→              </Dialog>
+   883→            </CardContent>
+   884→          </Card>
+   885→
+   886→          {/* Records list */}
+   887→          {records.length === 0 ? (
+   888→            <Card className="p-10 border-stone-200 text-center">
+   889→              <div className="h-14 w-14 mx-auto rounded-2xl bg-stone-100 flex items-center justify-center mb-3">
+   890→                <GraduationCap className="h-6 w-6 text-stone-400" />
+   891→              </div>
+   892→              <h3 className="font-semibold text-stone-800">
+   893→                No academic records yet
+   894→              </h3>
+   895→              <p className="text-sm text-muted-foreground mt-1">
+   896→                Upload your past exam marks to unlock AI-powered readiness analysis.
+   897→              </p>
+   898→            </Card>
+   899→          ) : (
+   900→            <div className="grid sm:grid-cols-2 gap-4">
+   901→              {records.map((rec) => (
+   902→                <AcademicRecordCard
+   903→                  key={rec.id}
+   904→                  record={rec}
+   905→                  onViewAnalysis={() => setAnalysisRecord(rec)}
+   906→                  onRemove={() => removeRecord(rec.id)}
+   907→                />
+   908→              ))}
+   909→            </div>
+   910→          )}
+   911→        </TabsContent>
+   912→
+   913→        {/* ============================================================= */}
+   914→        {/* APPEARANCE TAB                                                 */}
+   915→        {/* ============================================================= */}
+   916→        <TabsContent value="appearance" className="mt-4">
+   917→          <Card className="border-stone-200">
+   918→            <CardHeader>
+   919→              <CardTitle className="flex items-center gap-2 text-base">
+   920→                <Moon className="h-4 w-4 text-blue-600" /> Appearance
+   921→              </CardTitle>
+   922→            </CardHeader>
+   923→            <CardContent className="space-y-3">
+   924→              <div className="flex items-center justify-between p-3 rounded-lg border border-stone-200">
+   925→                <div className="flex items-center gap-3">
+   926→                  <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
+   927→                    <Moon className="h-4 w-4 text-blue-600" />
+   928→                  </div>
+   929→                  <div>
+   930→                    <p className="text-sm font-medium text-stone-900">Dark mode</p>
+   931→                    <p className="text-xs text-muted-foreground">
+   932→                      Toggle dark theme for the app.
+   933→                    </p>
+   934→                  </div>
+   935→                </div>
+   936→                <Switch checked={darkMode} onCheckedChange={toggleDarkMode} />
+   937→              </div>
+   938→              <p className="text-xs text-muted-foreground">
+   939→                Dark mode preference is saved to your profile and persists across
+   940→                sessions on this device.
+   941→              </p>
+   942→            </CardContent>
+   943→          </Card>
+   944→        </TabsContent>
+   945→
+   946→        {/* ============================================================= */}
+   947→        {/* NOTIFICATIONS TAB (UI-only)                                    */}
+   948→        {/* ============================================================= */}
+   949→        <TabsContent value="notifications" className="mt-4">
+   950→          <Card className="border-stone-200">
+   951→            <CardHeader>
+   952→              <CardTitle className="flex items-center gap-2 text-base">
+   953→                <Bell className="h-4 w-4 text-blue-600" /> Notifications
+   954→              </CardTitle>
+   955→            </CardHeader>
+   956→            <CardContent className="space-y-2">
+   957→              <NotifRow
+   958→                icon={Mail}
+   959→                label="Email notifications"
+   960→                description="Daily plan reminders and exam-day alerts."
+   961→                checked={notifEmail}
+   962→                onChange={setNotifEmail}
+   963→              />
+   964→              <NotifRow
+   965→                icon={Bell}
+   966→                label="Push notifications"
+   967→                description="Real-time pings for mentor replies and mock completions."
+   968→                checked={notifPush}
+   969→                onChange={setNotifPush}
+   970→              />
+   971→              <NotifRow
+   972→                icon={ClipboardList}
+   973→                label="Weekly digest"
+   974→                description="A Sunday summary of your prep week."
+   975→                checked={notifDigest}
+   976→                onChange={setNotifDigest}
+   977→              />
+   978→              <p className="text-xs text-muted-foreground mt-2">
+   979→                These toggles are UI-only for this demo and are not persisted.
+   980→              </p>
+   981→            </CardContent>
+   982→          </Card>
+   983→        </TabsContent>
+   984→      </Tabs>
+   985→    </div>
+   986→  );
+   987→}
+   988→
+   989→/* -------------------------------------------------------------------------- */
+   990→/* Sub-components                                                              */
+   991→/* -------------------------------------------------------------------------- */
+   992→
+   993→function NotifRow({
+   994→  icon: Icon,
+   995→  label,
+   996→  description,
+   997→  checked,
+   998→  onChange,
+   999→}: {
+  1000→  icon: React.ComponentType<{ className?: string }>;
+  1001→  label: string;
+  1002→  description: string;
+  1003→  checked: boolean;
+  1004→  onChange: (v: boolean) => void;
+  1005→}) {
+  1006→  return (
+  1007→    <div className="flex items-center justify-between p-3 rounded-lg border border-stone-200">
+  1008→      <div className="flex items-center gap-3">
+  1009→        <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
+  1010→          <Icon className="h-4 w-4 text-blue-600" />
+  1011→        </div>
+  1012→        <div>
+  1013→          <p className="text-sm font-medium text-stone-900">{label}</p>
+  1014→          <p className="text-xs text-muted-foreground">{description}</p>
+  1015→        </div>
+  1016→      </div>
+  1017→      <Switch checked={checked} onCheckedChange={onChange} />
+  1018→    </div>
+  1019→  );
+  1020→}
+  1021→
+  1022→function AcademicRecordCard({
+  1023→  record,
+  1024→  onViewAnalysis,
+  1025→  onRemove,
+  1026→}: {
+  1027→  record: AcademicRecord;
+  1028→  onViewAnalysis: () => void;
+  1029→  onRemove: () => void;
+  1030→}) {
+  1031→  const pct = clampPct(record.percentage);
+  1032→  const accent = pct >= 75 ? 'blue' : pct >= 50 ? 'amber' : 'rose';
+  1033→  const barColor =
+  1034→    accent === 'blue'
+  1035→      ? 'bg-blue-500'
+  1036→      : accent === 'amber'
+  1037→      ? 'bg-amber-500'
+  1038→      : 'bg-rose-500';
+  1039→  const maxSubjectPct = Math.max(
+  1040→    1,
+  1041→    ...record.subjects.map((s) =>
+  1042→      s.maxMarks > 0 ? (s.marks / s.maxMarks) * 100 : 0
+  1043→    )
+  1044→  );
+  1045→
+  1046→  return (
+  1047→    <Card className="border-stone-200 hover:shadow-md transition">
+  1048→      <CardContent className="p-5 space-y-3">
+  1049→        <div className="flex items-start justify-between gap-2">
+  1050→          <div className="min-w-0">
+  1051→            <h3 className="font-semibold text-stone-900 truncate">
+  1052→              {record.examName}
+  1053→            </h3>
+  1054→            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+  1055→              <Calendar className="h-3 w-3" />{' '}
+  1056→              {new Date(record.date).toLocaleDateString('en-US', {
+  1057→                day: 'numeric',
+  1058→                month: 'short',
+  1059→                year: 'numeric',
+  1060→              })}
+  1061→              {record.institution ? ` · ${record.institution}` : ''}
+  1062→            </p>
+  1063→          </div>
+  1064→          <Badge
+  1065→            className={cn(
+  1066→              'border',
+  1067→              accent === 'blue'
+  1068→                ? 'bg-blue-100 text-blue-700 border-blue-200'
+  1069→                : accent === 'amber'
+  1070→                ? 'bg-amber-100 text-amber-700 border-amber-200'
+  1071→                : 'bg-rose-100 text-rose-700 border-rose-200'
+  1072→            )}
+  1073→          >
+  1074→            {record.percentage.toFixed(1)}%
+  1075→          </Badge>
+  1076→        </div>
+  1077→
+  1078→        <div className="flex items-baseline gap-2">
+  1079→          <span className="text-2xl font-bold text-stone-900">
+  1080→            {record.totalMarks}
+  1081→          </span>
+  1082→          <span className="text-sm text-muted-foreground">
+  1083→            / {record.maxMarks} marks
+  1084→          </span>
+  1085→        </div>
+  1086→
+  1087→        {/* Mini subject bars */}
+  1088→        <div className="space-y-1.5">
+  1089→          {record.subjects.map((s, i) => {
+  1090→            const sp = clampPct(s.maxMarks > 0 ? (s.marks / s.maxMarks) * 100 : 0);
+  1091→            const sc =
+  1092→              sp >= 75 ? 'bg-blue-500' : sp >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+  1093→            return (
+  1094→              <div key={i} className="space-y-0.5">
+  1095→                <div className="flex items-center justify-between text-[11px]">
+  1096→                  <span className="font-medium text-stone-700 truncate">
+  1097→                    {s.name}
+  1098→                  </span>
+  1099→                  <span className="text-muted-foreground tabular-nums">
+  1100→                    {s.marks}/{s.maxMarks}
+  1101→                    {s.grade ? ` · ${s.grade}` : ''}
+  1102→                  </span>
+  1103→                </div>
+  1104→                <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+  1105→                  <div
+  1106→                    className={cn('h-full rounded-full transition-all', sc)}
+  1107→                    style={{ width: `${(sp / maxSubjectPct) * 100}%` }}
+  1108→                  />
+  1109→                </div>
+  1110→              </div>
+  1111→            );
+  1112→          })}
+  1113→        </div>
+  1114→
+  1115→        {/* Overall bar */}
+  1116→        <div>
+  1117→          <div className="flex items-center justify-between text-[11px] mb-0.5">
+  1118→            <span className="text-muted-foreground">Overall</span>
+  1119→            <span className="font-semibold text-stone-700">
+  1120→              {pct.toFixed(1)}%
+  1121→            </span>
+  1122→          </div>
+  1123→          <div className="h-2 rounded-full bg-stone-100 overflow-hidden">
+  1124→            <div
+  1125→              className={cn('h-full rounded-full', barColor)}
+  1126→              style={{ width: `${pct}%` }}
+  1127→            />
+  1128→          </div>
+  1129→        </div>
+  1130→
+  1131→        <div className="flex items-center justify-between gap-2 pt-2 border-t border-stone-100">
+  1132→          {record.aiAnalysis ? (
+  1133→            <Button
+  1134→              size="sm"
+  1135→              className="bg-blue-600 hover:bg-blue-700"
+  1136→              onClick={onViewAnalysis}
+  1137→            >
+  1138→              <Brain className="h-3.5 w-3.5" /> View AI analysis
+  1139→            </Button>
+  1140→          ) : (
+  1141→            <Badge
+  1142→              variant="outline"
+  1143→              className="bg-stone-50 text-stone-500"
+  1144→            >
+  1145→              <Loader2 className="h-3 w-3 animate-spin" /> Awaiting analysis
+  1146→            </Badge>
+  1147→          )}
+  1148→          <Button
+  1149→            size="sm"
+  1150→            variant="ghost"
+  1151→            className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+  1152→            onClick={onRemove}
+  1153→          >
+  1154→            <Trash2 className="h-3.5 w-3.5" /> Remove
+  1155→          </Button>
+  1156→        </div>
+  1157→      </CardContent>
+  1158→    </Card>
+  1159→  );
+  1160→}
+  1161→
+  1162→function AnalysisDialogBody({ record }: { record: AcademicRecord }) {
+  1163→  const a = record.aiAnalysis;
+  1164→  if (!a) {
+  1165→    return (
+  1166→      <DialogHeader>
+  1167→        <DialogTitle>Analysis in progress</DialogTitle>
+  1168→        <DialogDescription>
+  1169→          AI analysis has not completed for this record yet. Please wait a moment.
+  1170→        </DialogDescription>
+  1171→      </DialogHeader>
+  1172→    );
+  1173→  }
+  1174→  const readinessPct = clampPct(a.predictedReadiness / 10);
+  1175→  const readinessColor =
+  1176→    readinessPct >= 70 ? 'blue' : readinessPct >= 40 ? 'amber' : 'rose';
+  1177→  const readinessText =
+  1178→    readinessColor === 'blue'
+  1179→      ? 'text-blue-700'
+  1180→      : readinessColor === 'amber'
+  1181→      ? 'text-amber-700'
+  1182→      : 'text-rose-700';
+  1183→  const readinessBarClass =
+  1184→    readinessColor === 'blue'
+  1185→      ? '[&_[data-slot=progress-indicator]]:bg-blue-600'
+  1186→      : readinessColor === 'amber'
+  1187→      ? '[&_[data-slot=progress-indicator]]:bg-amber-500'
+  1188→      : '[&_[data-slot=progress-indicator]]:bg-rose-500';
+  1189→
+  1190→  return (
+  1191→    <>
+  1192→      <DialogHeader>
+  1193→        <DialogTitle className="flex items-center gap-2">
+  1194→          <Brain className="h-5 w-5 text-blue-600" /> AI analysis — {record.examName}
+  1195→        </DialogTitle>
+  1196→        <DialogDescription>
+  1197→          {record.totalMarks}/{record.maxMarks} · {record.percentage.toFixed(1)}%
+  1198→          · analysed{' '}
+  1199→          {new Date(a.generatedAt).toLocaleDateString('en-US', {
+  1200→            day: 'numeric',
+  1201→            month: 'short',
+  1202→            year: 'numeric',
+  1203→          })}
+  1204→        </DialogDescription>
+  1205→      </DialogHeader>
+  1206→
+  1207→      <div className="space-y-4">
+  1208→        {/* Summary */}
+  1209→        <div className="p-3 rounded-lg bg-blue-50/60 border border-blue-100">
+  1210→          <p className="text-sm text-stone-700 leading-relaxed">{a.summary}</p>
+  1211→        </div>
+  1212→
+  1213→        {/* Predicted readiness */}
+  1214→        <div className="space-y-1.5">
+  1215→          <div className="flex items-center justify-between">
+  1216→            <Label className="flex items-center gap-1.5">
+  1217→              <Target className="h-3.5 w-3.5 text-blue-600" /> Predicted readiness
+  1218→            </Label>
+  1219→            <span className={cn('text-sm font-bold tabular-nums', readinessText)}>
+  1220→              {a.predictedReadiness}/1000
+  1221→            </span>
+  1222→          </div>
+  1223→          <Progress value={readinessPct} className={cn('h-2.5', readinessBarClass)} />
+  1224→          <p className="text-xs text-muted-foreground flex items-center gap-1">
+  1225→            <TrendingUp className="h-3 w-3" /> Predicted score range:{' '}
+  1226→            <strong className="text-stone-700">{a.predictedScoreRange}</strong>
+  1227→          </p>
+  1228→        </div>
+  1229→
+  1230→        {/* Strengths / Weaknesses badges */}
+  1231→        <div className="grid sm:grid-cols-2 gap-3">
+  1232→          <div className="p-3 rounded-lg border border-blue-100 bg-blue-50/40">
+  1233→            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700 mb-2 flex items-center gap-1.5">
+  1234→              <CheckCircle2 className="h-3.5 w-3.5" /> Strengths
+  1235→            </p>
+  1236→            {a.strengths.length === 0 ? (
+  1237→              <p className="text-xs text-muted-foreground">
+  1238→                No strong subjects yet — keep grinding.
+  1239→              </p>
+  1240→            ) : (
+  1241→              <div className="flex flex-wrap gap-1.5">
+  1242→                {a.strengths.map((s, i) => (
+  1243→                  <Badge
+  1244→                    key={i}
+  1245→                    className="bg-blue-100 text-blue-700 border-blue-200"
+  1246→                  >
+  1247→                    {s}
+  1248→                  </Badge>
+  1249→                ))}
+  1250→              </div>
+  1251→            )}
+  1252→          </div>
+  1253→          <div className="p-3 rounded-lg border border-rose-100 bg-rose-50/40">
+  1254→            <p className="text-xs font-semibold uppercase tracking-wider text-rose-700 mb-2 flex items-center gap-1.5">
+  1255→              <TrendingDown className="h-3.5 w-3.5" /> Weaknesses
+  1256→            </p>
+  1257→            {a.weaknesses.length === 0 ? (
+  1258→              <p className="text-xs text-muted-foreground">
+  1259→                No weak subjects detected — well-balanced!
+  1260→              </p>
+  1261→            ) : (
+  1262→              <div className="flex flex-wrap gap-1.5">
+  1263→                {a.weaknesses.map((s, i) => (
+  1264→                  <Badge
+  1265→                    key={i}
+  1266→                    className="bg-rose-100 text-rose-700 border-rose-200"
+  1267→                  >
+  1268→                    {s}
+  1269→                  </Badge>
+  1270→                ))}
+  1271→              </div>
+  1272→            )}
+  1273→          </div>
+  1274→        </div>
+  1275→
+  1276→        {/* Subject insights */}
+  1277→        <div className="space-y-2">
+  1278→          <Label className="flex items-center gap-1.5">
+  1279→            <Lightbulb className="h-3.5 w-3.5 text-blue-600" /> Subject insights
+  1280→          </Label>
+  1281→          <div className="space-y-2">
+  1282→            {a.subjectInsights.map((si, i) => (
+  1283→              <div
+  1284→                key={i}
+  1285→                className="p-3 rounded-lg border border-stone-200 bg-white"
+  1286→              >
+  1287→                <p className="text-sm font-semibold text-stone-900">{si.subject}</p>
+  1288→                <p className="text-xs text-stone-600 mt-0.5">{si.insight}</p>
+  1289→                <p className="text-xs text-blue-700 mt-1.5 flex items-start gap-1.5">
+  1290→                  <Rocket className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+  1291→                  <span>
+  1292→                    <span className="font-semibold">Do:</span> {si.recommendation}
+  1293→                  </span>
+  1294→                </p>
+  1295→              </div>
+  1296→            ))}
+  1297→          </div>
+  1298→        </div>
+  1299→
+  1300→        {/* Study plan */}
+  1301→        <div className="space-y-2">
+  1302→          <Label className="flex items-center gap-1.5">
+  1303→            <ClipboardList className="h-3.5 w-3.5 text-blue-600" /> Study plan
+  1304→          </Label>
+  1305→          <div className="space-y-2">
+  1306→            {a.studyPlan.map((sp, i) => (
+  1307→              <div
+  1308→                key={i}
+  1309→                className="p-3 rounded-lg border border-stone-200 bg-gradient-to-br from-blue-50/40 to-white"
+  1310→              >
+  1311→                <div className="flex items-center justify-between gap-2">
+  1312→                  <p className="text-sm font-semibold text-stone-900 flex items-center gap-2">
+  1313→                    <span className="h-5 w-5 rounded-md bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
+  1314→                      {i + 1}
+  1315→                    </span>
+  1316→                    {sp.phase}
+  1317→                  </p>
+  1318→                  <Badge
+  1319→                    variant="outline"
+  1320→                    className="bg-stone-50 text-stone-600 text-[10px]"
+  1321→                  >
+  1322→                    {sp.duration}
+  1323→                  </Badge>
+  1324→                </div>
+  1325→                <p className="text-xs text-blue-700 mt-1">{sp.focus}</p>
+  1326→                <ul className="mt-1.5 space-y-1">
+  1327→                  {sp.tasks.map((t, ti) => (
+  1328→                    <li
+  1329→                      key={ti}
+  1330→                      className="text-xs text-stone-600 flex items-start gap-1.5"
+  1331→                    >
+  1332→                      <span className="text-blue-500 mt-0.5">•</span>
+  1333→                      <span>{t}</span>
+  1334→                    </li>
+  1335→                  ))}
+  1336→                </ul>
+  1337→              </div>
+  1338→            ))}
+  1339→          </div>
+  1340→        </div>
+  1341→
+  1342→        {/* Recommended resources */}
+  1343→        <div className="space-y-2">
+  1344→          <Label className="flex items-center gap-1.5">
+  1345→            <BookOpen className="h-3.5 w-3.5 text-blue-600" /> Recommended resources
+  1346→          </Label>
+  1347→          <div className="flex flex-wrap gap-1.5">
+  1348→            {a.recommendedResources.map((r, i) => (
+  1349→              <Badge
+  1350→                key={i}
+  1351→                variant="outline"
+  1352→                className="bg-stone-50 text-stone-700 border-stone-200 text-xs"
+  1353→              >
+  1354→                {r}
+  1355→              </Badge>
+  1356→            ))}
+  1357→          </div>
+  1358→        </div>
+  1359→      </div>
+  1360→    </>
+  1361→  );
+  1362→}
+  1363→

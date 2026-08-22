@@ -40,6 +40,7 @@ export async function POST(request: Request) {
         name: user.name,
         phone: user.phone ?? null,
         country: user.country ?? null,
+        institution: user.institution ?? null,
         userType: user.type ?? 'school-12',
         examGoal: user.examGoal ?? '',
         examGoals: JSON.stringify(user.examGoals ?? []),
@@ -49,6 +50,9 @@ export async function POST(request: Request) {
         avatar: user.avatar ?? null,
         darkMode: user.darkMode ?? false,
         emailVerified: user.emailVerified ?? false,
+        clockTimezone: user.clockTimezone ?? 'Asia/Kolkata',
+        clockFace: user.clockFace ?? 'digital',
+        clockTheme: user.clockTheme ?? 'day',
       },
     });
 
