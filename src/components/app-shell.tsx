@@ -82,6 +82,12 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { id: 'explore', label: 'Explore Hub', icon: Compass },
     ],
   },
+  {
+    title: 'Account',
+    items: [
+      { id: 'settings', label: 'Settings', icon: Settings2 },
+    ],
+  },
 ];
 
 export function daysToExam(examDate?: string): number {
@@ -112,7 +118,7 @@ const AI_AGENT_CHILDREN: View[] = [
   'rank-predictor', 'university-predictor', 'weakness-radar',
 ];
 const EXPLORE_CHILDREN: View[] = [
-  'career', 'university', 'scholarship', 'settings',
+  'career', 'university', 'scholarship',
 ];
 
 function isParentActive(parentId: View, currentView: View): boolean {

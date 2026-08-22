@@ -44,10 +44,11 @@ interface Recommendation {
 interface NewsItem {
   title: string;
   summary: string;
-  source: string;
+  source: string;          // human-readable source name (e.g. "NTA", "Vedantu")
+  sourceUrl?: string;      // the actual URL the user will click (preferred over `url`)
   category: 'Official' | 'News' | 'Social Media' | 'Tips';
   date: string;
-  url: string;
+  url: string;              // alias kept for backwards compat with the API
   priority: 'urgent' | 'high' | 'normal' | 'low';
 }
 
@@ -509,7 +510,8 @@ export function ExamNewsFeed({
   const [items, setItems] = React.useState<NewsItem[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [source, setSource] = React.useState<'ai' | 'fallback' | null>(null);
+  const [source, setSource] = React.useState<'web' | 'ai' | 'fallback' | null>(null);
+  const [breakdown, setBreakdown] = React.useState<{Official:number;News:number;'Social Media':number;Tips:number} | null>(null);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
   const [refreshing, setRefreshing] = React.useState<boolean>(false);
   const abortRef = React.useRef<AbortController | null>(null);
@@ -536,12 +538,15 @@ export function ExamNewsFeed({
         const data = await res.json();
         const parsed: NewsItem[] = Array.isArray(data?.items) ? data.items : [];
         setItems(parsed);
-        setSource(data?.source === 'ai' ? 'ai' : 'fallback');
+        setSource(data?.source === 'web' ? 'web' : data?.source === 'ai' ? 'ai' : 'fallback');
+        if (data?.breakdown) setBreakdown(data.breakdown);
+        else setBreakdown(null);
       } catch (e) {
         if ((e as Error).name === 'AbortError') return;
         setError((e as Error).message || 'Failed to load news');
         setItems([]);
         setSource(null);
+        setBreakdown(null);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -568,10 +573,39 @@ export function ExamNewsFeed({
             Latest updates for {displayName}
             {source && (
               <span className="ml-1 text-[10px] uppercase tracking-wider text-blue-500">
-                · {source === 'ai' ? 'AI-curated' : 'curated feed'}
+                ·{' '}
+                {source === 'web'
+                  ? 'Live web search'
+                  : source === 'ai'
+                  ? 'AI-curated'
+                  : 'curated feed'}
               </span>
             )}
           </p>
+          {source === 'web' && breakdown && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {breakdown.Official > 0 && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 border border-blue-200 rounded px-1 py-0.5">
+                  <Megaphone className="h-2 w-2" /> {breakdown.Official} official
+                </span>
+              )}
+              {breakdown.News > 0 && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide bg-emerald-100 text-emerald-700 border border-emerald-200 rounded px-1 py-0.5">
+                  <Newspaper className="h-2 w-2" /> {breakdown.News} news
+                </span>
+              )}
+              {breakdown['Social Media'] > 0 && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 border border-amber-200 rounded px-1 py-0.5">
+                  <Share2 className="h-2 w-2" /> {breakdown['Social Media']} social
+                </span>
+              )}
+              {breakdown.Tips > 0 && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide bg-teal-100 text-teal-700 border border-teal-200 rounded px-1 py-0.5">
+                  <Lightbulb className="h-2 w-2" /> {breakdown.Tips} tips
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <Button
           size="sm"
@@ -628,10 +662,20 @@ export function ExamNewsFeed({
             {items.map((item, i) => {
               const cat = categoryStyle(item.category);
               const prio = priorityTag(item.priority);
+              // Prefer sourceUrl (real URL), fall back to url.
+              const clickUrl = item.sourceUrl || item.url;
+              // Try to extract a clean host name to show under "via"
+              let hostLabel = '';
+              try {
+                if (clickUrl) {
+                  const u = new URL(clickUrl);
+                  hostLabel = u.hostname.replace(/^www\./, '');
+                }
+              } catch { /* ignore */ }
               return (
                 <li key={`${i}-${item.title.slice(0, 24)}`}>
                   <a
-                    href={item.url}
+                    href={clickUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block rounded-lg border border-blue-100 bg-white p-3 hover:border-blue-300 hover:shadow-sm transition group"
@@ -656,20 +700,42 @@ export function ExamNewsFeed({
                           {prio.tag}
                         </span>
                       )}
-                      <span className="ml-auto text-[10px] text-muted-foreground">
-                        {relativeDate(item.date)}
+                      {item.date && (
+                        <span className="text-[10px] text-muted-foreground">
+                          {relativeDate(item.date)}
+                        </span>
+                      )}
+                      <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-blue-700 font-medium">
+                        <ExternalLink className="h-3 w-3" />
+                        Source
                       </span>
                     </div>
                     <p className="text-sm font-semibold text-stone-900 leading-snug group-hover:text-blue-700 transition">
                       {item.title}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
                       {item.summary}
                     </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-[11px] text-blue-600 font-medium">{item.source}</span>
-                      <span className="inline-flex items-center gap-1 text-[11px] text-blue-600 group-hover:underline">
-                        Read more <ExternalLink className="h-3 w-3" />
+                    {/* Source attribution row — shows the favicon + actual host name */}
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-stone-100">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] text-stone-600 min-w-0">
+                        {hostLabel && (
+                          <img
+                            src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostLabel)}&sz=32`}
+                            alt=""
+                            className="h-3.5 w-3.5 rounded-sm flex-shrink-0"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        )}
+                        <span className="truncate">
+                          via <span className="font-medium text-stone-800">{item.source || hostLabel || 'Web'}</span>
+                          {hostLabel && hostLabel !== item.source && (
+                            <span className="text-muted-foreground"> · {hostLabel}</span>
+                          )}
+                        </span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] text-blue-700 font-medium group-hover:underline flex-shrink-0 ml-2">
+                        Open link <ExternalLink className="h-3 w-3" />
                       </span>
                     </div>
                   </a>

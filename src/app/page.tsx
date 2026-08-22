@@ -39,7 +39,7 @@ import type { View } from '@/lib/types';
 import {
   MessageSquare, Brain, Mic, HelpCircle, BookOpen, TrendingUp, UserCog,
   Sparkles, Gauge, Trophy, School, Radar,
-  Briefcase, GraduationCap, Award, Settings2,
+  Briefcase, GraduationCap, Award,
 } from 'lucide-react';
 
 function ViewRouter({ view }: { view: View }) {
@@ -147,11 +147,8 @@ function ViewRouter({ view }: { view: View }) {
         </SubModuleHeader>
       );
     case 'settings':
-      return (
-        <SubModuleHeader parent="explore" title="Settings" subtitle="Profile, privacy, preferences" icon={Settings2}>
-          <SettingsView />
-        </SubModuleHeader>
-      );
+      // Settings is now its own top-level sidebar item — no SubModuleHeader.
+      return <SettingsView />;
 
     // Other views that don't belong to either hub (kept as-is)
     case 'planner':

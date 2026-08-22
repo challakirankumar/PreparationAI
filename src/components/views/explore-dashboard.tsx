@@ -7,7 +7,7 @@ import type { View } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { PremiumHeader } from '@/components/shared/premium-header';
 import {
-  Briefcase, GraduationCap, Award, Settings2, ArrowRight, Compass,
+  Briefcase, GraduationCap, Award, ArrowRight, Compass,
 } from 'lucide-react';
 
 interface ExploreCard {
@@ -66,21 +66,7 @@ const EXPLORE_CARDS: ExploreCard[] = [
       'Direct application links',
     ],
   },
-  {
-    id: 'settings',
-    title: 'Settings',
-    subtitle: 'Profile, privacy, preferences',
-    description:
-      'Manage your account, exam goals, exam dates, theme, language, data export, account deletion, and security. Everything you change here is reflected across the entire app on the next render.',
-    icon: Settings2,
-    accent: 'from-stone-500 to-blue-600',
-    features: [
-      'Manage exam goals & exam dates',
-      'Dark mode, language, theme',
-      'Export or delete your data',
-      'Account security & sessions',
-    ],
-  },
+  // Note: Settings is now its own top-level sidebar item — no longer part of Explore.
 ];
 
 export function ExploreDashboard() {
