@@ -60,6 +60,7 @@ import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
 import { getPattern } from '@/lib/exams/patterns';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import { AISearchBar } from '@/components/search/ai-search-bar';
 import type { View } from '@/lib/types';
 
 interface NavItem {
@@ -477,7 +478,12 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         </p>
       </div>
 
-      <div className="flex-1" />
+      {/* AI Semantic Search — sits in the middle of the topbar on desktop */}
+      <div className="hidden lg:flex flex-1 justify-center px-4">
+        <AISearchBar />
+      </div>
+
+      <div className="flex-1 lg:hidden" />
 
       <NotificationBell />
 
