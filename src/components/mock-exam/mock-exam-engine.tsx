@@ -137,7 +137,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
         title="AI Mock Exam Engine"
         subtitle="Each attempt generates a brand-new paper from your syllabus weights. The engine tracks every question you've seen and avoids repeats — so every mock is fresh."
         icon={Atom}
-        variant="blue"
+        variant="sapphire"
         actions={
           <Button
             size="sm"

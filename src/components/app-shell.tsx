@@ -128,14 +128,14 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const attempts = useStore((s) => s.attempts);
 
   return (
-    <nav className="flex-1 overflow-y-auto scroll-thin px-3 py-3 space-y-5">
+    <nav className="flex-1 overflow-y-auto scroll-thin px-3 py-4 space-y-6">
       {NAV_GROUPS.map((group) => {
         return (
         <div key={group.title}>
-          <p className="px-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-2">
+          <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2.5">
             {group.title}
           </p>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = isParentActive(item.id, view);
@@ -150,33 +150,46 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                     onNavigate?.();
                   }}
                   className={cn(
-                    'relative w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 group overflow-hidden',
+                    // Premium glassy button — base layer for both states
+                    'relative w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-all duration-300 group overflow-hidden',
+                    // Refined ring + 1px hairline border on every button (glass surface)
+                    'ring-1',
                     active
-                      ? // Glossy active state — blue gradient + soft glow
-                        'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-[0_4px_12px_-2px_rgba(0,123,255,0.4)]'
-                      : // Glossy idle state — translucent glass surface
-                        'text-stone-600 hover:text-blue-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent hover:shadow-sm',
-                    isHub && !active && 'ring-1 ring-stone-200/60'
+                      ? // Active: deep sapphire gradient + bright top sheen + soft glow
+                        'bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 text-white ring-blue-900/50 shadow-[0_6px_18px_-4px_rgba(15,76,129,0.5)]'
+                      : // Idle: translucent white glass that intensifies on hover
+                        'text-slate-600 ring-slate-200/70 bg-white/60 backdrop-blur-sm hover:bg-white hover:text-blue-900 hover:ring-blue-200 hover:shadow-[0_4px_12px_-2px_rgba(15,76,129,0.12)]',
                   )}
                 >
-                  {/* Glossy top highlight for active state */}
+                  {/* Glossy top sheen — visible on every button, brighter on active */}
+                  <span className={cn(
+                    'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent',
+                    !active && 'opacity-40'
+                  )} />
+                  {/* Inner glassy bloom on the lower-right for active state */}
                   {active && (
-                    <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                    <span className="pointer-events-none absolute -bottom-8 -right-4 h-20 w-20 rounded-full bg-blue-400/20 blur-2xl" />
                   )}
                   <Icon className={cn(
-                    'h-4 w-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110',
-                    active ? 'text-white' : 'text-stone-500 group-hover:text-blue-600'
+                    'h-[18px] w-[18px] flex-shrink-0 transition-all duration-300',
+                    active
+                      ? 'text-white drop-shadow-sm'
+                      : 'text-slate-500 group-hover:text-blue-700 group-hover:scale-110'
                   )} />
                   <span className={cn(
-                    'flex-1 text-left truncate tracking-tight',
-                    active && 'font-semibold'
+                    'flex-1 text-left truncate',
+                    active
+                      ? 'font-semibold tracking-tight text-white'
+                      : 'font-medium tracking-tight text-slate-700 group-hover:text-blue-900 group-hover:font-semibold'
                   )}>
                     {item.label}
                   </span>
                   {isHub && (
                     <ChevronRight className={cn(
-                      'h-3 w-3 transition-all',
-                      active ? 'text-white/80' : 'text-stone-400 group-hover:text-blue-600 group-hover:translate-x-0.5'
+                      'h-3.5 w-3.5 transition-all',
+                      active
+                        ? 'text-white/80'
+                        : 'text-slate-400 group-hover:text-blue-700 group-hover:translate-x-0.5'
                     )} />
                   )}
                   {isMockExam && attemptCount > 0 && (
@@ -184,7 +197,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                       variant="outline"
                       className={cn(
                         'h-5 px-1.5 text-[10px] border-none font-semibold',
-                        active ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'
+                        active ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
                       )}
                     >
                       {attemptCount}

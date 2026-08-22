@@ -450,43 +450,13 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Premium gradient header — replaces the old hero card */}
+      {/* Premium gradient header — clean, no buttons, no subtitle.
+          The live clock widget only appears here on the dashboard. */}
       <PremiumHeader
         title={`Welcome back, ${user.name.split(' ')[0]}`}
-        subtitle={
-          primaryPattern
-            ? `Preparing for ${primaryPattern.name}${days > 0 ? ` · ${days} days to go` : ''}`
-            : 'Your AI Educational OS for exam preparation'
-        }
         icon={Sparkles}
-        actions={
-          <>
-            <Button
-              size="sm"
-              className="hidden sm:inline-flex bg-white text-blue-700 hover:bg-blue-50 shadow-sm"
-              onClick={() => setView('mock-exam')}
-            >
-              <PlayCircle className="h-4 w-4" /> Start Mock
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="hidden sm:inline-flex bg-white/15 text-white border-white/30 backdrop-blur-sm hover:bg-white/25"
-              onClick={() => setView('mentor')}
-            >
-              <MessageSquare className="h-4 w-4" /> Ask Mentor
-            </Button>
-          </>
-        }
+        showTime
       />
-
-      {/* Quick stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatCard label="Avg Score" value={`${avgScore}%`} sub="across all mocks" icon={TrendingUp} accent="emerald" />
-        <StatCard label="Mocks Taken" value={mocksTaken} sub="last 30 days" icon={FileText} accent="teal" />
-        <StatCard label="Best Percentile" value={bestPercentile} sub="all-time" icon={Trophy} accent="amber" />
-        <StatCard label="Accuracy" value={`${avgAccuracy}%`} sub="average" icon={Target} accent="rose" />
-      </div>
 
       {/* Live countdown + weak areas + news */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -503,137 +473,8 @@ export function Dashboard() {
         />
       </div>
 
-      {/* Countdown + trend */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ExamCountdownCard focusArea={weakTopics[0]} streak={mocksTaken > 0 ? Math.min(mocksTaken, 7) : 0} />
-        <ScoreTrendCard scores={scorePoints} />
-      </div>
-
-      {/* Feature grid */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-600" /> AI Agents
-            </h2>
-            <p className="text-sm text-muted-foreground">Eleven specialised agents, one workspace.</p>
-          </div>
-          <Badge variant="outline" className="bg-stone-50 border-stone-200 text-stone-600">
-            {FEATURES.length} tools
-          </Badge>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {FEATURES.map((f) => (
-            <FeatureCard
-              key={f.title}
-              icon={f.icon}
-              title={f.title}
-              subtitle={f.subtitle}
-              accent={f.accent}
-              badge={f.badge}
-              detailTitle={f.detailTitle}
-              detailDescription={f.detailDescription}
-              detailBody={f.detailBody}
-              ctaLabel={f.ctaLabel}
-              onClick={() => setView(f.view)}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Today's focus + Quick start */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="p-5 border-stone-200">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-stone-900 flex items-center gap-1.5">
-              <Lightbulb className="h-4 w-4 text-amber-500" /> Today's focus
-            </h3>
-            {latest && (
-              <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700">
-                from latest mock
-              </Badge>
-            )}
-          </div>
-          {weakTopics.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Based on your latest attempt, focus on these weak topics:
-              </p>
-              <div className="space-y-1.5">
-                {weakTopics.map((t, i) => (
-                  <div
-                    key={t}
-                    className="flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 p-2.5"
-                  >
-                    <span className="h-6 w-6 rounded-md bg-rose-100 text-rose-600 text-xs font-semibold flex items-center justify-center">
-                      {i + 1}
-                    </span>
-                    <span className="flex-1 text-sm text-stone-800">{t}</span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 text-xs text-blue-700 hover:text-blue-800"
-                      onClick={() => setView('weakness-radar')}
-                    >
-                      Fix <ChevronRight className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <Brain className="h-8 w-8 mx-auto text-stone-300 mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Take a mock exam to get personalised weak-topic recommendations.
-              </p>
-              <Button size="sm" className="mt-3 bg-blue-600 hover:bg-blue-700" onClick={() => setView('mock-exam')}>
-                <PlayCircle className="h-3.5 w-3.5" /> Take first mock
-              </Button>
-            </div>
-          )}
-        </Card>
-
-        <Card className="p-5 border-stone-200 bg-gradient-to-br from-emerald-50 to-teal-50">
-          <h3 className="font-semibold text-stone-900 flex items-center gap-1.5 mb-3">
-            <Flame className="h-4 w-4 text-rose-500" /> Quick start
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setView('mock-exam')}
-              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
-            >
-              <FileText className="h-5 w-5 text-blue-600 mb-1.5" />
-              <p className="text-sm font-semibold text-stone-900">Take a mock</p>
-              <p className="text-[11px] text-muted-foreground">Full-length, AI-generated</p>
-            </button>
-            <button
-              onClick={() => setView('mentor')}
-              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
-            >
-              <MessageSquare className="h-5 w-5 text-teal-600 mb-1.5" />
-              <p className="text-sm font-semibold text-stone-900">Ask mentor</p>
-              <p className="text-[11px] text-muted-foreground">Doubts, strategy, motivation</p>
-            </button>
-            <button
-              onClick={() => setView('weakness-radar')}
-              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
-            >
-              <Radar className="h-5 w-5 text-rose-600 mb-1.5" />
-              <p className="text-sm font-semibold text-stone-900">Fix weaknesses</p>
-              <p className="text-[11px] text-muted-foreground">YouTube-curated fixes</p>
-            </button>
-            <button
-              onClick={() => setView('planner')}
-              className="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-blue-300 hover:bg-blue-50/30 transition card-lift"
-            >
-              <CalendarDays className="h-5 w-5 text-amber-600 mb-1.5" />
-              <p className="text-sm font-semibold text-stone-900">Plan today</p>
-              <p className="text-[11px] text-muted-foreground">AI-personalised schedule</p>
-            </button>
-          </div>
-        </Card>
-      </div>
+      {/* Exam countdown card (kept; ScoreTrendCard removed per user request) */}
+      <ExamCountdownCard focusArea={weakTopics[0]} streak={mocksTaken > 0 ? Math.min(mocksTaken, 7) : 0} />
 
       {/* Dialogs */}
       <ManageExamsDialog open={manageOpen} onOpenChange={setManageOpen} />

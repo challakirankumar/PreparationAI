@@ -93,7 +93,7 @@ export function ExploreDashboard() {
         title="Explore Hub"
         subtitle="Career paths, universities, scholarships, and account settings — everything you need to turn an exam score into a long-term academic trajectory. Tap any card to dive in."
         icon={Compass}
-        variant="blue"
+        variant="sapphire"
       />
 
       {/* Cards grid */}
