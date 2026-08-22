@@ -153,18 +153,24 @@ export function LiveCountdownCard({
   ];
 
   return (
-    <Card className="p-5 border-blue-200 bg-gradient-to-br from-blue-50 to-white relative overflow-hidden">
-      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-100/60 blur-2xl" />
+    <Card className="p-5 border-blue-200 bg-gradient-to-br from-white via-blue-50/40 to-white relative overflow-hidden ring-1 ring-blue-100/50 shadow-[0_4px_24px_-8px_rgba(15,76,129,0.18)]">
+      {/* Glossy decorative blooms */}
+      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-blue-100/40 blur-2xl pointer-events-none" />
+      {/* Top sheen */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
+
       <div className="relative">
+        {/* Header */}
         <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700 flex items-center gap-1.5">
               <Clock className="h-3 w-3" /> Live Countdown
             </p>
-            <h3 className="text-lg font-bold text-stone-900 mt-0.5">
+            <h3 className="text-lg font-bold tracking-tight text-stone-900 mt-0.5 truncate">
               {examName || pattern?.name || 'Target Exam'}
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {(() => {
                 const d = new Date(examDate);
                 return Number.isNaN(d.getTime())
@@ -173,7 +179,7 @@ export function LiveCountdownCard({
               })()}
             </p>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
             <Badge className={cn('bg-white border', ts.tile, ts.text)}>
               {pattern ? `${Math.round(pattern.durationSec / 60)} min` : '—'}
             </Badge>
@@ -183,51 +189,49 @@ export function LiveCountdownCard({
           </div>
         </div>
 
-        {/* Ticking countdown */}
+        {/* Ticking countdown tiles (the only time readout — removed the duplicate colon-separated line) */}
         <div className="grid grid-cols-4 gap-2 mb-3">
           {display.map((t, i) => (
             <div
               key={t.label}
               className={cn(
-                'rounded-lg border p-2.5 text-center tabular-nums',
+                'relative rounded-lg border p-2 text-center tabular-nums overflow-hidden',
+                'bg-white/70 backdrop-blur-sm',
                 ts.tile,
                 ts.text,
                 i === 3 && 'animate-pulse'
               )}
             >
-              <p className={cn('text-2xl font-bold tabular-nums', ts.text)}>
+              {/* Tile top sheen */}
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+              <p className={cn('text-2xl font-bold tabular-nums tracking-tight', ts.text)}>
                 {pad(t.v)}
               </p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{t.label}</p>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground mt-0.5 font-semibold">{t.label}</p>
             </div>
           ))}
-        </div>
-
-        {/* Colon-separated readout */}
-        <div className={cn('text-center font-mono text-sm tabular-nums mb-3', ts.text)}>
-          {pad(days)} : {pad(hours)} : {pad(minutes)} : {pad(seconds)}
         </div>
 
         {/* Pattern info chips */}
         <div className="flex flex-wrap items-center gap-2">
           {pattern && (
-            <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+            <Badge variant="outline" className="bg-white/70 backdrop-blur-sm border-blue-200 text-blue-700">
               <Target className="h-3 w-3" /> {pattern.totalQuestions} Qs
             </Badge>
           )}
           {pattern && (
-            <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+            <Badge variant="outline" className="bg-white/70 backdrop-blur-sm border-blue-200 text-blue-700">
               <Timer className="h-3 w-3" /> {pattern.totalMarks} marks
             </Badge>
           )}
           {pattern && (
-            <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+            <Badge variant="outline" className="bg-white/70 backdrop-blur-sm border-blue-200 text-blue-700">
               <Flame className="h-3 w-3" /> {pattern.marking}
             </Badge>
           )}
           <button
             onClick={() => setView('planner')}
-            className="ml-auto text-[11px] font-medium text-blue-700 hover:text-blue-800 inline-flex items-center gap-1"
+            className="ml-auto text-[11px] font-medium text-blue-700 hover:text-blue-900 inline-flex items-center gap-1 link-underline"
           >
             <Calendar className="h-3 w-3" /> Open planner
           </button>
@@ -375,84 +379,95 @@ export function WeakAreaTriggerCard({ attempts }: { attempts: ExamAttempt[] }) {
 
   if (!latest) {
     return (
-      <Card className="p-5 border-blue-200 bg-gradient-to-br from-blue-50 to-white h-full">
-        <div className="flex items-center gap-1.5 mb-3">
-          <Zap className="h-4 w-4 text-blue-600" />
-          <h3 className="font-semibold text-stone-900">Weak Area Triggers</h3>
-        </div>
-        <div className="text-center py-6">
-          <RadarIcon className="h-8 w-8 mx-auto text-blue-200 mb-2" />
-          <p className="text-sm text-muted-foreground">
-            Take a mock exam to unlock personalised weak-area recommendations.
-          </p>
-          <Button size="sm" className="mt-3 bg-blue-600 hover:bg-blue-700" onClick={() => setView('mock-exam')}>
-            Start first mock
-          </Button>
+      <Card className="p-5 border-blue-200 bg-gradient-to-br from-white via-blue-50/40 to-white h-full relative overflow-hidden ring-1 ring-blue-100/50 shadow-[0_4px_24px_-8px_rgba(15,76,129,0.18)]">
+        <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
+        <div className="relative">
+          <div className="flex items-center gap-1.5 mb-3">
+            <Zap className="h-4 w-4 text-blue-700" />
+            <h3 className="font-bold tracking-tight text-stone-900">Weak Area Triggers</h3>
+          </div>
+          <div className="text-center py-6">
+            <RadarIcon className="h-8 w-8 mx-auto text-blue-300 mb-2" />
+            <p className="text-sm text-muted-foreground">
+              Take a mock exam to unlock personalised weak-area recommendations.
+            </p>
+            <Button size="sm" className="mt-3 bg-blue-700 hover:bg-blue-800" onClick={() => setView('mock-exam')}>
+              Start first mock
+            </Button>
+          </div>
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className="p-5 border-blue-200 bg-gradient-to-br from-blue-50 to-white h-full">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1.5">
-          <Zap className="h-4 w-4 text-blue-600" />
-          <h3 className="font-semibold text-stone-900">Weak Area Triggers</h3>
+    <Card className="p-5 border-blue-200 bg-gradient-to-br from-white via-blue-50/40 to-white h-full relative overflow-hidden ring-1 ring-blue-100/50 shadow-[0_4px_24px_-8px_rgba(15,76,129,0.18)]">
+      {/* Glossy decorative blooms */}
+      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-blue-100/40 blur-2xl pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
+
+      <div className="relative">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Zap className="h-4 w-4 text-blue-700 flex-shrink-0" />
+            <h3 className="font-bold tracking-tight text-stone-900 truncate">Weak Area Triggers</h3>
+          </div>
+          <Badge variant="outline" className="bg-white/70 backdrop-blur-sm border-blue-200 text-blue-700 flex-shrink-0">
+            <TrendingDown className="h-3 w-3" /> {highCount} high priority
+          </Badge>
         </div>
-        <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
-          <TrendingDown className="h-3 w-3" /> {highCount} high priority
-        </Badge>
-      </div>
 
-      <p className="text-xs text-muted-foreground mb-3">
-        From your latest attempt · {latest.examName} · {latest.accuracy}% accuracy
-      </p>
+        <p className="text-[11px] text-muted-foreground mb-3">
+          From your latest attempt · <span className="font-medium text-stone-700">{latest.examName}</span> · {latest.accuracy}% accuracy
+        </p>
 
-      <ol className="space-y-2">
-        {recs.map((r, i) => (
-          <li
-            key={i}
-            className="flex items-start gap-2 rounded-lg border border-blue-100 bg-white p-2.5"
-          >
-            <span className="flex-shrink-0 h-6 w-6 rounded-md bg-blue-600 text-white text-xs font-semibold flex items-center justify-center">
-              {i + 1}
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border',
-                    urgencyBadge(r.urgency)
-                  )}
-                >
-                  <span className={cn('h-1.5 w-1.5 rounded-full', urgencyDot(r.urgency))} />
-                  {r.urgency}
-                </span>
+        <ol className="space-y-2">
+          {recs.map((r, i) => (
+            <li
+              key={i}
+              className="flex items-start gap-2 rounded-lg border border-blue-100 bg-white/70 backdrop-blur-sm p-2.5 hover:border-blue-200 transition-colors"
+            >
+              <span className="flex-shrink-0 h-6 w-6 rounded-md bg-gradient-to-br from-blue-700 to-blue-900 text-white text-xs font-semibold flex items-center justify-center shadow-sm">
+                {i + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border',
+                      urgencyBadge(r.urgency)
+                    )}
+                  >
+                    <span className={cn('h-1.5 w-1.5 rounded-full', urgencyDot(r.urgency))} />
+                    {r.urgency}
+                  </span>
+                </div>
+                <p className="text-sm text-stone-800 leading-snug">{r.text}</p>
               </div>
-              <p className="text-sm text-stone-800 leading-snug">{r.text}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
+            </li>
+          ))}
+        </ol>
 
-      <div className="flex flex-wrap gap-2 mt-4">
-        <Button
-          size="sm"
-          variant="default"
-          className="bg-blue-600 hover:bg-blue-700"
-          onClick={() => setView('weakness-radar')}
-        >
-          <RadarIcon className="h-3.5 w-3.5" /> View radar
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          onClick={() => setView('mentor')}
-        >
-          <LifeBuoy className="h-3.5 w-3.5" /> Get help
-        </Button>
+        <div className="flex flex-wrap gap-2 mt-4">
+          <Button
+            size="sm"
+            variant="default"
+            className="bg-blue-700 hover:bg-blue-800"
+            onClick={() => setView('weakness-radar')}
+          >
+            <RadarIcon className="h-3.5 w-3.5" /> View radar
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            onClick={() => setView('mentor')}
+          >
+            <LifeBuoy className="h-3.5 w-3.5" /> Get help
+          </Button>
+        </div>
       </div>
     </Card>
   );
@@ -562,7 +577,14 @@ export function ExamNewsFeed({
   };
 
   return (
-    <Card className="p-5 border-blue-200 bg-gradient-to-br from-blue-50 to-white h-full flex flex-col">
+    <Card className="p-5 border-blue-200 bg-gradient-to-br from-white via-blue-50/40 to-white h-full flex flex-col relative overflow-hidden ring-1 ring-blue-100/50 shadow-[0_4px_24px_-8px_rgba(15,76,129,0.18)]">
+      {/* Glossy decorative blooms */}
+      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-blue-100/40 blur-2xl pointer-events-none" />
+      {/* Top sheen */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
+
+      <div className="relative flex flex-col h-full">
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="flex items-center gap-1.5">
@@ -620,7 +642,7 @@ export function ExamNewsFeed({
       </div>
 
       {/* Scrollable news list */}
-      <ScrollArea className="flex-1 min-h-0 max-h-[460px] -mx-1 px-1">
+      <ScrollArea className="flex-1 min-h-0 max-h-[340px] -mx-1 px-1">
         {error ? (
           <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 flex items-start gap-2">
             <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -745,6 +767,7 @@ export function ExamNewsFeed({
           </ul>
         )}
       </ScrollArea>
+      </div>
     </Card>
   );
 }
