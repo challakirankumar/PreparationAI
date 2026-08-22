@@ -32,7 +32,15 @@ import { LeagueSystemView } from '@/components/views/league-system';
 import { VoiceMentorView } from '@/components/views/voice-mentor';
 import { RagTutorView } from '@/components/views/rag-tutor';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
+import { AiAgentsDashboard } from '@/components/views/ai-agents-dashboard';
+import { ExploreDashboard } from '@/components/views/explore-dashboard';
+import { SubModuleHeader } from '@/components/shared/sub-module-header';
 import type { View } from '@/lib/types';
+import {
+  MessageSquare, Brain, Mic, HelpCircle, BookOpen, TrendingUp, UserCog,
+  Sparkles, Gauge, Trophy, School, Radar,
+  Briefcase, GraduationCap, Award, Settings2,
+} from 'lucide-react';
 
 function ViewRouter({ view }: { view: View }) {
   switch (view) {
@@ -42,32 +50,114 @@ function ViewRouter({ view }: { view: View }) {
       return <ExamRunnerOrEngine />;
     case 'analytics':
       return <PerformanceAnalytics />;
+    case 'ai-agents':
+      return <AiAgentsDashboard />;
+    case 'explore':
+      return <ExploreDashboard />;
     case 'mentor':
-      return <MentorRoom />;
+      return (
+        <SubModuleHeader parent="ai-agents" title="AI Mentor" subtitle="Personalized guidance chat" icon={MessageSquare}>
+          <MentorRoom />
+        </SubModuleHeader>
+      );
+    case 'socratic-mentor':
+      return (
+        <SubModuleHeader parent="ai-agents" title="Socratic Mentor v2" subtitle="Question-led learning" icon={Brain}>
+          <SocraticMentorView />
+        </SubModuleHeader>
+      );
+    case 'voice-mentor':
+      return (
+        <SubModuleHeader parent="ai-agents" title="Voice Mentor" subtitle="Speak, listen, learn" icon={Mic}>
+          <VoiceMentorView />
+        </SubModuleHeader>
+      );
+    case 'doubt-solver':
+      return (
+        <SubModuleHeader parent="ai-agents" title="Doubt Solver" subtitle="Photo to worked solution" icon={HelpCircle}>
+          <DoubtSolverView />
+        </SubModuleHeader>
+      );
+    case 'rag-tutor':
+      return (
+        <SubModuleHeader parent="ai-agents" title="RAG Tutor" subtitle="Grounded textbook Q&A" icon={BookOpen}>
+          <RagTutorView />
+        </SubModuleHeader>
+      );
+    case 'pyq-trends':
+      return (
+        <SubModuleHeader parent="ai-agents" title="PYQ Trends" subtitle="Previous-year question radar" icon={TrendingUp}>
+          <PyqTrendPredictorView />
+        </SubModuleHeader>
+      );
+    case 'digital-twin':
+      return (
+        <SubModuleHeader parent="ai-agents" title="Digital Twin" subtitle="Simulate-you simulator" icon={UserCog}>
+          <DigitalTwin />
+        </SubModuleHeader>
+      );
+    case 'success-simulator':
+      return (
+        <SubModuleHeader parent="ai-agents" title="Success Simulator" subtitle="What-if scenario planner" icon={Sparkles}>
+          <SuccessSimulator />
+        </SubModuleHeader>
+      );
+    case 'readiness':
+      return (
+        <SubModuleHeader parent="ai-agents" title="Readiness Index" subtitle="Are you exam-ready?" icon={Gauge}>
+          <ExamReadiness />
+        </SubModuleHeader>
+      );
+    case 'rank-predictor':
+      return (
+        <SubModuleHeader parent="ai-agents" title="Rank Predictor" subtitle="Forecast your AIR" icon={Trophy}>
+          <RankPredictor />
+        </SubModuleHeader>
+      );
+    case 'university-predictor':
+      return (
+        <SubModuleHeader parent="ai-agents" title="University Predictor" subtitle="Where will you get in?" icon={School}>
+          <UniversityPredictor />
+        </SubModuleHeader>
+      );
+    case 'weakness-radar':
+      return (
+        <SubModuleHeader parent="ai-agents" title="Weakness Radar" subtitle="See your blind spots" icon={Radar}>
+          <PerformanceAnalytics />
+        </SubModuleHeader>
+      );
+
+    // Explore children
     case 'career':
-      return <CareerGuide />;
+      return (
+        <SubModuleHeader parent="explore" title="Career Guide" subtitle="Find the path that fits you" icon={Briefcase}>
+          <CareerGuide />
+        </SubModuleHeader>
+      );
     case 'university':
-      return <UniversityFinder />;
+      return (
+        <SubModuleHeader parent="explore" title="Universities" subtitle="Compare 2,400+ colleges" icon={GraduationCap}>
+          <UniversityFinder />
+        </SubModuleHeader>
+      );
     case 'scholarship':
-      return <ScholarshipEngine />;
+      return (
+        <SubModuleHeader parent="explore" title="Scholarships" subtitle="Fund your education" icon={Award}>
+          <ScholarshipEngine />
+        </SubModuleHeader>
+      );
+    case 'settings':
+      return (
+        <SubModuleHeader parent="explore" title="Settings" subtitle="Profile, privacy, preferences" icon={Settings2}>
+          <SettingsView />
+        </SubModuleHeader>
+      );
+
+    // Other views that don't belong to either hub (kept as-is)
     case 'planner':
       return <StudyPlanner />;
     case 'counsellor':
       return <WellnessCounsellor />;
-    case 'university-predictor':
-      return <UniversityPredictor />;
-    case 'digital-twin':
-      return <DigitalTwin />;
-    case 'readiness':
-      return <ExamReadiness />;
-    case 'rank-predictor':
-      return <RankPredictor />;
-    case 'success-simulator':
-      return <SuccessSimulator />;
-    case 'weakness-radar':
-      return <PerformanceAnalytics />;
-    case 'settings':
-      return <SettingsView />;
     case 'study-material':
       return <StudyMaterialView />;
     case 'guardrail':
@@ -76,12 +166,6 @@ function ViewRouter({ view }: { view: View }) {
       return <InstitutionDashboardView />;
     case 'teacher':
       return <InstitutionDashboardView />;
-    case 'doubt-solver':
-      return <DoubtSolverView />;
-    case 'pyq-trends':
-      return <PyqTrendPredictorView />;
-    case 'socratic-mentor':
-      return <SocraticMentorView />;
     case 'handwritten-grader':
       return <HandwrittenGraderView />;
     case 'battle-arena':
@@ -94,10 +178,6 @@ function ViewRouter({ view }: { view: View }) {
       return <NudgeBotView />;
     case 'league':
       return <LeagueSystemView />;
-    case 'voice-mentor':
-      return <VoiceMentorView />;
-    case 'rag-tutor':
-      return <RagTutorView />;
     default:
       return <Dashboard />;
   }

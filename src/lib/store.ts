@@ -131,7 +131,11 @@ export const useStore = create<StoreState>()(
         if (get().registeredUsers[email]) {
           return { success: false, error: 'An account with this email already exists. Please log in instead.' };
         }
-        const saved: SavedUserData = { password, user: newUser, attempts: seedAttempts(), seenSignatures: [], mentorMessages: [] };
+        // Dynamic-data-only: new users start with NO seeded attempts. Their
+        // dashboard, analytics, and AI agents reflect only real attempts
+        // they take themselves. The store stays empty until the first mock
+        // exam is submitted.
+        const saved: SavedUserData = { password, user: newUser, attempts: [], seenSignatures: [], mentorMessages: [] };
         set((s) => ({
           registeredUsers: { ...s.registeredUsers, [email]: saved },
           user: newUser, view: 'dashboard', attempts: saved.attempts,

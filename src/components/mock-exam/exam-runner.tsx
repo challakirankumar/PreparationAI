@@ -81,13 +81,26 @@ export function ExamRunner({ onExit }: Props) {
       setMarked(new Set());
       setVisited(new Set([0]));
       setResult(null);
-      questionStartRef.current = Date.now();
+      // NOTE: examStartRef and questionStartRef are intentionally NOT reset here.
+      // They are set when the user actually starts the exam (clicks "Enable AI
+      // Proctoring" or "Skip Proctoring"), not when the page first loads —
+      // otherwise the consent-screen time gets incorrectly counted as exam time.
       timeTakenRef.current = {};
       answersRef.current = {};
-      examStartRef.current = Date.now();
       submittedRef.current = false;
     }
   }, [currentExam?.id]);
+
+  // Start the exam timer the moment the user actually begins the exam
+  // (after consent dialog or skip). This is the only place examStartRef and
+  // questionStartRef are set — they drive the duration reported on submit.
+  React.useEffect(() => {
+    if (proctoringActive && !result) {
+      const now = Date.now();
+      examStartRef.current = now;
+      questionStartRef.current = now;
+    }
+  }, [proctoringActive, result]);
 
   // Countdown
   React.useEffect(() => {
@@ -168,12 +181,13 @@ export function ExamRunner({ onExit }: Props) {
 
   // Start exam with proctoring after consent
   async function startExamWithProctoring(cameraEnabled: boolean, micEnabled: boolean) {
+    if (!currentExam) return;
     setShowConsent(false);
-    
+
     // Create proctoring session via API
     const sessionId = `ps_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     proctoringSessionIdRef.current = sessionId;
-    
+
     try {
       await fetch('/api/proctoring/session?XTransformPort=3000', {
         method: 'POST',
@@ -188,7 +202,7 @@ export function ExamRunner({ onExit }: Props) {
         }),
       });
     } catch { /* non-blocking */ }
-    
+
     // Initialize SDK
     const profile = getProfile(currentExam.examId);
     const sdk = new ProctoringSDK({

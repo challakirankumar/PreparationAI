@@ -165,7 +165,7 @@ export function ExamResults({ attempt, onRetake, onExit, integrityReport }: Prop
         </TabsContent>
 
         <TabsContent value="integrity" className="mt-4">
-          <IntegrityReportTab report={integrityReport} />
+          <IntegrityReportTab report={integrityReport ?? null} />
         </TabsContent>
       </Tabs>
 

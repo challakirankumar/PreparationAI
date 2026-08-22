@@ -198,7 +198,7 @@ export function MockExamEngine({ onStart }: Props = {}) {
               {available.map((p) => {
                 const best = bestScore(p.id);
                 const count = examAttempts(p.id).length;
-                const isPrimary = user.examGoal === p.id;
+                const isPrimary = user?.examGoal === p.id;
                 return (
                   <Card key={p.id} className="card-lift border-stone-200">
                     <CardHeader>

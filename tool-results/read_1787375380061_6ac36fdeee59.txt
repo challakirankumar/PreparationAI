@@ -1,0 +1,923 @@
+     1→'use client';
+     2→
+     3→import * as React from 'react';
+     4→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+     5→import { Button } from '@/components/ui/button';
+     6→import { Badge } from '@/components/ui/badge';
+     7→import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+     8→import { Progress } from '@/components/ui/progress';
+     9→import { useStore } from '@/lib/store';
+    10→import type { ExamAttempt, BehaviorAnalysis, SubjectScore, TopicScore, YoutubeRec } from '@/lib/types';
+    11→import { StatCard, SectionTitle } from '@/components/shared';
+    12→import { useToast } from '@/hooks/use-toast';
+    13→import { cn } from '@/lib/utils';
+    14→import {
+    15→  Trophy, Target, Gauge, TrendingUp, AlertTriangle, Youtube, ExternalLink, RotateCcw,
+    16→  ArrowRight, Zap, Brain, Award, Flame, BookOpen, Lightbulb, FileText, Clock,
+    17→  CheckCircle2, Circle, AlertCircle, ChevronRight, BarChart3, Activity, Sparkles,
+    18→  ShieldCheck,
+    19→} from 'lucide-react';
+    20→import { IntegrityReportTab } from '@/components/proctoring/integrity-report';
+    21→import type { IntegrityReport } from '@/lib/types';
+    22→
+    23→interface Props {
+    24→  attempt: ExamAttempt;
+    25→  onRetake: () => void;
+    26→  onExit: () => void;
+    27→  integrityReport?: IntegrityReport | null;
+    28→}
+    29→
+    30→function gradeFor(pct: number): string {
+    31→  if (pct >= 90) return 'A+';
+    32→  if (pct >= 80) return 'A';
+    33→  if (pct >= 70) return 'B+';
+    34→  if (pct >= 60) return 'B';
+    35→  if (pct >= 50) return 'C';
+    36→  if (pct >= 40) return 'D';
+    37→  return 'E';
+    38→}
+    39→
+    40→function fmtDuration(sec: number): string {
+    41→  if (sec < 60) return `${sec}s`;
+    42→  const m = Math.floor(sec / 60);
+    43→  const s = sec % 60;
+    44→  if (m < 60) return s > 0 ? `${m}m ${s}s` : `${m}m`;
+    45→  const h = Math.floor(m / 60);
+    46→  const mm = m % 60;
+    47→  return mm > 0 ? `${h}h ${mm}m` : `${h}h`;
+    48→}
+    49→
+    50→export function ExamResults({ attempt, onRetake, onExit, integrityReport }: Props) {
+    51→  const setView = useStore((s) => s.setView);
+    52→  const user = useStore((s) => s.user);
+    53→  const { toast } = useToast();
+    54→  const [learned, setLearned] = React.useState<Set<string>>(new Set());
+    55→
+    56→  const pct = Math.round((attempt.score / Math.max(1, attempt.totalMarks)) * 100);
+    57→  const grade = gradeFor(pct);
+    58→
+    59→  function toggleLearned(key: string) {
+    60→    setLearned((prev) => {
+    61→      const next = new Set(prev);
+    62→      if (next.has(key)) next.delete(key);
+    63→      else next.add(key);
+    64→      return next;
+    65→    });
+    66→  }
+    67→
+    68→  return (
+    69→    <div className="space-y-6">
+    70→      {/* Score hero */}
+    71→      <Card className="bg-hero-emerald border-blue-200">
+    72→        <CardContent className="pt-6">
+    73→          <div className="flex flex-col lg:flex-row lg:items-center gap-4 justify-between">
+    74→            <div className="flex items-start gap-4">
+    75→              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
+    76→                <Trophy className="h-6 w-6 text-white" />
+    77→              </div>
+    78→              <div>
+    79→                <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">{attempt.examName}</h1>
+    80→                <p className="text-sm text-muted-foreground mt-1">
+    81→                  Submitted {new Date(attempt.submittedAt).toLocaleString(undefined, {
+    82→                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    83→                  })}
+    84→                  {attempt.attemptNumber ? ` · Attempt #${attempt.attemptNumber}` : ''}
+    85→                </p>
+    86→              </div>
+    87→            </div>
+    88→            <div className="flex items-center gap-2">
+    89→              <Button variant="outline" onClick={onExit}>
+    90→                <RotateCcw className="h-4 w-4" /> Retake
+    91→              </Button>
+    92→              <Button variant="ghost" onClick={onExit}>
+    93→                Back
+    94→              </Button>
+    95→            </div>
+    96→          </div>
+    97→
+    98→          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+    99→            <StatCard
+   100→              label="Score / Total"
+   101→              value={`${attempt.score} / ${attempt.totalMarks}`}
+   102→              sub={`Grade ${grade} · ${pct}%`}
+   103→              icon={Award}
+   104→              accent="emerald"
+   105→            />
+   106→            <StatCard
+   107→              label="Percentile"
+   108→              value={attempt.percentile.toFixed(1)}
+   109→              sub="vs. cohort"
+   110→              icon={TrendingUp}
+   111→              accent="teal"
+   112→            />
+   113→            <StatCard
+   114→              label="Predicted AIR"
+   115→              value={`#${attempt.rank.toLocaleString()}`}
+   116→              sub="estimated rank"
+   117→              icon={Target}
+   118→              accent="amber"
+   119→            />
+   120→            <StatCard
+   121→              label="Readiness Index"
+   122→              value={`${attempt.readinessIndex}`}
+   123→              sub="/ 1000"
+   124→              icon={Gauge}
+   125→              accent="rose"
+   126→            />
+   127→          </div>
+   128→        </CardContent>
+   129→      </Card>
+   130→
+   131→      {/* Tabs */}
+   132→      <Tabs defaultValue="subjects">
+   133→        <TabsList className="flex-wrap h-auto">
+   134→          <TabsTrigger value="subjects"><BookOpen className="h-3.5 w-3.5" /> Subjects</TabsTrigger>
+   135→          <TabsTrigger value="topics"><Layers /> Topics</TabsTrigger>
+   136→          <TabsTrigger value="behavior"><Brain className="h-3.5 w-3.5" /> Behavior</TabsTrigger>
+   137→          <TabsTrigger value="insights"><Lightbulb className="h-3.5 w-3.5" /> Insights</TabsTrigger>
+   138→          <TabsTrigger value="youtube"><Youtube className="h-3.5 w-3.5" /> YouTube Fixes</TabsTrigger>
+   139→          <TabsTrigger value="integrity"><ShieldCheck className="h-3.5 w-3.5" /> Integrity</TabsTrigger>
+   140→        </TabsList>
+   141→
+   142→        <TabsContent value="subjects" className="mt-4">
+   143→          <SubjectsTab attempt={attempt} />
+   144→        </TabsContent>
+   145→        <TabsContent value="topics" className="mt-4">
+   146→          <TopicsTab attempt={attempt} />
+   147→        </TabsContent>
+   148→        <TabsContent value="behavior" className="mt-4">
+   149→          <BehaviorPanel attempt={attempt} />
+   150→        </TabsContent>
+   151→        <TabsContent value="insights" className="mt-4">
+   152→          <InsightsTab attempt={attempt} />
+   153→        </TabsContent>
+   154→        <TabsContent value="youtube" className="mt-4">
+   155→          <YoutubeTab
+   156→            recs={attempt.youtubeRecs}
+   157→            learned={learned}
+   158→            onToggle={toggleLearned}
+   159→            onRetake={onRetake}
+   160→            onAskMentor={() => {
+   161→              setView('mentor');
+   162→              toast({ title: 'Opening AI Mentor', description: 'Ask about your weak topics.' });
+   163→            }}
+   164→          />
+   165→        </TabsContent>
+   166→
+   167→        <TabsContent value="integrity" className="mt-4">
+   168→          <IntegrityReportTab report={integrityReport} />
+   169→        </TabsContent>
+   170→      </Tabs>
+   171→
+   172→      {/* Footer CTA */}
+   173→      <Card className="border-blue-200 bg-blue-50/40">
+   174→        <CardContent className="pt-6 flex flex-col md:flex-row md:items-center justify-between gap-3">
+   175→          <div>
+   176→            <h3 className="font-semibold flex items-center gap-2">
+   177→              <Sparkles className="h-4 w-4 text-blue-600" /> Want deeper AI analysis?
+   178→            </h3>
+   179→            <p className="text-sm text-muted-foreground mt-1">
+   180→              Unlock richer projections with your digital twin, weakness radar, or full analytics dashboard.
+   181→            </p>
+   182→          </div>
+   183→          <div className="flex flex-wrap gap-2">
+   184→            <Button variant="outline" onClick={() => setView('digital-twin')}>
+   185→              <Brain className="h-4 w-4" /> Digital Twin
+   186→            </Button>
+   187→            <Button variant="outline" onClick={() => setView('weakness-radar')}>
+   188→              <Target className="h-4 w-4" /> Weakness Radar
+   189→            </Button>
+   190→            <Button onClick={() => setView('analytics')}>
+   191→              <BarChart3 className="h-4 w-4" /> Full Analytics
+   192→            </Button>
+   193→          </div>
+   194→        </CardContent>
+   195→      </Card>
+   196→    </div>
+   197→  );
+   198→}
+   199→
+   200→// Fix the Layers icon import usage in tabs trigger
+   201→function Layers({ className }: { className?: string }) {
+   202→  return <BookOpen className={className} />;
+   203→}
+   204→
+   205→// ----------------- Subjects tab -----------------
+   206→function SubjectsTab({ attempt }: { attempt: ExamAttempt }) {
+   207→  const subjects = attempt.subjectScores;
+   208→  const strengths = attempt.strongTopics.slice(0, 6);
+   209→  const weaknesses = attempt.weakTopics.slice(0, 6);
+   210→
+   211→  function colorFor(pct: number): { bar: string; text: string; bg: string } {
+   212→    if (pct >= 75) return { bar: 'bg-blue-500', text: 'text-blue-700', bg: 'bg-blue-50' };
+   213→    if (pct >= 50) return { bar: 'bg-amber-500', text: 'text-amber-700', bg: 'bg-amber-50' };
+   214→    return { bar: 'bg-rose-500', text: 'text-rose-700', bg: 'bg-rose-50' };
+   215→  }
+   216→
+   217→  return (
+   218→    <div className="space-y-4">
+   219→      <Card className="border-stone-200">
+   220→        <CardHeader>
+   221→          <CardTitle className="text-base flex items-center gap-2">
+   222→            <BookOpen className="h-4 w-4 text-blue-600" /> Subject-wise performance
+   223→          </CardTitle>
+   224→        </CardHeader>
+   225→        <CardContent className="space-y-3">
+   226→          {subjects.map((s: SubjectScore) => {
+   227→            const pct = Math.round((s.scored / Math.max(1, s.total)) * 100);
+   228→            const c = colorFor(pct);
+   229→            return (
+   230→              <div key={s.subject} className={cn('rounded-md border border-stone-200 p-3', c.bg)}>
+   231→                <div className="flex items-center justify-between mb-1.5">
+   232→                  <div className="flex items-center gap-2">
+   233→                    <span className="font-medium text-sm">{s.subject}</span>
+   234→                    <Badge variant="outline" className="border-stone-300 text-xs">
+   235→                      {s.correct} ✓ · {s.wrong} ✗ · {s.unattempted} –
+   236→                    </Badge>
+   237→                  </div>
+   238→                  <span className={cn('text-sm font-semibold', c.text)}>
+   239→                    {s.scored}/{s.total} · {pct}%
+   240→                  </span>
+   241→                </div>
+   242→                <div className="h-2 bg-white/60 rounded-full overflow-hidden">
+   243→                  <div className={cn('h-full rounded-full transition-all', c.bar)} style={{ width: `${Math.min(100, pct)}%` }} />
+   244→                </div>
+   245→                <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1">
+   246→                  <span>Accuracy {s.accuracy}%</span>
+   247→                  <span>{pct >= 75 ? 'Strong' : pct >= 50 ? 'Average' : 'Needs work'}</span>
+   248→                </div>
+   249→              </div>
+   250→            );
+   251→          })}
+   252→        </CardContent>
+   253→      </Card>
+   254→
+   255→      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   256→        <Card className="border-blue-200 bg-blue-50/40">
+   257→          <CardHeader>
+   258→            <CardTitle className="text-base flex items-center gap-2 text-blue-800">
+   259→              <CheckCircle2 className="h-4 w-4" /> Strengths
+   260→            </CardTitle>
+   261→            <CardDescription>Topics you aced (accuracy ≥ 75%)</CardDescription>
+   262→          </CardHeader>
+   263→          <CardContent>
+   264→            {strengths.length > 0 ? (
+   265→              <div className="flex flex-wrap gap-1.5">
+   266→                {strengths.map((t) => (
+   267→                  <Badge key={t} className="bg-blue-100 text-blue-800 border border-blue-200">
+   268→                    <CheckCircle2 className="h-3 w-3" /> {t}
+   269→                  </Badge>
+   270→                ))}
+   271→              </div>
+   272→            ) : (
+   273→              <p className="text-sm text-muted-foreground">No strengths yet — keep practising!</p>
+   274→            )}
+   275→          </CardContent>
+   276→        </Card>
+   277→
+   278→        <Card className="border-rose-200 bg-rose-50/40">
+   279→          <CardHeader>
+   280→            <CardTitle className="text-base flex items-center gap-2 text-rose-800">
+   281→              <AlertTriangle className="h-4 w-4" /> Weaknesses
+   282→            </CardTitle>
+   283→            <CardDescription>Topics to revise (accuracy &lt; 50%)</CardDescription>
+   284→          </CardHeader>
+   285→          <CardContent>
+   286→            {weaknesses.length > 0 ? (
+   287→              <div className="flex flex-wrap gap-1.5">
+   288→                {weaknesses.map((t) => (
+   289→                  <Badge key={t} className="bg-rose-100 text-rose-800 border border-rose-200">
+   290→                    <AlertTriangle className="h-3 w-3" /> {t}
+   291→                  </Badge>
+   292→                ))}
+   293→              </div>
+   294→            ) : (
+   295→              <p className="text-sm text-muted-foreground">No weak topics — excellent!</p>
+   296→            )}
+   297→          </CardContent>
+   298→        </Card>
+   299→      </div>
+   300→    </div>
+   301→  );
+   302→}
+   303→
+   304→// ----------------- Topics tab -----------------
+   305→function TopicsTab({ attempt }: { attempt: ExamAttempt }) {
+   306→  const topics = attempt.topicScores;
+   307→  function colorFor(acc: number): string {
+   308→    if (acc >= 75) return 'bg-blue-500 text-white';
+   309→    if (acc >= 60) return 'bg-blue-300 text-blue-900';
+   310→    if (acc >= 45) return 'bg-amber-300 text-amber-900';
+   311→    if (acc >= 30) return 'bg-amber-500 text-white';
+   312→    return 'bg-rose-500 text-white';
+   313→  }
+   314→  return (
+   315→    <Card className="border-stone-200">
+   316→      <CardHeader>
+   317→        <CardTitle className="text-base flex items-center gap-2">
+   318→          <Flame className="h-4 w-4 text-blue-600" /> Topic-wise accuracy heatmap
+   319→        </CardTitle>
+   320→        <CardDescription>Color-coded by accuracy — hover for details</CardDescription>
+   321→      </CardHeader>
+   322→      <CardContent>
+   323→        {topics.length === 0 ? (
+   324→          <p className="text-sm text-muted-foreground">No topic breakdown available.</p>
+   325→        ) : (
+   326→          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+   327→            {topics.map((t: TopicScore) => {
+   328→              const cls = colorFor(t.accuracy);
+   329→              return (
+   330→                <div
+   331→                  key={`${t.subject}|${t.topic}`}
+   332→                  className={cn('rounded-md p-2.5 border border-white/40', cls)}
+   333→                  title={`${t.subject} · ${t.topic} · ${t.accuracy}% · ${t.correct}/${Math.max(1, Math.round(t.total / Math.max(1, t.scored || 1)))} correct`}
+   334→                >
+   335→                  <p className="text-[10px] opacity-80 uppercase tracking-wide truncate">{t.subject}</p>
+   336→                  <p className="text-xs font-semibold truncate">{t.topic}</p>
+   337→                  <p className="text-sm font-bold mt-0.5">{t.accuracy}%</p>
+   338→                </div>
+   339→              );
+   340→            })}
+   341→          </div>
+   342→        )}
+   343→        <div className="flex items-center justify-end gap-2 mt-3 text-[10px] text-muted-foreground">
+   344→          <span>Low</span>
+   345→          <span className="h-2.5 w-6 bg-rose-500 rounded" />
+   346→          <span className="h-2.5 w-6 bg-amber-500 rounded" />
+   347→          <span className="h-2.5 w-6 bg-amber-300 rounded" />
+   348→          <span className="h-2.5 w-6 bg-blue-300 rounded" />
+   349→          <span className="h-2.5 w-6 bg-blue-500 rounded" />
+   350→          <span>High</span>
+   351→        </div>
+   352→      </CardContent>
+   353→    </Card>
+   354→  );
+   355→}
+   356→
+   357→// ----------------- Behavior panel (NEW key feature) -----------------
+   358→function BehaviorPanel({ attempt }: { attempt: ExamAttempt }) {
+   359→  const b = attempt.behavior;
+   360→
+   361→  if (!b) {
+   362→    return (
+   363→      <Card className="border-stone-200">
+   364→        <CardContent className="pt-10 pb-10 flex flex-col items-center text-center gap-3">
+   365→          <div className="h-12 w-12 rounded-full bg-stone-100 flex items-center justify-center">
+   366→            <Brain className="h-6 w-6 text-stone-400" />
+   367→          </div>
+   368→          <div>
+   369→            <h3 className="font-semibold">Behavior analysis not available</h3>
+   370→            <p className="text-sm text-muted-foreground mt-1 max-w-md">
+   371→              We couldn&apos;t capture detailed timing data for this attempt. Future mocks will include a full behavioural breakdown.
+   372→            </p>
+   373→          </div>
+   374→        </CardContent>
+   375→      </Card>
+   376→    );
+   377→  }
+   378→
+   379→  const totalTime = attempt.durationSec;
+   380→  const speed = attempt.speed;
+   381→  const idlePct = totalTime > 0 ? Math.round((b.idleTimeSec / totalTime) * 100) : 0;
+   382→  const deciles = b.speedProgression;
+   383→  const maxDecileSec = Math.max(1, ...deciles.map((d) => d.avgSec));
+   384→  const overallAvg = deciles.length > 0
+   385→    ? Math.round(deciles.reduce((a, d) => a + d.avgSec, 0) / deciles.length)
+   386→    : 0;
+   387→
+   388→  const paceStyle =
+   389→    b.paceTrend === 'speeding-up'
+   390→      ? { bg: 'bg-blue-50 border-blue-200 text-blue-800', icon: TrendingUp, label: 'Speeding up', desc: 'You picked up pace through the paper — momentum built nicely. Watch for rushed answers near the end.' }
+   391→      : b.paceTrend === 'slowing-down'
+   392→        ? { bg: 'bg-amber-50 border-amber-200 text-amber-800', icon: AlertTriangle, label: 'Slowing down', desc: 'Fatigue may have set in during the second half. Consider endurance drills and shorter focused sessions.' }
+   393→        : { bg: 'bg-teal-50 border-teal-200 text-teal-800', icon: Activity, label: 'Steady', desc: 'You maintained a consistent pace throughout. Strong exam discipline.' };
+   394→
+   395→  const PaceIcon = paceStyle.icon;
+   396→
+   397→  return (
+   398→    <div className="space-y-4">
+   399→      {/* Stat cards */}
+   400→      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+   401→        <StatCard label="Total Time" value={fmtDuration(totalTime)} sub={`${attempt.avgTimePerQuestion}s/Q avg`} icon={Clock} accent="emerald" />
+   402→        <StatCard label="Speed" value={`${speed}`} sub="questions / hr" icon={Zap} accent="teal" />
+   403→        <StatCard label="Idle Time" value={fmtDuration(b.idleTimeSec)} sub={`${b.idlePauses} pauses · ${idlePct}%`} icon={AlertCircle} accent="amber" />
+   404→        <StatCard label="Time of Day" value={b.timeOfDay} sub={`started ${String(b.startedAtHour).padStart(2, '0')}:00`} icon={Clock} accent="rose" />
+   405→      </div>
+   406→
+   407→      {/* Pace trend banner */}
+   408→      <Card className={cn('border', paceStyle.bg)}>
+   409→        <CardContent className="pt-6 flex items-start gap-3">
+   410→          <div className="h-9 w-9 rounded-lg bg-white/70 flex items-center justify-center flex-shrink-0">
+   411→            <PaceIcon className="h-4 w-4" />
+   412→          </div>
+   413→          <div>
+   414→            <p className="text-xs uppercase tracking-wide opacity-70">Pace Trend</p>
+   415→            <p className="font-semibold">{paceStyle.label}</p>
+   416→            <p className="text-sm mt-1 leading-relaxed">{paceStyle.desc}</p>
+   417→          </div>
+   418→        </CardContent>
+   419→      </Card>
+   420→
+   421→      {/* Speed progression bar chart */}
+   422→      <Card className="border-stone-200">
+   423→        <CardHeader>
+   424→          <CardTitle className="text-base flex items-center gap-2">
+   425→            <BarChart3 className="h-4 w-4 text-blue-600" /> Speed Progression (deciles)
+   426→          </CardTitle>
+   427→          <CardDescription>
+   428→            Average seconds per question, split into 10 equal buckets across the paper. Green = on-pace, Amber = rushing, Rose = fatigue.
+   429→          </CardDescription>
+   430→        </CardHeader>
+   431→        <CardContent>
+   432→          <div className="flex items-end justify-between gap-1.5 h-40">
+   433→            {deciles.map((d) => {
+   434→              const h = Math.max(4, Math.round((d.avgSec / maxDecileSec) * 100));
+   435→              const delta = d.avgSec - overallAvg;
+   436→              const cls =
+   437→                delta < -overallAvg * 0.2
+   438→                  ? 'bg-amber-400'
+   439→                  : delta > overallAvg * 0.3
+   440→                    ? 'bg-rose-400'
+   441→                    : 'bg-blue-500';
+   442→              return (
+   443→                <div key={d.decile} className="flex-1 flex flex-col items-center gap-1">
+   444→                  <span className="text-[10px] text-muted-foreground">{d.avgSec}s</span>
+   445→                  <div className="w-full bg-stone-100 rounded-t-md overflow-hidden flex items-end" style={{ height: '120px' }}>
+   446→                    <div
+   447→                      className={cn('w-full rounded-t-md transition-all', cls)}
+   448→                      style={{ height: `${h}%` }}
+   449→                      title={`D${d.decile} · ${d.avgSec}s avg`}
+   450→                    />
+   451→                  </div>
+   452→                  <span className="text-[10px] font-medium text-muted-foreground">D{d.decile}</span>
+   453→                </div>
+   454→              );
+   455→            })}
+   456→          </div>
+   457→          <div className="flex items-center justify-between text-xs text-muted-foreground mt-3 pt-2 border-t border-stone-100">
+   458→            <span>Average: <strong className="text-stone-700">{overallAvg}s/Q</strong></span>
+   459→            <div className="flex items-center gap-3">
+   460→              <span className="flex items-center gap-1"><span className="h-2 w-3 bg-blue-500 rounded-sm" /> On-pace</span>
+   461→              <span className="flex items-center gap-1"><span className="h-2 w-3 bg-amber-400 rounded-sm" /> Rushing</span>
+   462→              <span className="flex items-center gap-1"><span className="h-2 w-3 bg-rose-400 rounded-sm" /> Fatigue</span>
+   463→            </div>
+   464→          </div>
+   465→        </CardContent>
+   466→      </Card>
+   467→
+   468→      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   469→        {/* Time spent per subject */}
+   470→        <Card className="border-stone-200">
+   471→          <CardHeader>
+   472→            <CardTitle className="text-base flex items-center gap-2">
+   473→              <Clock className="h-4 w-4 text-blue-600" /> Time per subject
+   474→            </CardTitle>
+   475→          </CardHeader>
+   476→          <CardContent className="space-y-2">
+   477→            {b.avgTimeBySubject.map((s) => {
+   478→              const max = Math.max(1, ...b.avgTimeBySubject.map((x) => x.avgSec));
+   479→              const w = Math.round((s.avgSec / max) * 100);
+   480→              return (
+   481→                <div key={s.subject}>
+   482→                  <div className="flex items-center justify-between text-xs mb-1">
+   483→                    <span className="font-medium">{s.subject}</span>
+   484→                    <span className="text-muted-foreground">{fmtDuration(s.avgSec)} avg</span>
+   485→                  </div>
+   486→                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+   487→                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style={{ width: `${w}%` }} />
+   488→                  </div>
+   489→                </div>
+   490→              );
+   491→            })}
+   492→          </CardContent>
+   493→        </Card>
+   494→
+   495→        {/* Difficulty vs time */}
+   496→        <Card className="border-stone-200">
+   497→          <CardHeader>
+   498→            <CardTitle className="text-base flex items-center gap-2">
+   499→              <Gauge className="h-4 w-4 text-blue-600" /> Difficulty vs Time
+   500→            </CardTitle>
+   501→            <CardDescription>Extra seconds on hard questions vs easy ones</CardDescription>
+   502→          </CardHeader>
+   503→          <CardContent>
+   504→            <div className="flex items-end gap-3">
+   505→              <div className="flex-1">
+   506→                <p className="text-4xl font-bold text-blue-700">
+   507→                  +{b.difficultyTimeGap > 0 ? fmtDuration(b.difficultyTimeGap) : '0s'}
+   508→                </p>
+   509→                <p className="text-xs text-muted-foreground mt-1">
+   510→                  Average extra time on hard questions vs easy ones.
+   511→                </p>
+   512→              </div>
+   513→            </div>
+   514→            <div className="grid grid-cols-2 gap-2 mt-4">
+   515→              <div className="rounded-md bg-amber-50 border border-amber-200 p-2.5">
+   516→                <p className="text-xs text-amber-700 flex items-center gap-1"><Zap className="h-3 w-3" /> Rapid Guesses</p>
+   517→                <p className="text-xl font-bold text-amber-900 mt-0.5">{b.rapidGuesses}</p>
+   518→                <p className="text-[10px] text-amber-700/70">&lt; 10s per question</p>
+   519→              </div>
+   520→              <div className="rounded-md bg-rose-50 border border-rose-200 p-2.5">
+   521→                <p className="text-xs text-rose-700 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Idle Pauses</p>
+   522→                <p className="text-xl font-bold text-rose-900 mt-0.5">{b.idlePauses}</p>
+   523→                <p className="text-[10px] text-rose-700/70">&gt; 60s pauses</p>
+   524→              </div>
+   525→            </div>
+   526→          </CardContent>
+   527→        </Card>
+   528→      </div>
+   529→
+   530→      {/* Comparison to previous attempt */}
+   531→      {b.vsPrevious && (
+   532→        <ComparisonCard vs={b.vsPrevious} attempt={attempt} />
+   533→      )}
+   534→
+   535→      {/* AI Behaviour Coaching */}
+   536→      <CoachingCard b={b} attempt={attempt} />
+   537→    </div>
+   538→  );
+   539→}
+   540→
+   541→function ComparisonCard({ vs, attempt }: { vs: NonNullable<BehaviorAnalysis['vsPrevious']>; attempt: ExamAttempt }) {
+   542→  const cards = [
+   543→    { label: 'Score', value: vs.scoreDelta, suffix: '', good: vs.scoreDelta > 0, neutral: vs.scoreDelta === 0 },
+   544→    { label: 'Speed', value: vs.speedDelta, suffix: ' Q/hr', good: vs.speedDelta > 0, neutral: vs.speedDelta === 0 },
+   545→    { label: 'Accuracy', value: vs.accuracyDelta, suffix: '%', good: vs.accuracyDelta > 0, neutral: vs.accuracyDelta === 0 },
+   546→  ];
+   547→  const msg = vs.isImprovement
+   548→    ? `Nice work — you improved on your last ${attempt.examName} attempt. Keep this momentum going!`
+   549→    : `You slipped vs your previous attempt. Revisit the weak topics below and try again — every mock teaches you something.`;
+   550→  return (
+   551→    <Card className="border-teal-200 bg-teal-50/40">
+   552→      <CardHeader>
+   553→        <CardTitle className="text-base flex items-center gap-2 text-teal-800">
+   554→          <TrendingUp className="h-4 w-4" /> Comparison to previous attempt
+   555→        </CardTitle>
+   556→        <CardDescription>{msg}</CardDescription>
+   557→      </CardHeader>
+   558→      <CardContent>
+   559→        <div className="grid grid-cols-3 gap-3">
+   560→          {cards.map((c) => (
+   561→            <div
+   562→              key={c.label}
+   563→              className={cn(
+   564→                'rounded-md border p-3 text-center',
+   565→                c.neutral
+   566→                  ? 'bg-stone-50 border-stone-200'
+   567→                  : c.good
+   568→                    ? 'bg-blue-50 border-blue-200'
+   569→                    : 'bg-rose-50 border-rose-200',
+   570→              )}
+   571→            >
+   572→              <p className="text-xs text-muted-foreground">{c.label}</p>
+   573→              <p className={cn(
+   574→                'text-xl font-bold mt-1',
+   575→                c.neutral ? 'text-stone-700' : c.good ? 'text-blue-700' : 'text-rose-700',
+   576→              )}>
+   577→                {c.value > 0 ? '+' : ''}{c.value}{c.suffix}
+   578→              </p>
+   579→            </div>
+   580→          ))}
+   581→        </div>
+   582→      </CardContent>
+   583→    </Card>
+   584→  );
+   585→}
+   586→
+   587→function CoachingCard({ b, attempt }: { b: BehaviorAnalysis; attempt: ExamAttempt }) {
+   588→  const recs: { tone: 'warn' | 'good' | 'tip'; title: string; body: string }[] = [];
+   589→
+   590→  if (b.rapidGuesses > 5) {
+   591→    recs.push({
+   592→      tone: 'warn',
+   593→      title: `${b.rapidGuesses} rapid guesses detected`,
+   594→      body: 'You answered several questions in under 10 seconds. These are likely blind guesses. Train yourself to flag and skip instead — guessing racks up negative marks.',
+   595→    });
+   596→  }
+   597→  if (b.idlePauses > 3) {
+   598→    recs.push({
+   599→      tone: 'warn',
+   600→      title: `${b.idlePauses} long idle pauses`,
+   601→      body: `You spent ${fmtDuration(b.idleTimeSec)} frozen on questions. If a question stumps you for >60s, mark it for review and move on — your brain will often solve it subconsciously while you tackle the next one.`,
+   602→    });
+   603→  }
+   604→  if (b.paceTrend === 'slowing-down') {
+   605→    recs.push({
+   606→      tone: 'warn',
+   607→      title: 'End-of-paper fatigue',
+   608→      body: 'Your pace dropped in the second half. Build exam endurance with full-length timed mocks every week and stay hydrated during the test.',
+   609→    });
+   610→  }
+   611→  if (b.paceTrend === 'speeding-up' && b.rapidGuesses > 3) {
+   612→    recs.push({
+   613→      tone: 'tip',
+   614→      title: 'Rein in your finish sprint',
+   615→      body: 'You sped up at the end but accuracy often drops with speed. Reserve the last 5 minutes for review, not new attempts.',
+   616→    });
+   617→  }
+   618→  if (b.difficultyTimeGap < 15 && attempt.accuracy < 70) {
+   619→    recs.push({
+   620→      tone: 'tip',
+   621→      title: 'Spend more time on hard questions',
+   622→      body: 'You spent almost the same time on easy and hard questions. Hard questions deserve 50-100% more time — but only after you\'ve banked the easy marks.',
+   623→    });
+   624→  }
+   625→
+   626→  const isExcellent = recs.length === 0;
+   627→
+   628→  return (
+   629→    <Card className="border-blue-200 bg-blue-50/30">
+   630→      <CardHeader>
+   631→        <CardTitle className="text-base flex items-center gap-2">
+   632→          <Lightbulb className="h-4 w-4 text-blue-600" /> AI Behaviour Coaching
+   633→        </CardTitle>
+   634→        <CardDescription>Personalised recommendations based on your exam behaviour</CardDescription>
+   635→      </CardHeader>
+   636→      <CardContent className="space-y-2">
+   637→        {isExcellent ? (
+   638→          <div className="flex items-start gap-3 p-3 rounded-md bg-blue-100 border border-blue-300">
+   639→            <CheckCircle2 className="h-5 w-5 text-blue-700 flex-shrink-0 mt-0.5" />
+   640→            <div>
+   641→              <p className="font-semibold text-blue-900">Excellent exam discipline!</p>
+   642→              <p className="text-sm text-blue-800 mt-1">
+   643→                You kept a steady pace, avoided excessive idle time, and didn&apos;t rush. Keep this rhythm — you&apos;re in great shape for the real exam.
+   644→              </p>
+   645→            </div>
+   646→          </div>
+   647→        ) : (
+   648→          recs.map((r, i) => (
+   649→            <div
+   650→              key={i}
+   651→              className={cn(
+   652→                'flex items-start gap-3 p-3 rounded-md border',
+   653→                r.tone === 'warn'
+   654→                  ? 'bg-amber-50 border-amber-200'
+   655→                  : r.tone === 'tip'
+   656→                    ? 'bg-teal-50 border-teal-200'
+   657→                    : 'bg-blue-50 border-blue-200',
+   658→              )}
+   659→            >
+   660→              {r.tone === 'warn'
+   661→                ? <AlertTriangle className="h-5 w-5 text-amber-700 flex-shrink-0 mt-0.5" />
+   662→                : r.tone === 'tip'
+   663→                  ? <Lightbulb className="h-5 w-5 text-teal-700 flex-shrink-0 mt-0.5" />
+   664→                  : <CheckCircle2 className="h-5 w-5 text-blue-700 flex-shrink-0 mt-0.5" />}
+   665→              <div>
+   666→                <p className="font-semibold text-sm text-stone-900">{r.title}</p>
+   667→                <p className="text-sm text-stone-700 mt-0.5 leading-relaxed">{r.body}</p>
+   668→              </div>
+   669→            </div>
+   670→          ))
+   671→        )}
+   672→      </CardContent>
+   673→    </Card>
+   674→  );
+   675→}
+   676→
+   677→// ----------------- Insights tab -----------------
+   678→function InsightsTab({ attempt }: { attempt: ExamAttempt }) {
+   679→  const { toast } = useToast();
+   680→  const setView = useStore((s) => s.setView);
+   681→  const slowest = [...attempt.results]
+   682→    .sort((a, b) => b.timeTakenSec - a.timeTakenSec)
+   683→    .slice(0, 5);
+   684→
+   685→  const highConf = attempt.results.filter((r) => r.confidence === 'high').length;
+   686→  const medConf = attempt.results.filter((r) => r.confidence === 'medium').length;
+   687→  const lowConf = attempt.results.filter((r) => r.confidence === 'low').length;
+   688→  const total = Math.max(1, attempt.results.length);
+   689→
+   690→  const studyHours = Math.max(2, Math.round(attempt.weakTopics.length * 2.5));
+   691→  const projected = Math.min(99, attempt.percentile + 5 + Math.round(attempt.weakTopics.length * 0.8));
+   692→
+   693→  return (
+   694→    <div className="space-y-4">
+   695→      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+   696→        <StatCard label="Accuracy" value={`${attempt.accuracy}%`} sub={`${attempt.results.filter(r => r.correct).length} correct`} icon={Target} accent="emerald" />
+   697→        <StatCard label="Speed" value={`${attempt.speed}`} sub="Q / hr" icon={Zap} accent="teal" />
+   698→        <StatCard label="Avg Time / Q" value={`${attempt.avgTimePerQuestion}s`} sub={`over ${attempt.durationSec / 60 | 0} min`} icon={Clock} accent="amber" />
+   699→      </div>
+   700→
+   701→      {/* Confidence distribution */}
+   702→      <Card className="border-stone-200">
+   703→        <CardHeader>
+   704→          <CardTitle className="text-base flex items-center gap-2">
+   705→            <Gauge className="h-4 w-4 text-blue-600" /> Confidence distribution
+   706→          </CardTitle>
+   707→        </CardHeader>
+   708→        <CardContent className="space-y-2">
+   709→          {[
+   710→            { label: 'High confidence', count: highConf, color: 'bg-blue-500', text: 'text-blue-700' },
+   711→            { label: 'Medium confidence', count: medConf, color: 'bg-amber-400', text: 'text-amber-700' },
+   712→            { label: 'Low confidence', count: lowConf, color: 'bg-rose-400', text: 'text-rose-700' },
+   713→          ].map((c) => (
+   714→            <div key={c.label}>
+   715→              <div className="flex items-center justify-between text-xs mb-1">
+   716→                <span className="font-medium">{c.label}</span>
+   717→                <span className={cn('font-semibold', c.text)}>{c.count} · {Math.round((c.count / total) * 100)}%</span>
+   718→              </div>
+   719→              <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+   720→                <div className={cn('h-full rounded-full', c.color)} style={{ width: `${(c.count / total) * 100}%` }} />
+   721→              </div>
+   722→            </div>
+   723→          ))}
+   724→        </CardContent>
+   725→      </Card>
+   726→
+   727→      {/* Time sinks */}
+   728→      <Card className="border-stone-200">
+   729→        <CardHeader>
+   730→          <CardTitle className="text-base flex items-center gap-2">
+   731→            <Clock className="h-4 w-4 text-blue-600" /> Slowest questions (time sinks)
+   732→          </CardTitle>
+   733→        </CardHeader>
+   734→        <CardContent className="space-y-2">
+   735→          {slowest.length === 0 ? (
+   736→            <p className="text-sm text-muted-foreground">No per-question timing data available.</p>
+   737→          ) : (
+   738→            slowest.map((r, i) => (
+   739→              <div key={r.questionId} className="flex items-center justify-between gap-3 border border-stone-200 rounded-md p-2.5">
+   740→                <div className="flex items-center gap-3 min-w-0">
+   741→                  <span className="text-xs font-semibold text-muted-foreground w-5">#{i + 1}</span>
+   742→                  <div className="min-w-0">
+   743→                    <p className="text-sm font-medium truncate">{r.subject} · {r.topic}</p>
+   744→                    <p className="text-xs text-muted-foreground capitalize">{r.difficulty} · {r.correct ? 'Correct' : r.partial ? 'Partial' : 'Wrong'}</p>
+   745→                  </div>
+   746→                </div>
+   747→                <Badge variant="outline" className="border-stone-300">
+   748→                  <Clock className="h-3 w-3" /> {fmtDuration(r.timeTakenSec)}
+   749→                </Badge>
+   750→              </div>
+   751→            ))
+   752→          )}
+   753→        </CardContent>
+   754→      </Card>
+   755→
+   756→      {/* AI improvement plan */}
+   757→      <Card className="border-blue-200 bg-blue-50/40">
+   758→        <CardHeader>
+   759→          <CardTitle className="text-base flex items-center gap-2">
+   760→            <Lightbulb className="h-4 w-4 text-blue-600" /> AI Improvement Plan
+   761→          </CardTitle>
+   762→          <CardDescription>Targeted next steps based on this attempt</CardDescription>
+   763→        </CardHeader>
+   764→        <CardContent className="space-y-3">
+   765→          <div className="grid grid-cols-2 gap-3">
+   766→            <div className="rounded-md bg-white border border-blue-200 p-3">
+   767→              <p className="text-xs text-muted-foreground">Recommended study hours / week</p>
+   768→              <p className="text-2xl font-bold text-blue-700">{studyHours}h</p>
+   769→            </div>
+   770→            <div className="rounded-md bg-white border border-blue-200 p-3">
+   771→              <p className="text-xs text-muted-foreground">Projected next-attempt percentile</p>
+   772→              <p className="text-2xl font-bold text-blue-700">{projected}</p>
+   773→            </div>
+   774→          </div>
+   775→
+   776→          <div>
+   777→            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">7-Day Focus Plan</p>
+   778→            <div className="space-y-1.5">
+   779→              {attempt.weakTopics.slice(0, 5).map((t, i) => (
+   780→                <div key={t} className="flex items-center justify-between gap-2 text-sm border border-stone-200 rounded-md px-3 py-1.5 bg-white">
+   781→                  <span className="flex items-center gap-2">
+   782→                    <span className="h-5 w-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">D{i + 1}</span>
+   783→                    <span className="font-medium">{t}</span>
+   784→                  </span>
+   785→                  <span className="text-xs text-muted-foreground">{i + 1}h study + practice set</span>
+   786→                </div>
+   787→              ))}
+   788→              {attempt.weakTopics.length === 0 && (
+   789→                <p className="text-sm text-muted-foreground">No weak topics — focus on advanced problem-solving.</p>
+   790→              )}
+   791→            </div>
+   792→          </div>
+   793→
+   794→          <Button
+   795→            className="w-full"
+   796→            onClick={() => {
+   797→              setView('planner');
+   798→              toast({ title: 'Opening AI Planner', description: 'Generating your personalised study plan.' });
+   799→            }}
+   800→          >
+   801→            <Sparkles className="h-4 w-4" /> Generate AI Study Plan
+   802→          </Button>
+   803→        </CardContent>
+   804→      </Card>
+   805→    </div>
+   806→  );
+   807→}
+   808→
+   809→// ----------------- YouTube tab -----------------
+   810→function YoutubeTab({
+   811→  recs, learned, onToggle, onRetake, onAskMentor,
+   812→}: {
+   813→  recs: YoutubeRec[];
+   814→  learned: Set<string>;
+   815→  onToggle: (k: string) => void;
+   816→  onRetake: () => void;
+   817→  onAskMentor: () => void;
+   818→}) {
+   819→  const grouped = React.useMemo(() => {
+   820→    const m: Record<string, YoutubeRec[]> = {};
+   821→    for (const r of recs) {
+   822→      if (!m[r.topic]) m[r.topic] = [];
+   823→      m[r.topic].push(r);
+   824→    }
+   825→    return m;
+   826→  }, [recs]);
+   827→
+   828→  const topics = Object.keys(grouped);
+   829→
+   830→  return (
+   831→    <div className="space-y-4">
+   832→      <Card className="border-stone-200">
+   833→        <CardHeader>
+   834→          <CardTitle className="text-base flex items-center gap-2">
+   835→            <Youtube className="h-4 w-4 text-rose-600" /> Curated YouTube fixes
+   836→          </CardTitle>
+   837→          <CardDescription>Hand-picked videos for your weak topics — mark them as learned when done.</CardDescription>
+   838→        </CardHeader>
+   839→        <CardContent>
+   840→          {topics.length === 0 ? (
+   841→            <p className="text-sm text-muted-foreground">No weak topics to fix — great work!</p>
+   842→          ) : (
+   843→            <div className="space-y-4">
+   844→              {topics.map((topic) => (
+   845→                <div key={topic}>
+   846→                  <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+   847→                    <Flame className="h-3.5 w-3.5 text-rose-600" /> {topic}
+   848→                  </p>
+   849→                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+   850→                    {grouped[topic].map((v) => {
+   851→                      const key = `${topic}|${v.videoId}`;
+   852→                      const isLearned = learned.has(key);
+   853→                      return (
+   854→                        <Card key={key} className={cn('border-stone-200 overflow-hidden', isLearned && 'opacity-60')}>
+   855→                          <a
+   856→                            href={v.searchUrl}
+   857→                            target="_blank"
+   858→                            rel="noopener noreferrer"
+   859→                            className="block aspect-video bg-stone-100 overflow-hidden relative group"
+   860→                          >
+   861→                            {v.thumbnail ? (
+   862→                              <img
+   863→                                src={v.thumbnail}
+   864→                                alt={v.title}
+   865→                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+   866→                              />
+   867→                            ) : (
+   868→                              <div className="w-full h-full flex items-center justify-center text-stone-400">
+   869→                                <Youtube className="h-10 w-10" />
+   870→                              </div>
+   871→                            )}
+   872→                            <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded">
+   873→                              {v.duration}
+   874→                            </span>
+   875→                          </a>
+   876→                          <CardContent className="p-3">
+   877→                            <p className="text-sm font-medium line-clamp-2 leading-snug">{v.title}</p>
+   878→                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+   879→                              <Youtube className="h-3 w-3" /> {v.channel}
+   880→                            </p>
+   881→                            <div className="flex items-center gap-1.5 mt-2">
+   882→                              <Button
+   883→                                size="sm"
+   884→                                variant={isLearned ? 'default' : 'outline'}
+   885→                                className="flex-1"
+   886→                                onClick={() => onToggle(key)}
+   887→                              >
+   888→                                {isLearned ? (
+   889→                                  <><CheckCircle2 className="h-3.5 w-3.5" /> Learned</>
+   890→                                ) : (
+   891→                                  <><Circle className="h-3.5 w-3.5" /> Mark as learned</>
+   892→                                )}
+   893→                              </Button>
+   894→                              <Button size="sm" variant="ghost" asChild>
+   895→                                <a href={v.searchUrl} target="_blank" rel="noopener noreferrer">
+   896→                                  <ExternalLink className="h-3.5 w-3.5" />
+   897→                                </a>
+   898→                              </Button>
+   899→                            </div>
+   900→                          </CardContent>
+   901→                        </Card>
+   902→                      );
+   903→                    })}
+   904→                  </div>
+   905→                </div>
+   906→              ))}
+   907→            </div>
+   908→          )}
+   909→        </CardContent>
+   910→      </Card>
+   911→
+   912→      <div className="flex flex-col sm:flex-row gap-2 justify-end">
+   913→        <Button variant="outline" onClick={onAskMentor}>
+   914→          <Brain className="h-4 w-4" /> Ask AI Mentor
+   915→        </Button>
+   916→        <Button onClick={onRetake}>
+   917→          <RotateCcw className="h-4 w-4" /> Retake Mock
+   918→        </Button>
+   919→      </div>
+   920→    </div>
+   921→  );
+   922→}
+   923→

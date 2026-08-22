@@ -37,6 +37,8 @@ import {
   MessageCircle,
   Mic,
   Library,
+  Compass,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -70,22 +72,13 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   {
     title: 'AI Agents',
     items: [
-      { id: 'mentor', label: 'AI Mentor', icon: MessageSquare },
-      { id: 'digital-twin', label: 'Digital Twin', icon: UserCog },
-      { id: 'success-simulator', label: 'Success Simulator', icon: Sparkles },
-      { id: 'readiness', label: 'Readiness Index', icon: Gauge },
-      { id: 'rank-predictor', label: 'Rank Predictor', icon: Trophy },
-      { id: 'university-predictor', label: 'Discover', icon: School },
-      { id: 'weakness-radar', label: 'Weakness Radar', icon: Radar },
+      { id: 'ai-agents', label: 'AI Agents Hub', icon: Sparkles },
     ],
   },
   {
     title: 'Explore',
     items: [
-      { id: 'career', label: 'Career Guide', icon: Briefcase },
-      { id: 'university', label: 'Universities', icon: GraduationCap },
-      { id: 'scholarship', label: 'Scholarships', icon: Award },
-      { id: 'settings', label: 'Settings', icon: Settings2 },
+      { id: 'explore', label: 'Explore Hub', icon: Compass },
     ],
   },
 ];
@@ -110,6 +103,24 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+// Sub-module groupings — used to keep the parent hub button highlighted
+// when one of its child views is currently active.
+const AI_AGENT_CHILDREN: View[] = [
+  'mentor', 'socratic-mentor', 'voice-mentor', 'doubt-solver', 'rag-tutor',
+  'pyq-trends', 'digital-twin', 'success-simulator', 'readiness',
+  'rank-predictor', 'university-predictor', 'weakness-radar',
+];
+const EXPLORE_CHILDREN: View[] = [
+  'career', 'university', 'scholarship', 'settings',
+];
+
+function isParentActive(parentId: View, currentView: View): boolean {
+  if (currentView === parentId) return true;
+  if (parentId === 'ai-agents') return AI_AGENT_CHILDREN.includes(currentView);
+  if (parentId === 'explore') return EXPLORE_CHILDREN.includes(currentView);
+  return false;
+}
+
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
@@ -126,9 +137,10 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
           <div className="space-y-0.5">
             {group.items.map((item) => {
               const Icon = item.icon;
-              const active = view === item.id;
+              const active = isParentActive(item.id, view);
               const isMockExam = item.id === 'mock-exam';
               const attemptCount = attempts.length;
+              const isHub = item.id === 'ai-agents' || item.id === 'explore';
               return (
                 <button
                   key={item.id}
@@ -137,14 +149,24 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                     onNavigate?.();
                   }}
                   className={cn(
-                    'w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-all palette-btn',
+                    'w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-all palette-btn group',
                     active
-                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
-                      : 'text-stone-600 hover:bg-blue-50 hover:text-blue-700'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md shadow-blue-200/60'
+                      : 'text-stone-600 hover:bg-blue-50 hover:text-blue-700 hover:shadow-sm',
+                    isHub && 'border border-blue-100/50'
                   )}
                 >
-                  <Icon className={cn('h-4 w-4 flex-shrink-0', active ? 'text-white' : 'text-stone-500')} />
+                  <Icon className={cn(
+                    'h-4 w-4 flex-shrink-0 transition-transform group-hover:scale-110',
+                    active ? 'text-white' : 'text-stone-500'
+                  )} />
                   <span className="flex-1 text-left truncate">{item.label}</span>
+                  {isHub && (
+                    <ChevronRight className={cn(
+                      'h-3 w-3 transition-opacity',
+                      active ? 'text-white/80' : 'text-stone-400'
+                    )} />
+                  )}
                   {isMockExam && attemptCount > 0 && (
                     <Badge
                       variant="outline"
@@ -208,10 +230,15 @@ function TargetExamCard() {
 
 function SidebarHeader() {
   return (
-    <div className="flex items-center gap-3 px-4 h-16 border-b border-stone-200 flex-shrink-0">
-      <img src="/logo.jpeg" alt="PreparationAI" className="h-11 w-11 rounded-lg object-contain flex-shrink-0" />
+    <div className="flex items-center gap-3 px-4 h-16 border-b border-stone-200 flex-shrink-0 bg-gradient-to-r from-white via-blue-50/40 to-white">
+      <div className="relative flex-shrink-0">
+        <img src="/logo.jpeg" alt="PreparationAI" className="h-11 w-11 rounded-xl object-contain shadow-sm ring-1 ring-blue-100" />
+        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-blue-500 ring-2 ring-white" />
+      </div>
       <div className="min-w-0">
-        <p className="font-bold text-base leading-tight">Preparation<span className="text-blue-600">AI</span></p>
+        <p className="font-bold text-lg leading-tight tracking-tight">
+          Preparation<span className="text-blue-600">AI</span>
+        </p>
       </div>
     </div>
   );
@@ -306,7 +333,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-premium">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-72 flex-col bg-white dark:bg-slate-900 border-r border-stone-200 dark:border-slate-700 z-40">
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-72 flex-col bg-gradient-to-b from-white via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border-r border-stone-200 dark:border-slate-700 z-40 shadow-sm">
         <SidebarHeader />
         <NavList />
         <SidebarFooter />

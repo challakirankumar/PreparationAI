@@ -5,6 +5,8 @@ export type View =
   | 'dashboard'
   | 'mock-exam'
   | 'analytics'
+  | 'ai-agents'
+  | 'explore'
   | 'mentor'
   | 'career'
   | 'university'

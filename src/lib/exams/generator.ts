@@ -58,15 +58,21 @@ export function fmtNum(n: number): string {
 
 // ============================================================================
 // SIGNATURE — cross-attempt deduplication
+// ----------------------------------------------------------------------------
+// Two questions are considered "the same" if their normalised signature
+// matches. We intentionally keep digits so that parameterised questions
+// with different numbers (e.g. "A car travels 50 m in 5 s..." vs
+// "...travels 200 m in 20 s...") are treated as DIFFERENT questions.
+// We only normalise whitespace, casing, and surrounding punctuation.
 // ============================================================================
 
 export function signature(text: string): string {
   return text
     .toLowerCase()
-    .replace(/\d+/g, '#')
     .replace(/\s+/g, ' ')
+    .replace(/\s+([.,;:!?])/g, '$1')
     .trim()
-    .slice(0, 80);
+    .slice(0, 200);
 }
 
 // ============================================================================

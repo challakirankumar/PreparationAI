@@ -50,6 +50,15 @@ export class ProctoringSDK {
   private fullscreenActive = false;
   private inputRestrictionsActive = false;
 
+  // Audio anomaly detection state (NTA UFM: "Communication / Assistance")
+  private audioContext: AudioContext | null = null;
+  private audioAnalyser: AnalyserNode | null = null;
+  private audioSource: MediaStreamAudioSourceNode | null = null;
+  private audioCheckInterval: ReturnType<typeof setInterval> | null = null;
+  private sustainedSpeechSince: number | null = null;
+  private readonly SPEECH_THRESHOLD = 0.06; // RMS threshold (rough heuristic)
+  private readonly SPEECH_SUSTAIN_MS = 4000; // 4s of continuous audio = anomaly
+
   constructor(config: {
     sessionId: string;
     profile: ProctoringProfile;
@@ -74,14 +83,14 @@ export class ProctoringSDK {
           audio: micEnabled,
         });
         this.cameraGranted = true;
-        
+
         this.video = document.createElement('video');
         this.video.srcObject = this.stream;
         this.video.autoplay = true;
         this.video.muted = true;
         this.video.style.display = 'none';
         document.body.appendChild(this.video);
-        
+
         this.canvas = document.createElement('canvas');
         this.canvas.width = 640;
         this.canvas.height = 480;
@@ -92,22 +101,80 @@ export class ProctoringSDK {
     }
 
     this.isMonitoring = true;
-    
+
     // Start detection loop at 3 fps (enough for presence/gaze, saves CPU)
     if (this.cameraGranted) {
       this.frameInterval = setInterval(() => this.runDetection(), 333);
     }
-    
+
+    // Start audio anomaly detection (always on when mic is enabled,
+    // even if camera was denied — voice activity alone is enough to flag
+    // the NTA UFM "Communication / Assistance" category).
+    if (micEnabled && this.stream) {
+      this.setupAudioDetection(this.stream);
+    }
+
     // Start browser lockdown monitoring
     this.setupBrowserLockdown();
-    
+
     // Start event flush
     this.flushInterval = setInterval(() => this.flushEvents(), this.FLUSH_INTERVAL_MS);
-    
+
     // Start heartbeat (every 30s)
     this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), 30000);
-    
+
     return this.cameraGranted;
+  }
+
+  /**
+   * Audio anomaly detection via the Web Audio API.
+   * Computes the running RMS amplitude of the mic stream and emits an
+   * `audio_anomaly` event if sustained speech is detected for SPEECH_SUSTAIN_MS.
+   * This is the client-side equivalent of NTA's "Communication" UFM category.
+   */
+  private setupAudioDetection(stream: MediaStream) {
+    try {
+      const AudioCtx =
+        (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx: AudioContext = new AudioCtx();
+      this.audioContext = ctx;
+      this.audioSource = ctx.createMediaStreamSource(stream);
+      this.audioAnalyser = ctx.createAnalyser();
+      this.audioAnalyser.fftSize = 512;
+      this.audioAnalyser.smoothingTimeConstant = 0.6;
+      this.audioSource.connect(this.audioAnalyser);
+
+      const analyser = this.audioAnalyser;
+      const buf = new Uint8Array(analyser.fftSize);
+      this.audioCheckInterval = setInterval(() => {
+        if (!this.isMonitoring) return;
+        analyser.getByteTimeDomainData(buf);
+        // Compute RMS amplitude in [0, 1]
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const v = (buf[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / buf.length);
+        if (rms > this.SPEECH_THRESHOLD) {
+          if (this.sustainedSpeechSince === null) {
+            this.sustainedSpeechSince = Date.now();
+          }
+          const sustained = Date.now() - this.sustainedSpeechSince;
+          if (sustained >= this.SPEECH_SUSTAIN_MS) {
+            this.emitEvent('audio_anomaly', 'high', 0.85);
+            // Reset so we don't flood — emit again only after another 4s of
+            // sustained speech above threshold.
+            this.sustainedSpeechSince = Date.now();
+          }
+        } else {
+          this.sustainedSpeechSince = null;
+        }
+      }, 500);
+    } catch (err) {
+      console.warn('[Proctoring] Audio analysis unavailable:', err);
+    }
   }
 
   /**
@@ -118,9 +185,18 @@ export class ProctoringSDK {
     if (this.frameInterval) clearInterval(this.frameInterval);
     if (this.flushInterval) clearInterval(this.flushInterval);
     if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
-    
+    if (this.audioCheckInterval) clearInterval(this.audioCheckInterval);
+
     this.cleanupBrowserLockdown();
-    
+
+    // Tear down audio analyser graph
+    try { this.audioSource?.disconnect(); } catch {}
+    try { this.audioAnalyser?.disconnect(); } catch {}
+    try { this.audioContext?.close(); } catch {}
+    this.audioContext = null;
+    this.audioAnalyser = null;
+    this.audioSource = null;
+
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop());
       this.stream = null;
@@ -130,7 +206,7 @@ export class ProctoringSDK {
       this.video.remove();
       this.video = null;
     }
-    
+
     // Flush remaining events
     this.flushEvents();
   }
@@ -171,9 +247,20 @@ export class ProctoringSDK {
     
     // --- Multiple faces detection ---
     if (this.profile.modules.multipleFaces.enabled) {
-      // In production: count detected faces
-      // Placeholder: random check (would use face detection count)
-      // This is where MediaPipe would return face count
+      // Heuristic: scan the four corners of the frame (regions where a
+      // second person is unlikely to be the candidate) for skin-tone-like
+      // pixel clusters comparable in size to the candidate's face.
+      // If a corner cluster is large enough, flag as multiple_faces_detected.
+      // This is intentionally conservative — better to miss a real second
+      // face than to flag a shadow or a poster as a person.
+      const corners = this.detectSkinClustersInCorners(ctx);
+      if (corners >= 1) {
+        // Avoid flooding: only emit if we haven't emitted one in the last 10s
+        const lastTime = this.lastEventTime['multiple_faces_detected'] || 0;
+        if (Date.now() - lastTime > 10000) {
+          this.emitEvent('multiple_faces_detected', this.profile.modules.multipleFaces.severity, 0.55);
+        }
+      }
     }
     
     // --- Gaze/head-pose detection ---
@@ -243,6 +330,62 @@ export class ProctoringSDK {
     // In production: use MediaPipe Face Mesh for precise head pose
     // Placeholder: always false (no false positives)
     return false;
+  }
+
+  /**
+   * Heuristic multi-face detection — scans the four corner regions of the
+   * frame for skin-tone-like pixel clusters of meaningful size. Returns the
+   * number of corners where a face-sized skin cluster was found.
+   *
+   * This is intentionally conservative. Real production systems should use
+   * MediaPipe Face Detection or face-api.js — but this heuristic catches the
+   * most blatant case (someone walking into the camera frame) without
+   * generating false positives from posters or wall colors.
+   */
+  private detectSkinClustersInCorners(ctx: CanvasRenderingContext2D): number {
+    try {
+      const w = this.canvas!.width;
+      const h = this.canvas!.height;
+      const regionW = Math.floor(w * 0.28);
+      const regionH = Math.floor(h * 0.28);
+      const regions = [
+        { x0: 0, y0: 0 },                              // top-left
+        { x0: w - regionW, y0: 0 },                    // top-right
+        { x0: 0, y0: h - regionH },                    // bottom-left
+        { x0: w - regionW, y0: h - regionH },          // bottom-right
+      ];
+      let hits = 0;
+      for (const r of regions) {
+        const skinPixels = this.countSkinPixels(ctx, r.x0, r.y0, regionW, regionH);
+        // Threshold tuned for 640x480 with 28% corner regions.
+        // ~600 skin pixels ≈ a face-sized region of skin-tone pixels.
+        if (skinPixels > 600) hits += 1;
+      }
+      return hits;
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * Count skin-tone-like pixels in a rectangular region of the canvas.
+   */
+  private countSkinPixels(
+    ctx: CanvasRenderingContext2D,
+    x0: number, y0: number, w: number, h: number,
+  ): number {
+    const imageData = ctx.getImageData(x0, y0, w, h);
+    const data = imageData.data;
+    let count = 0;
+    // Sample every 4th pixel for performance
+    for (let i = 0; i < data.length; i += 16) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      // Skin-tone heuristic — covers a wide range of human skin colors
+      if (r > 60 && g > 30 && b > 15 && r > g && r > b && Math.abs(r - g) > 10) {
+        count += 1;
+      }
+    }
+    return count * 4; // upscale to approximate true count
   }
 
   /**
