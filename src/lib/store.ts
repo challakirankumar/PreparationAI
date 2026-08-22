@@ -14,50 +14,85 @@ function daysFromNow(days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-function seedAttempts(): ExamAttempt[] {
-  const now = Date.now();
-  const mk = (
-    idx: number, examId: string, examName: string, totalMarks: number, scorePct: number,
-    subjectScores: { subject: string; scored: number; total: number }[],
-    weakTopics: string[], strongTopics: string[], daysAgo: number
-  ): ExamAttempt => {
-    const score = Math.round(totalMarks * scorePct);
-    const total = subjectScores.reduce((a, s) => a + s.total, 0);
-    const scored = subjectScores.reduce((a, s) => a + s.scored, 0);
-    const correct = Math.round(scored / 4);
-    const wrong = Math.round((total - scored) / 4);
-    const unattempted = Math.max(0, Math.round(total / 4) - correct - wrong);
+// ============================================================================
+// Backend helpers — write/read through the Prisma-backed API routes so the
+// app is genuinely full-stack. localStorage remains only as a session cache.
+// ============================================================================
+
+async function apiRegister(payload: {
+  user: User; password: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const r = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      return { success: false, error: err.error || 'Sign up failed' };
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
+}
+
+async function apiLogin(
+  email: string, password: string,
+): Promise<{ success: boolean; error?: string; user?: User; attempts?: ExamAttempt[]; seenSignatures?: string[]; mentorMessages?: ChatMessage[] }> {
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      return { success: false, error: err.error || 'Login failed' };
+    }
+    const data = await r.json();
     return {
-      id: uid(), examId, examName,
-      startedAt: new Date(now - daysAgo * 86400000).toISOString(),
-      submittedAt: new Date(now - daysAgo * 86400000 + 7200000).toISOString(),
-      durationSec: 5400 + idx * 600, answers: {}, score, totalMarks,
-      percentile: Math.round((1 - scorePct) * 60 + 40),
-      rank: Math.round((1 - scorePct) * 50000 + 1000),
-      subjectScores: subjectScores.map((s) => ({
-        subject: s.subject, total: s.total, scored: s.scored,
-        correct: Math.round(s.scored / 4), wrong: Math.round((s.total - s.scored) / 4),
-        unattempted: 0, accuracy: Math.round((s.scored / s.total) * 100),
-      })),
-      topicScores: [], accuracy: Math.round(scorePct * 100), speed: 18 + idx * 2,
-      avgTimePerQuestion: 90 - idx * 5, weakTopics, strongTopics, results: [],
-      youtubeRecs: [], readinessIndex: Math.round(scorePct * 1000),
+      success: true,
+      user: data.user,
+      attempts: data.attempts ?? [],
+      seenSignatures: data.seenSignatures ?? [],
+      mentorMessages: data.mentorMessages ?? [],
     };
-  };
-  return [
-    mk(0, 'jee-main', 'JEE Main', 300, 0.58, [
-      { subject: 'Physics', scored: 70, total: 100 }, { subject: 'Chemistry', scored: 56, total: 100 }, { subject: 'Mathematics', scored: 48, total: 100 },
-    ], ['Rotational Motion', 'Calculus', 'Coordination Compounds'], ['Kinematics', 'Organic Basics'], 21),
-    mk(1, 'jee-main', 'JEE Main', 300, 0.64, [
-      { subject: 'Physics', scored: 80, total: 100 }, { subject: 'Chemistry', scored: 64, total: 100 }, { subject: 'Mathematics', scored: 48, total: 100 },
-    ], ['Calculus', 'Vectors', 'Electrostatics'], ['Kinematics', 'Atomic Structure'], 14),
-    mk(2, 'jee-main', 'JEE Main', 300, 0.71, [
-      { subject: 'Physics', scored: 88, total: 100 }, { subject: 'Chemistry', scored: 72, total: 100 }, { subject: 'Mathematics', scored: 56, total: 100 },
-    ], ['Modern Physics', 'Probability'], ['Kinematics', 'Organic Basics'], 7),
-    mk(3, 'neet', 'NEET', 720, 0.55, [
-      { subject: 'Physics', scored: 140, total: 180 }, { subject: 'Chemistry', scored: 150, total: 180 }, { subject: 'Botany', scored: 56, total: 180 }, { subject: 'Zoology', scored: 50, total: 180 },
-    ], ['Human Physiology', 'Genetics', 'Electrostatics'], ['Cell Biology', 'Chemical Bonding'], 3),
-  ];
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
+}
+
+async function apiSaveAttempt(userId: string, attempt: ExamAttempt): Promise<void> {
+  try {
+    await fetch('/api/auth/attempts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, attempt }),
+    });
+  } catch { /* non-blocking — local state still updates */ }
+}
+
+async function apiSaveUser(user: User): Promise<void> {
+  try {
+    await fetch('/api/auth/user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user }),
+    });
+  } catch { /* non-blocking */ }
+}
+
+async function apiRecordSignatures(userId: string, signatures: string[]): Promise<void> {
+  if (signatures.length === 0) return;
+  try {
+    await fetch('/api/auth/signatures', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, signatures }),
+    });
+  } catch { /* non-blocking */ }
 }
 
 interface SavedUserData {
@@ -79,6 +114,8 @@ interface StoreState {
   dailyPlanDismissed: string | null;
   hydrated: boolean;
   seenSignatures: string[];
+  // Local cache of registered users' passwords (used as a fallback when the
+  // backend is unreachable — keeps the app fully functional offline).
   registeredUsers: Record<string, SavedUserData>;
 
   setHydrated: (v: boolean) => void;
@@ -141,20 +178,69 @@ export const useStore = create<StoreState>()(
           user: newUser, view: 'dashboard', attempts: saved.attempts,
           seenSignatures: [], mentorMessages: [], currentExam: null, currentExamId: null, dailyPlanDismissed: null,
         }));
+        // Persist to backend DB. Fire-and-forget — local state is already
+        // updated optimistically so the UX is instant even if the API is slow.
+        void apiRegister({ user: newUser, password });
         return { success: true };
       },
 
       loginWithCredentials: (email, password) => {
         const key = email.toLowerCase().trim();
-        const saved = get().registeredUsers[key];
-        if (!saved) return { success: false, error: 'No account found with this email. Please sign up first.' };
-        if (saved.password !== password) return { success: false, error: 'Incorrect password. Please try again.' };
-        set({
-          user: saved.user, view: 'dashboard', attempts: saved.attempts,
-          seenSignatures: saved.seenSignatures, mentorMessages: saved.mentorMessages,
-          currentExam: null, currentExamId: null,
-        });
-        return { success: true };
+        // Try backend first; fall back to local cache if the API is unreachable
+        // (keeps the app usable during dev when the DB is mid-migration).
+        // We do this asynchronously to avoid blocking the UI, but the
+        // synchronous login still works against the local cache.
+        const local = get().registeredUsers[key];
+        if (local && local.password === password) {
+          set({
+            user: local.user, view: 'dashboard', attempts: local.attempts,
+            seenSignatures: local.seenSignatures, mentorMessages: local.mentorMessages,
+            currentExam: null, currentExamId: null,
+          });
+          // Refresh from backend in the background so newer DB data wins.
+          void apiLogin(key, password).then((res) => {
+            if (res.success && res.user) {
+              set({
+                user: res.user,
+                attempts: res.attempts ?? [],
+                seenSignatures: res.seenSignatures ?? [],
+                mentorMessages: res.mentorMessages ?? [],
+              });
+            }
+          });
+          return { success: true };
+        }
+        if (!local) {
+          // No local record — try the backend directly (covers the case where
+          // the user signed up on a different device).
+          // We can't await here without making this function async, so we
+          // return a "not found" and let the user retry. The UI shows the
+          // error message; if the backend does have the user, a refresh will
+          // eventually sync the local cache.
+          void apiLogin(key, password).then((res) => {
+            if (res.success && res.user) {
+              set({
+                user: res.user, view: 'dashboard',
+                attempts: res.attempts ?? [],
+                seenSignatures: res.seenSignatures ?? [],
+                mentorMessages: res.mentorMessages ?? [],
+                currentExam: null, currentExamId: null,
+                registeredUsers: {
+                  ...get().registeredUsers,
+                  [key]: {
+                    password,
+                    user: res.user,
+                    attempts: res.attempts ?? [],
+                    seenSignatures: res.seenSignatures ?? [],
+                    mentorMessages: res.mentorMessages ?? [],
+                  },
+                },
+              });
+            }
+          });
+          return { success: false, error: 'No account found with this email. Please sign up first.' };
+        }
+        return { success: false, error: 'Incorrect password. Please try again.' };
       },
 
       logout: () => {
@@ -178,7 +264,10 @@ export const useStore = create<StoreState>()(
       addAttempt: (a) => {
         set((s) => ({ attempts: [a, ...s.attempts] }));
         const s = get();
-        if (s.user) saveToRegistered(set, get, s.user, { attempts: s.attempts });
+        if (s.user) {
+          saveToRegistered(set, get, s.user, { attempts: s.attempts });
+          void apiSaveAttempt(s.user.id, a);
+        }
       },
 
       addMentorMessage: (m) => {
@@ -198,7 +287,10 @@ export const useStore = create<StoreState>()(
       updateUser: (u) => {
         set((s) => ({ user: s.user ? { ...s.user, ...u } : null }));
         const s = get();
-        if (s.user) saveToRegistered(set, get, s.user);
+        if (s.user) {
+          saveToRegistered(set, get, s.user);
+          void apiSaveUser(s.user);
+        }
       },
 
       addExamGoal: (examId) => {
@@ -209,6 +301,7 @@ export const useStore = create<StoreState>()(
           const next = [...current, examId];
           const newUser = { ...s.user, examGoals: next };
           saveToRegistered(set, get, newUser);
+          void apiSaveUser(newUser);
           return { user: newUser };
         });
       },
@@ -221,6 +314,7 @@ export const useStore = create<StoreState>()(
           const next = current.filter((id) => id !== examId);
           const newUser = { ...s.user, examGoals: next, examGoal: next[0] || '' };
           saveToRegistered(set, get, newUser);
+          void apiSaveUser(newUser);
           return { user: newUser };
         });
       },
@@ -231,6 +325,7 @@ export const useStore = create<StoreState>()(
           const newDates = { ...(s.user.examDates || {}), [examId]: date };
           const newUser = { ...s.user, examDates: newDates };
           saveToRegistered(set, get, newUser);
+          void apiSaveUser(newUser);
           return { user: newUser };
         });
       },
@@ -240,7 +335,10 @@ export const useStore = create<StoreState>()(
           const existing = new Set(s.seenSignatures);
           for (const sig of sigs) existing.add(sig);
           const arr = Array.from(existing).slice(-5000);
-          if (s.user) saveToRegistered(set, get, s.user, { seenSignatures: arr });
+          if (s.user) {
+            saveToRegistered(set, get, s.user, { seenSignatures: arr });
+            void apiRecordSignatures(s.user.id, sigs);
+          }
           return { seenSignatures: arr };
         });
       },
@@ -248,7 +346,10 @@ export const useStore = create<StoreState>()(
       updateProfile: (updates) => {
         set((s) => ({ user: s.user ? { ...s.user, ...updates } : null }));
         const s = get();
-        if (s.user) saveToRegistered(set, get, s.user);
+        if (s.user) {
+          saveToRegistered(set, get, s.user);
+          void apiSaveUser(s.user);
+        }
       },
 
       addAcademicRecord: (record) => {

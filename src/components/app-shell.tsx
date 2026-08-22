@@ -51,6 +51,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useStore, userExamGoals } from '@/lib/store';
 import { getPattern } from '@/lib/exams/patterns';
+import { NotificationBell } from '@/components/notifications/notification-bell';
 import type { View } from '@/lib/types';
 
 interface NavItem {
@@ -230,15 +231,21 @@ function TargetExamCard() {
 
 function SidebarHeader() {
   return (
-    <div className="flex items-center gap-3 px-4 h-16 border-b border-stone-200 flex-shrink-0 bg-gradient-to-r from-white via-blue-50/40 to-white">
-      <div className="relative flex-shrink-0">
-        <img src="/logo.jpeg" alt="PreparationAI" className="h-11 w-11 rounded-xl object-contain shadow-sm ring-1 ring-blue-100" />
-        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-blue-500 ring-2 ring-white" />
+    <div className="flex items-center gap-3 px-4 h-16 border-b border-stone-200 flex-shrink-0 bg-gradient-to-r from-white via-blue-50/40 to-white relative overflow-hidden">
+      {/* Decorative glossy sheen */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-12 -left-8 h-32 w-32 rounded-full bg-blue-100/40 blur-3xl" />
       </div>
-      <div className="min-w-0">
-        <p className="font-bold text-lg leading-tight tracking-tight">
-          Preparation<span className="text-blue-600">AI</span>
-        </p>
+      <div className="relative flex items-center gap-3">
+        <div className="relative flex-shrink-0">
+          <img src="/logo.jpeg" alt="PreparationAI" className="h-11 w-11 rounded-xl object-contain shadow-sm ring-1 ring-blue-100" />
+          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+        </div>
+        <div className="min-w-0">
+          <p className="font-bold text-lg leading-tight tracking-tight">
+            Preparation<span className="text-blue-600">AI</span>
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -282,11 +289,11 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const goals = userExamGoals(user);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-stone-200 bg-white/80 backdrop-blur px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 glass-topbar px-4 sm:px-6">
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden"
+        className="lg:hidden hover:bg-blue-50"
         onClick={onOpenSidebar}
         aria-label="Open sidebar"
       >
@@ -300,12 +307,9 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
 
       <div className="flex-1" />
 
-      <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
-        <Bell className="h-4 w-4" />
-        <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-rose-500" />
-      </Button>
+      <NotificationBell />
 
-      <Avatar className="h-9 w-9 cursor-pointer" onClick={() => setView('dashboard')}>
+      <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-white/80 hover:ring-blue-200 transition" onClick={() => setView('dashboard')}>
         <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-xs font-semibold">
           {initials(user.name)}
         </AvatarFallback>

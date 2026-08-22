@@ -199,6 +199,17 @@ export function AuthScreen() {
       toast({ title: 'Sign up failed', description: result.error, variant: 'destructive' });
       return;
     }
+    // Fire a welcome notification to the backend so the bell badge lights up
+    // on first login. Non-blocking — fail silently if the API is unreachable.
+    void import('@/lib/notifications/client').then(({ createNotification }) =>
+      createNotification({
+        userId: user.id,
+        type: 'welcome',
+        title: `Welcome aboard, ${user.name.split(' ')[0]}!`,
+        body: `Your ${pattern?.name ?? ''} prep journey starts now. Take your first mock exam to see real analytics.`,
+        link: 'mock-exam',
+      }),
+    );
     toast({
       title: `Welcome, ${user.name.split(' ')[0]}!`,
       description: `${selectedExams.length} target exam${selectedExams.length === 1 ? '' : 's'} ready · ${pattern?.name ?? ''}`,

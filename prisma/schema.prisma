@@ -1,8 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// ============================================================================
+// PreparationAI — Prisma schema
+// ----------------------------------------------------------------------------
+// SQLite for local dev (file:./db/custom.db). Switch the `provider` to
+// "postgresql" and set DATABASE_URL to a Postgres connection string when
+// deploying to production (Vercel + Neon / Supabase / Railway / etc.). The
+// rest of the schema works identically on both providers.
+// ============================================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -13,20 +16,144 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ----------------------------------------------------------------------------
+// User — primary account record (replaces the localStorage user object)
+// ----------------------------------------------------------------------------
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  country      String?
+  userType     String   @default("school-12") // school-11 | school-12 | ug | grad
+  examGoal     String   @default("")          // primary exam id
+  examGoals    String   @default("")          // JSON-encoded string[]
+  examDates    String   @default("{}")        // JSON-encoded Record<string,string>
+  examDate     String?                          // ISO yyyy-mm-dd primary
+  targetScore  Int?
+  avatar       String?
+  darkMode     Boolean  @default(false)
+  emailVerified Boolean @default(false)
+  joinedAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attempts          ExamAttempt[]
+  mentorMessages    MentorMessage[]
+  notifications     Notification[]
+  seenSignatures    SeenQuestionSignature[]
+  academicRecords   AcademicRecord[]
+
+  @@map("users")
 }
 
-model Post {
+// ----------------------------------------------------------------------------
+// ExamAttempt — one row per mock exam submission
+// ----------------------------------------------------------------------------
+model ExamAttempt {
+  id              String   @id @default(cuid())
+  userId           String
+  examId          String
+  examName        String
+  startedAt       DateTime
+  submittedAt     DateTime @default(now())
+  durationSec     Int
+  score           Float
+  totalMarks      Float
+  percentile      Float
+  rank            Int
+  accuracy        Float
+  speed           Float
+  avgTimePerQuestion Int
+  readinessIndex  Int
+  attemptNumber   Int      @default(1)
+  // JSON-encoded blobs — kept as text so SQLite can store them without
+  // migrations when the shape evolves. The API layer (de)serializes.
+  answers         String   @default("{}") // Record<string, AnswerValue>
+  subjectScores   String   @default("[]")
+  topicScores     String   @default("[]")
+  results         String   @default("[]")
+  youtubeRecs     String   @default("[]")
+  weakTopics      String   @default("[]")
+  strongTopics    String   @default("[]")
+  behavior        String?  // JSON-encoded BehaviorAnalysis
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, examId])
+  @@map("exam_attempts")
+}
+
+// ----------------------------------------------------------------------------
+// MentorMessage — saved AI Mentor conversation per user
+// ----------------------------------------------------------------------------
+model MentorMessage {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  userId    String
+  role      String   // 'user' | 'assistant'
+  content   String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("mentor_messages")
+}
+
+// ----------------------------------------------------------------------------
+// Notification — bell-icon notifications
+// ----------------------------------------------------------------------------
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // 'welcome' | 'mock_submitted' | 'achievement' | 'system' | 'nudge'
+  title     String
+  body      String
+  link      String?  // optional view id to navigate to on click
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+  @@map("notifications")
+}
+
+// ----------------------------------------------------------------------------
+// SeenQuestionSignature — per-user cross-attempt question dedup memory
+// ----------------------------------------------------------------------------
+model SeenQuestionSignature {
+  id        String   @id @default(cuid())
+  userId    String
+  signature String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, signature])
+  @@index([userId])
+  @@map("seen_question_signatures")
+}
+
+// ----------------------------------------------------------------------------
+// AcademicRecord — uploaded marksheet analyses (optional, used by some agents)
+// ----------------------------------------------------------------------------
+model AcademicRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  examName    String
+  institution  String?
+  totalMarks  Float
+  maxMarks    Float
+  percentage  Float
+  rank        String?
+  date        String
+  uploadedAt  DateTime @default(now())
+  subjects    String   @default("[]") // JSON
+  aiAnalysis  String?               // JSON
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("academic_records")
 }

@@ -327,7 +327,19 @@ export function ExamRunner({ onExit }: Props) {
 
       addAttempt(attempt);
       setResult(attempt);
-      
+
+      // Push a "mock submitted" notification to the backend so the bell badge
+      // lights up with the score. Non-blocking.
+      void import('@/lib/notifications/client').then(({ createNotification }) =>
+        createNotification({
+          userId: user?.id || 'unknown',
+          type: 'mock_submitted',
+          title: `${currentExam.examName} submitted`,
+          body: `Score ${attempt.score}/${attempt.totalMarks} · ${Math.round((attempt.score / Math.max(1, attempt.totalMarks)) * 100)}% · accuracy ${attempt.accuracy}%`,
+          link: 'analytics',
+        }),
+      );
+
       // Close proctoring session and generate integrity report
       if (proctoringSDKRef.current) {
         proctoringSDKRef.current.stop();
