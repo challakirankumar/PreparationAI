@@ -153,7 +153,7 @@ export function LiveCountdownCard({
   ];
 
   return (
-    <Card className="p-5 border-blue-200 bg-gradient-to-br from-white via-blue-50/40 to-white relative overflow-hidden ring-1 ring-blue-100/50 shadow-[0_4px_24px_-8px_rgba(15,76,129,0.18)]">
+    <Card className="p-3 border-blue-200 bg-gradient-to-br from-white/95 via-blue-50/50 to-white/95 backdrop-blur-xl ring-1 ring-blue-200/40 shadow-[0_2px_8px_-2px_rgba(15,76,129,0.10),0_8px_24px_-8px_rgba(15,76,129,0.18)] relative overflow-hidden">
       {/* Glossy decorative blooms */}
       <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
       <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-blue-100/40 blur-2xl pointer-events-none" />
@@ -379,7 +379,7 @@ export function WeakAreaTriggerCard({ attempts }: { attempts: ExamAttempt[] }) {
 
   if (!latest) {
     return (
-      <Card className="p-5 border-blue-200 bg-gradient-to-br from-white via-blue-50/40 to-white h-full relative overflow-hidden ring-1 ring-blue-100/50 shadow-[0_4px_24px_-8px_rgba(15,76,129,0.18)]">
+      <Card className="p-3 border-blue-200 bg-gradient-to-br from-white/95 via-blue-50/50 to-white/95 backdrop-blur-xl ring-1 ring-blue-200/40 shadow-[0_2px_8px_-2px_rgba(15,76,129,0.10),0_8px_24px_-8px_rgba(15,76,129,0.18)] h-full relative overflow-hidden">
         <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
         <div className="relative">
@@ -577,7 +577,7 @@ export function ExamNewsFeed({
   };
 
   return (
-    <Card className="p-5 border-blue-200 bg-gradient-to-br from-white via-blue-50/40 to-white h-full flex flex-col relative overflow-hidden ring-1 ring-blue-100/50 shadow-[0_4px_24px_-8px_rgba(15,76,129,0.18)]">
+    <Card className="p-3 border-blue-200 bg-gradient-to-br from-white/95 via-blue-50/50 to-white/95 backdrop-blur-xl ring-1 ring-blue-200/40 shadow-[0_2px_8px_-2px_rgba(15,76,129,0.10),0_8px_24px_-8px_rgba(15,76,129,0.18)] h-full flex flex-col relative overflow-hidden">
       {/* Glossy decorative blooms */}
       <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
       <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-blue-100/40 blur-2xl pointer-events-none" />
@@ -642,7 +642,7 @@ export function ExamNewsFeed({
       </div>
 
       {/* Scrollable news list */}
-      <ScrollArea className="flex-1 min-h-0 max-h-[340px] -mx-1 px-1">
+      <ScrollArea className="flex-1 min-h-0 max-h-[220px] -mx-1 px-1">
         {error ? (
           <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 flex items-start gap-2">
             <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />

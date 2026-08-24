@@ -8,24 +8,28 @@ import {
   Popover, PopoverTrigger, PopoverContent,
 } from '@/components/ui/popover';
 import { useStore } from '@/lib/store';
+import { getPattern } from '@/lib/exams/patterns';
 import { cn } from '@/lib/utils';
 import {
   Search, Loader2, Sparkles, ExternalLink, Megaphone, Video,
   FileText, PencilRuler, MessageCircle, AlertCircle, X,
+  GraduationCap, ArrowRight,
 } from 'lucide-react';
 
 // ============================================================================
-// AISearchBar — topbar search bar with AI-powered semantic search.
+// AISearchBar — AI-powered educational search in the topbar
 // ----------------------------------------------------------------------------
-// When the user types and hits Enter (or stops typing for 600ms), we call
-// /api/semantic-search which:
-//   1. Uses GLM-4.6 to expand the query into 4 semantic variations
-//   2. Runs real web_search on each variation in parallel
-//   3. Classifies + ranks the results
-//   4. Returns an AI summary + 10 clickable source URLs
+// BEHAVIOR:
+//   1. User types a query → NO auto-search fires.
+//   2. User presses Enter or clicks the "Search" button → search fires.
+//   3. Before the user types anything, exam-aware suggestions appear based
+//      on the user's target exam (from the Zustand store).
+//   4. Each suggestion is clickable → auto-fills + searches immediately.
 //
-// The popover shows the AI summary at the top, then the categorized list of
-// results. Clicking any result opens the real source URL in a new tab.
+// BACKEND: /api/semantic-search uses GLM-4.6 to expand the query into
+// 4 semantic variations, runs real web_search on each, classifies + ranks
+// results, and returns an AI summary + 10 clickable source URLs.
+// Every result has a REAL URL — no fake/dummy data.
 // ============================================================================
 
 interface SearchHit {
@@ -59,24 +63,66 @@ const CATEGORY_META: Record<SearchHit['category'], {
   Forum:    { badge: 'bg-slate-100 text-slate-700 border-slate-200', icon: MessageCircle },
 };
 
+// ============================================================================
+// Exam-aware suggestions — dynamically built from the user's target exam
+// ============================================================================
+function buildExamAwareSuggestions(examGoal: string | undefined): string[] {
+  if (!examGoal) {
+    return [
+      'Best books for competitive exam preparation',
+      'How to improve study focus and concentration',
+      'Time management strategy for exams',
+      'Previous year question papers with solutions',
+      'How to deal with exam anxiety',
+    ];
+  }
+  const pattern = getPattern(examGoal);
+  const examName = pattern?.name ?? examGoal.toUpperCase();
+  const subjects = pattern?.sections?.map(s => s.name) ?? [];
+
+  const suggestions: string[] = [];
+  // Best books for the first subject
+  if (subjects.length > 0) {
+    suggestions.push(`Best books for ${examName} ${subjects[0]}`);
+  } else {
+    suggestions.push(`Best books for ${examName}`);
+  }
+  // Previous year papers
+  suggestions.push(`${examName} previous year question papers with solutions`);
+  // Syllabus + important topics
+  suggestions.push(`${examName} syllabus and important topics to focus on`);
+  // Study strategy
+  suggestions.push(`Study strategy and time management for ${examName}`);
+  // Mock test practice
+  suggestions.push(`${examName} mock test practice — free online resources`);
+  // Subject-specific shortcut if multiple subjects
+  if (subjects.length > 1) {
+    suggestions.push(`${examName} ${subjects[1]} — shortcuts and tricks`);
+  }
+  return suggestions.slice(0, 6);
+}
+
 export function AISearchBar() {
   const user = useStore((s) => s.user);
+  const examGoal = user?.examGoal;
   const [query, setQuery] = React.useState('');
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [result, setResult] = React.useState<SearchResponse | null>(null);
+  const [hasSearched, setHasSearched] = React.useState(false);
   const abortRef = React.useRef<AbortController | null>(null);
-  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const exam = user?.examGoal || '';
+  // Build exam-aware suggestions
+  const suggestions = React.useMemo(() => buildExamAwareSuggestions(examGoal), [examGoal]);
+  const exam = examGoal || '';
   const country = user?.country || '';
 
+  // ===== SEARCH: only fires on Enter or button click — NOT on every keystroke =====
   async function runSearch(q: string) {
-    if (q.trim().length < 2) {
-      setOpen(false);
-      setResult(null);
-      return;
-    }
+    const trimmed = q.trim();
+    if (trimmed.length < 3) return;
+
     // Cancel any in-flight request
     abortRef.current?.abort();
     const ctrl = new AbortController();
@@ -84,11 +130,14 @@ export function AISearchBar() {
 
     setLoading(true);
     setOpen(true);
+    setHasSearched(true);
+    setResult(null);
+
     try {
       const resp = await fetch('/api/semantic-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, exam, country, num: 4 }),
+        body: JSON.stringify({ query: trimmed, exam, country, num: 4 }),
         signal: ctrl.signal,
       });
       const data = await resp.json();
@@ -98,7 +147,7 @@ export function AISearchBar() {
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
       setResult({
-        query: q,
+        query: trimmed,
         expandedQueries: [],
         aiSummary: '',
         hits: [],
@@ -110,78 +159,83 @@ export function AISearchBar() {
     }
   }
 
-  function handleChange(v: string) {
-    setQuery(v);
-    // Debounce — wait 600ms after the user stops typing before searching.
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      runSearch(v);
-    }, 600);
-  }
-
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      e.preventDefault();
       runSearch(query);
     } else if (e.key === 'Escape') {
       setOpen(false);
     }
   }
 
+  function handleSuggestion(s: string) {
+    setQuery(s);
+    runSearch(s);
+  }
+
   function clear() {
     setQuery('');
     setResult(null);
     setOpen(false);
+    setHasSearched(false);
+    inputRef.current?.focus();
   }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="relative flex-1 max-w-md hidden md:block">
+        <div className="relative w-[260px] lg:w-[320px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
           <Input
+            ref={inputRef}
             value={query}
-            onChange={(e) => handleChange(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={() => { if (query.trim().length >= 2) setOpen(true); }}
+            onFocus={() => { if (hasSearched && result) setOpen(true); }}
             placeholder="Search study material, concepts, videos…"
-            className="pl-9 pr-9 bg-white/70 backdrop-blur-sm border-stone-200 focus-visible:ring-blue-300"
+            className="pl-9 pr-20 bg-white/70 backdrop-blur-sm border-stone-200 focus-visible:ring-blue-300 h-9 text-sm font-medium"
             aria-label="AI semantic search"
           />
-          {query && (
+          {/* Search button — visible on the right side of the input */}
+          <button
+            onClick={() => runSearch(query)}
+            disabled={loading || query.trim().length < 3}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2.5 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-[11px] font-semibold flex items-center gap-1 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Search"
+          >
+            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+            <span className="hidden sm:inline">Search</span>
+          </button>
+          {query && !loading && (
             <button
               onClick={clear}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700"
-              aria-label="Clear search"
+              className="absolute right-[68px] top-1/2 -translate-y-1/2 h-5 w-5 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700"
+              aria-label="Clear"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3 w-3" />
             </button>
           )}
-          {/* Tiny "AI" indicator on the left of the input */}
-          <span className="absolute right-9 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-blue-600 pointer-events-none">
-            AI
-          </span>
         </div>
       </PopoverTrigger>
       <PopoverContent
-        align="start"
+        align="end"
         className="w-[520px] max-w-[92vw] p-0 max-h-[520px] flex flex-col"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-stone-100 bg-gradient-to-r from-white to-blue-50/30 flex-shrink-0">
+        {/* Header — premium sapphire gradient */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-blue-900/20 bg-gradient-to-r from-blue-700 via-blue-800 to-slate-900 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-blue-700 text-white flex items-center justify-center">
-              <Sparkles className="h-3 w-3" />
+            <div className="h-7 w-7 rounded-md bg-white/15 backdrop-blur ring-1 ring-white/25 flex items-center justify-center">
+              <Sparkles className="h-3.5 w-3.5 text-white" />
             </div>
             <div>
-              <p className="text-xs font-semibold leading-tight">AI Semantic Search</p>
-              <p className="text-[10px] text-muted-foreground">
-                {loading ? 'Searching the web…' : `${result?.hits.length ?? 0} results`}
+              <p className="text-xs font-bold leading-tight text-white">AI Semantic Search</p>
+              <p className="text-[10px] text-blue-100/80">
+                {loading ? 'Searching the web…' : result ? `${result.hits.length} results` : 'Press Enter to search'}
               </p>
             </div>
           </div>
           {result?.expandedQueries && result.expandedQueries.length > 0 && (
-            <Badge variant="outline" className="text-[9px] border-blue-200 text-blue-700 bg-blue-50">
+            <Badge variant="outline" className="text-[9px] border-white/30 text-blue-100 bg-white/10">
               {result.expandedQueries.length} query angles
             </Badge>
           )}
@@ -201,13 +255,49 @@ export function AISearchBar() {
               <AlertCircle className="h-8 w-8 mx-auto text-rose-400 mb-2" />
               <p className="text-sm font-medium text-stone-700">Search failed</p>
               <p className="text-[11px] text-muted-foreground mt-1">{result.error}</p>
+              <Button size="sm" variant="outline" className="mt-3" onClick={() => runSearch(query)}>Try again</Button>
+            </div>
+          ) : !hasSearched ? (
+            // ===== Exam-aware suggestions screen =====
+            <div className="p-4">
+              {examGoal && (
+                <div className="mb-3 p-3 rounded-lg bg-blue-50/60 border border-blue-100">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-6 w-6 rounded-md bg-gradient-to-br from-blue-700 to-blue-900 flex items-center justify-center">
+                      <GraduationCap className="h-3 w-3 text-white" />
+                    </div>
+                    <p className="text-xs font-semibold text-blue-900">
+                      Personalized for your target exam
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-blue-700">
+                    You're preparing for <span className="font-semibold">{getPattern(examGoal)?.name ?? examGoal}</span> — here are some searches that might help:
+                  </p>
+                </div>
+              )}
+              <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-2 px-1">
+                Try searching for
+              </p>
+              <div className="space-y-1">
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => handleSuggestion(s)}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-sm text-stone-700 hover:text-blue-900 flex items-center gap-2 group"
+                  >
+                    <Search className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600 flex-shrink-0" />
+                    <span className="flex-1">{s}</span>
+                    <ArrowRight className="h-3 w-3 text-slate-300 group-hover:text-blue-600 flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
             </div>
           ) : !result || result.hits.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <Search className="h-8 w-8 mx-auto text-slate-300 mb-2" />
               <p className="text-sm font-medium text-stone-700">No results found</p>
               <p className="text-[11px] text-muted-foreground mt-1">
-                Try rephrasing your query or be more specific.
+                Try rephrasing your query or being more specific.
               </p>
             </div>
           ) : (
@@ -284,8 +374,9 @@ export function AISearchBar() {
 
         {/* Footer */}
         <div className="border-t border-stone-100 px-3 py-2 flex items-center justify-between flex-shrink-0 bg-stone-50/40">
-          <p className="text-[10px] text-muted-foreground">
-            Real-time web search via GLM-4.6 + z-ai SDK
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <Sparkles className="h-2.5 w-2.5" />
+            Real-time web search · GLM-4.6 + z-ai SDK
           </p>
           <Button variant="ghost" size="sm" className="h-7 text-[10px] text-muted-foreground" onClick={() => setOpen(false)}>
             Close

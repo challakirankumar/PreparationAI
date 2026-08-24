@@ -460,7 +460,8 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   if (!user) return null;
 
   return (
-    <header className="relative z-30 flex h-16 items-center gap-3 glass-topbar px-4 sm:px-6">
+    <header className="relative z-30 flex h-16 items-center gap-2 sm:gap-3 glass-topbar px-4 sm:px-6">
+      {/* Left — mobile menu + mobile brand */}
       <Button
         variant="ghost"
         size="icon"
@@ -470,32 +471,34 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       >
         <Menu className="h-5 w-5" />
       </Button>
-
-      {/* Brand text on mobile (larger, matches sidebar size) */}
       <div className="lg:hidden flex items-center gap-2">
         <p className="font-bold text-xl leading-tight tracking-tight">
           Preparation<span className="text-blue-700">AI</span>
         </p>
       </div>
 
-      {/* AI Semantic Search — sits in the middle of the topbar on desktop */}
-      <div className="hidden lg:flex flex-1 justify-center px-4">
-        <AISearchBar />
+      {/* Spacer — pushes right cluster to the right edge */}
+      <div className="flex-1" />
+
+      {/* Right cluster — search + notifications + profile, tightly grouped */}
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        {/* AI Semantic Search — beside the notification bell */}
+        <div className="hidden md:block">
+          <AISearchBar />
+        </div>
+
+        <NotificationBell />
+
+        <Avatar
+          className="h-9 w-9 cursor-pointer ring-2 ring-white/80 hover:ring-blue-300 transition"
+          onClick={() => setView('settings')}
+        >
+          {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
+          <AvatarFallback className="bg-gradient-to-br from-blue-700 to-blue-900 text-white text-xs font-semibold">
+            {initials(user.name)}
+          </AvatarFallback>
+        </Avatar>
       </div>
-
-      <div className="flex-1 lg:hidden" />
-
-      <NotificationBell />
-
-      <Avatar
-        className="h-9 w-9 cursor-pointer ring-2 ring-white/80 hover:ring-blue-300 transition"
-        onClick={() => setView('settings')}
-      >
-        {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
-        <AvatarFallback className="bg-gradient-to-br from-blue-700 to-blue-900 text-white text-xs font-semibold">
-          {initials(user.name)}
-        </AvatarFallback>
-      </Avatar>
     </header>
   );
 }
