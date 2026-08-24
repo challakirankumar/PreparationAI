@@ -14,7 +14,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
         //  • inner top highlight for that "glossy" sheen
         "relative text-card-foreground",
         "bg-gradient-to-b from-white to-stone-50/40 dark:from-slate-900 dark:to-slate-950",
-        "flex flex-col gap-6 rounded-xl border border-stone-200/80 dark:border-slate-800",
+        "flex flex-col gap-3 rounded-xl border border-stone-200/80 dark:border-slate-800",
         "shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_12px_-2px_rgba(15,23,42,0.06),0_12px_24px_-8px_rgba(0,123,255,0.08)]",
         "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white before:to-transparent dark:before:via-white/10",
         "transition-all duration-300",

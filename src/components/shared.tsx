@@ -16,22 +16,24 @@ export function PageHeader({ icon: Icon, title, subtitle, accent = 'emerald', ri
   accent?: 'emerald' | 'amber' | 'teal' | 'rose' | 'blue';
   right?: React.ReactNode;
 }) {
-  const grads = {
-    emerald: 'from-blue-600 to-cyan-600',
-    amber: 'from-amber-500 to-orange-500',
-    teal: 'from-teal-600 to-cyan-600',
-    rose: 'from-rose-500 to-pink-500',
-    blue: 'from-blue-600 to-cyan-600',
-  };
+  // ALL module headers now share the SAME sapphire-to-midnight gradient as
+  // the Dashboard's PremiumHeader — no per-page accent variation. The
+  // `accent` prop is kept for backwards compatibility but no longer affects
+  // the gradient.
+  const grad = 'from-blue-700 via-blue-800 to-slate-900';
   return (
     <div className={cn(
-      // Glossy pill header with the gradient, soft glow, and inner top sheen
+      // Glossy pill header — sapphire gradient + soft glow + inner top sheen
       'relative overflow-hidden rounded-2xl shadow-lg mb-6',
-      'bg-gradient-to-r', grads[accent],
-      'before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/40 before:to-transparent'
+      'bg-gradient-to-r', grad,
+      'ring-1 ring-blue-900/10',
+      'before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent'
     )}>
       {/* Decorative glossy bloom */}
       <div className="pointer-events-none absolute -top-12 -right-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-8 -left-6 h-24 w-24 rounded-full bg-blue-400/10 blur-3xl" />
+      {/* Inner top glass sheen */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/10 to-transparent" />
       <div className="relative flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
         <div className="flex items-start gap-3 min-w-0">
           <div className={cn(
@@ -43,7 +45,7 @@ export function PageHeader({ icon: Icon, title, subtitle, accent = 'emerald', ri
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white truncate">
               {title}
             </h1>
-            {subtitle && <p className="text-xs sm:text-sm text-white/85 mt-0.5 max-w-xl truncate">{subtitle}</p>}
+            {subtitle && <p className="text-xs sm:text-sm text-blue-100/90 mt-0.5 max-w-xl truncate">{subtitle}</p>}
           </div>
         </div>
         {right}
@@ -67,13 +69,13 @@ export function StatCard({ label, value, sub, icon: Icon, accent = 'emerald' }: 
   };
   return (
     <Card className="p-4 border-stone-200">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold text-stone-900">{value}</p>
-          {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-muted-foreground truncate">{label}</p>
+          <p className="text-2xl font-bold text-stone-900 leading-tight">{value}</p>
+          {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
         </div>
-        {Icon && <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${bgs[accent]}`}><Icon className="h-4 w-4" /></div>}
+        {Icon && <div className={cn('h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0', bgs[accent])}><Icon className="h-4 w-4" /></div>}
       </div>
     </Card>
   );
@@ -81,11 +83,12 @@ export function StatCard({ label, value, sub, icon: Icon, accent = 'emerald' }: 
 
 export function SectionTitle({ icon: Icon, title, right }: { icon: React.ComponentType<{ className?: string }>; title: string; right?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-3">
-      <h3 className="font-semibold flex items-center gap-2">
-        <Icon className="h-4 w-4 text-blue-600" /> {title}
+    <div className="flex items-center justify-between mb-3 gap-2">
+      <h3 className="font-semibold flex items-center gap-2 min-w-0">
+        <Icon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+        <span className="truncate">{title}</span>
       </h3>
-      {right}
+      {right && <div className="flex-shrink-0">{right}</div>}
     </div>
   );
 }
