@@ -113,7 +113,6 @@ export function LiveCountdownCard({
   const pattern = getPattern(examId);
   const { days, hours, minutes, seconds, isPast } = useCountdown(examDate);
 
-  // Color tiers per spec: blue >30d, amber <30d, rose <7d.
   const tier: 'blue' | 'amber' | 'rose' = isPast
     ? 'rose'
     : days <= 7
@@ -122,24 +121,24 @@ export function LiveCountdownCard({
     ? 'amber'
     : 'blue';
 
-  const tierStyles: Record<'blue' | 'amber' | 'rose', { tile: string; text: string; ring: string; label: string }> = {
+  const tierStyles = {
     blue: {
-      tile: 'bg-blue-50 border-blue-200',
-      text: 'text-blue-700',
-      ring: 'ring-blue-300',
-      label: 'Plenty of time',
+      tile: 'bg-blue-600/10 border-blue-500/30 text-blue-700 dark:text-blue-300',
+      glow: 'from-blue-600/20 via-indigo-500/10 to-transparent',
+      badge: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
+      label: 'On Track',
     },
     amber: {
-      tile: 'bg-amber-50 border-amber-200',
-      text: 'text-amber-700',
-      ring: 'ring-amber-300',
-      label: 'Final stretch',
+      tile: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300',
+      glow: 'from-amber-500/20 via-orange-500/10 to-transparent',
+      badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
+      label: 'Final Stretch',
     },
     rose: {
-      tile: 'bg-rose-50 border-rose-200',
-      text: 'text-rose-700',
-      ring: 'ring-rose-300',
-      label: isPast ? 'Exam day has arrived' : 'Crunch time',
+      tile: 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300',
+      glow: 'from-rose-500/20 via-pink-500/10 to-transparent',
+      badge: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20',
+      label: isPast ? 'Exam Day' : 'Crunch Time',
     },
   };
 
@@ -147,93 +146,80 @@ export function LiveCountdownCard({
 
   const display = [
     { v: days, label: 'DAYS' },
-    { v: hours, label: 'HRS' },
-    { v: minutes, label: 'MIN' },
-    { v: seconds, label: 'SEC' },
+    { v: hours, label: 'HOURS' },
+    { v: minutes, label: 'MINS' },
+    { v: seconds, label: 'SECS' },
   ];
 
   return (
-    <Card className="p-3 border-blue-200 bg-gradient-to-br from-white/95 via-blue-50/50 to-white/95 backdrop-blur-xl ring-1 ring-blue-200/40 shadow-[0_2px_8px_-2px_rgba(15,76,129,0.10),0_8px_24px_-8px_rgba(15,76,129,0.18)] relative overflow-hidden">
-      {/* Glossy decorative blooms */}
-      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-blue-100/40 blur-2xl pointer-events-none" />
-      {/* Top sheen */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
+    <Card className="relative overflow-hidden rounded-2xl border border-white/60 dark:border-white/10 bg-gradient-to-br from-white/80 via-blue-50/40 to-white/90 dark:from-slate-900/85 dark:via-slate-800/80 dark:to-slate-950/90 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04),0_1px_3px_rgb(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_12px_40px_rgba(15,76,129,0.12)]">
+      {/* Glossy top highlight & glass ambient glow */}
+      <div className={cn('absolute -top-16 -right-16 h-36 w-36 rounded-full blur-3xl pointer-events-none bg-gradient-to-br', ts.glow)} />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent pointer-events-none" />
 
       <div className="relative">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700 flex items-center gap-1.5">
-              <Clock className="h-3 w-3" /> Live Countdown
-            </p>
-            <h3 className="text-lg font-bold tracking-tight text-stone-900 mt-0.5 truncate">
-              {examName || pattern?.name || 'Target Exam'}
-            </h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {(() => {
-                const d = new Date(examDate);
-                return Number.isNaN(d.getTime())
-                  ? 'Set your exam date to begin the countdown'
-                  : d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
-              })()}
-            </p>
+        {/* Header Row */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-blue-500/20 flex-shrink-0">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Live Countdown</span>
+                <span className={cn('text-[9px] font-semibold px-1.5 py-0.2 rounded-full border', ts.badge)}>
+                  {ts.label}
+                </span>
+              </div>
+              <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white truncate">
+                {examName || pattern?.name || 'Target Exam'}
+              </h3>
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-1 flex-shrink-0">
-            <Badge className={cn('bg-white border', ts.tile, ts.text)}>
-              {pattern ? `${Math.round(pattern.durationSec / 60)} min` : '—'}
-            </Badge>
-            <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full bg-white border', ts.tile, ts.text)}>
-              {ts.label}
-            </span>
-          </div>
+          <Badge variant="outline" className="border-slate-200/80 bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 text-[11px] font-medium flex-shrink-0">
+            {pattern ? `${Math.round(pattern.durationSec / 60)}m` : '—'}
+          </Badge>
         </div>
 
-        {/* Ticking countdown tiles (the only time readout — removed the duplicate colon-separated line) */}
-        <div className="grid grid-cols-4 gap-2 mb-3">
+        {/* Professional Boxed Countdown Grid — Single Clean Display (No Duplicate Counter) */}
+        <div className="grid grid-cols-4 gap-2 my-2.5">
           {display.map((t, i) => (
             <div
               key={t.label}
               className={cn(
-                'relative rounded-lg border p-2 text-center tabular-nums overflow-hidden',
-                'bg-white/70 backdrop-blur-sm',
+                'relative rounded-xl border p-2 text-center overflow-hidden transition-all duration-200',
+                'bg-white/70 dark:bg-slate-800/70 backdrop-blur-md shadow-sm',
                 ts.tile,
-                ts.text,
-                i === 3 && 'animate-pulse'
+                i === 3 && 'ring-1 ring-blue-400/40'
               )}
             >
-              {/* Tile top sheen */}
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
-              <p className={cn('text-2xl font-bold tabular-nums tracking-tight', ts.text)}>
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 dark:via-white/20 to-transparent" />
+              <p className="text-xl sm:text-2xl font-black tabular-nums tracking-tight text-slate-900 dark:text-white leading-none mb-1">
                 {pad(t.v)}
               </p>
-              <p className="text-[9px] uppercase tracking-wider text-muted-foreground mt-0.5 font-semibold">{t.label}</p>
+              <p className="text-[9px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                {t.label}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* Pattern info chips */}
-        <div className="flex flex-wrap items-center gap-2">
-          {pattern && (
-            <Badge variant="outline" className="bg-white/70 backdrop-blur-sm border-blue-200 text-blue-700">
-              <Target className="h-3 w-3" /> {pattern.totalQuestions} Qs
-            </Badge>
-          )}
-          {pattern && (
-            <Badge variant="outline" className="bg-white/70 backdrop-blur-sm border-blue-200 text-blue-700">
-              <Timer className="h-3 w-3" /> {pattern.totalMarks} marks
-            </Badge>
-          )}
-          {pattern && (
-            <Badge variant="outline" className="bg-white/70 backdrop-blur-sm border-blue-200 text-blue-700">
-              <Flame className="h-3 w-3" /> {pattern.marking}
-            </Badge>
-          )}
+        {/* Date & Exam Info Footer */}
+        <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800/80 text-[11px]">
+          <span className="text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
+            <Calendar className="h-3 w-3 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+            {(() => {
+              const d = new Date(examDate);
+              return Number.isNaN(d.getTime())
+                ? 'Date not set'
+                : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+            })()}
+          </span>
           <button
             onClick={() => setView('planner')}
-            className="ml-auto text-[11px] font-medium text-blue-700 hover:text-blue-900 inline-flex items-center gap-1 link-underline"
+            className="text-blue-600 dark:text-blue-400 font-semibold hover:underline inline-flex items-center gap-1 flex-shrink-0"
           >
-            <Calendar className="h-3 w-3" /> Open planner
+            Planner <ChevronRight className="h-3 w-3" />
           </button>
         </div>
       </div>
@@ -248,18 +234,16 @@ export function LiveCountdownCard({
 function buildRecommendations(latest: ExamAttempt): Recommendation[] {
   const recs: Recommendation[] = [];
 
-  // Weak topics -> high urgency drill recommendations.
   const weakTopics = latest.weakTopics ?? [];
   if (weakTopics.length > 0) {
     for (const t of weakTopics.slice(0, 2)) {
       recs.push({
-        text: `Drill "${t}" with 20+ targeted practice problems and one full concept revision this week.`,
+        text: `Drill "${t}" with 20+ targeted practice problems and revision this week.`,
         urgency: 'high',
       });
     }
   }
 
-  // Lowest-scoring subject -> high or medium based on margin.
   const subj = [...(latest.subjectScores ?? [])].sort((a, b) => {
     const aPct = a.total > 0 ? a.scored / a.total : 0;
     const bPct = b.total > 0 ? b.scored / b.total : 0;
@@ -270,91 +254,50 @@ function buildRecommendations(latest: ExamAttempt): Recommendation[] {
     recs.push({
       text:
         pct < 40
-          ? `"${subj.subject}" is critically low at ${pct}% — schedule a deep-review session before the next mock.`
-          : `Lift "${subj.subject}" from ${pct}% — practise 15 mixed-difficulty problems daily.`,
+          ? `"${subj.subject}" is low at ${pct}% — review key formulas and solved examples.`
+          : `Lift "${subj.subject}" from ${pct}% — solve 10 mixed problems daily.`,
       urgency: pct < 40 ? 'high' : 'medium',
     });
   }
 
-  // Accuracy guardrail.
   if (typeof latest.accuracy === 'number') {
     if (latest.accuracy < 50) {
       recs.push({
-        text: `Accuracy at ${latest.accuracy}% is hurting your score. Switch to "accuracy-first" mode: attempt only questions you are 70%+ sure about.`,
+        text: `Accuracy at ${latest.accuracy}% — focus on high-confidence questions first.`,
         urgency: 'high',
       });
     } else if (latest.accuracy < 70) {
       recs.push({
-        text: `Accuracy at ${latest.accuracy}% can be improved with timed drills (45s/question) before adding volume.`,
+        text: `Accuracy at ${latest.accuracy}% — do timed topic drills before full mocks.`,
         urgency: 'medium',
       });
     } else {
       recs.push({
-        text: `Accuracy at ${latest.accuracy}% is solid — push attempt volume next mock to raise your ceiling.`,
+        text: `Accuracy at ${latest.accuracy}% is solid — boost attempt speed safely.`,
         urgency: 'low',
       });
     }
   }
 
-  // Behaviour signals.
-  const b = latest.behavior;
-  if (b) {
-    if (b.rapidGuesses > 5) {
-      recs.push({
-        text: `${b.rapidGuesses} rapid guesses (<10s each) detected. Slow down — read every stem fully before locking an answer.`,
-        urgency: 'high',
-      });
-    }
-    if (b.paceTrend === 'slowing-down') {
-      recs.push({
-        text: 'Your pace slowed toward the end of the paper. Build stamina with back-to-back timed sections.',
-        urgency: 'medium',
-      });
-    } else if (b.paceTrend === 'speeding-up') {
-      recs.push({
-        text: 'You rushed early then recovered. Spend the first 2 minutes scanning the paper to pace calmly.',
-        urgency: 'medium',
-      });
-    }
-    if (b.idleTimeSec > 300) {
-      recs.push({
-        text: `${Math.round(b.idleTimeSec / 60)} min of idle time logged. Use the question palette to skip and revisit, don\'t freeze on any one item.`,
-        urgency: 'medium',
-      });
-    }
-    if (b.vsPrevious && !b.vsPrevious.isImprovement) {
-      recs.push({
-        text: `You slipped ${Math.abs(b.vsPrevious.scoreDelta)} pts vs your previous attempt. Revisit your last 7 days of prep and remove one distraction.`,
-        urgency: 'high',
-      });
-    } else if (b.vsPrevious && b.vsPrevious.isImprovement) {
-      recs.push({
-        text: 'You improved on the last attempt — keep the same routine and increment difficulty, not hours.',
-        urgency: 'low',
-      });
-    }
-  }
-
-  // Fallback when nothing meaningful surfaced.
   if (recs.length === 0) {
     recs.push({
-      text: 'Take a full-length mock to surface your weak areas — the radar needs at least one attempt to work with.',
+      text: 'Take a mock exam to generate instant AI weak-area triggers and targeted drills.',
       urgency: 'low',
     });
   }
 
-  return recs.slice(0, 5);
+  return recs.slice(0, 3);
 }
 
 function urgencyBadge(u: Urgency): string {
   switch (u) {
     case 'high':
-      return 'bg-rose-100 text-rose-700 border-rose-200';
+      return 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20';
     case 'medium':
-      return 'bg-amber-100 text-amber-700 border-amber-200';
+      return 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20';
     case 'low':
     default:
-      return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20';
   }
 }
 
@@ -379,95 +322,94 @@ export function WeakAreaTriggerCard({ attempts }: { attempts: ExamAttempt[] }) {
 
   if (!latest) {
     return (
-      <Card className="p-3 border-blue-200 bg-gradient-to-br from-white/95 via-blue-50/50 to-white/95 backdrop-blur-xl ring-1 ring-blue-200/40 shadow-[0_2px_8px_-2px_rgba(15,76,129,0.10),0_8px_24px_-8px_rgba(15,76,129,0.18)] h-full relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
-        <div className="relative">
-          <div className="flex items-center gap-1.5 mb-3">
-            <Zap className="h-4 w-4 text-blue-700" />
-            <h3 className="font-bold tracking-tight text-stone-900">Weak Area Triggers</h3>
+      <Card className="relative overflow-hidden rounded-2xl border border-white/60 dark:border-white/10 bg-gradient-to-br from-white/80 via-blue-50/40 to-white/90 dark:from-slate-900/85 dark:via-slate-800/80 dark:to-slate-950/90 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 flex flex-col justify-between">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent pointer-events-none" />
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+                <Zap className="h-4 w-4" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Diagnostic Radar</span>
+                <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">Weak Area Triggers</h3>
+              </div>
+            </div>
+            <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 text-[10px]">
+              Ready
+            </Badge>
           </div>
-          <div className="text-center py-6">
-            <RadarIcon className="h-8 w-8 mx-auto text-blue-300 mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Take a mock exam to unlock personalised weak-area recommendations.
-            </p>
-            <Button size="sm" className="mt-3 bg-blue-700 hover:bg-blue-800" onClick={() => setView('mock-exam')}>
-              Start first mock
-            </Button>
+          <div className="text-center py-4 px-2 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+            <RadarIcon className="h-7 w-7 mx-auto text-blue-500/70 mb-1.5 animate-pulse" />
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">No mock attempts logged yet</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Take your first mock to surface blind spots.</p>
           </div>
         </div>
+        <Button size="sm" className="mt-3 w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold shadow-sm" onClick={() => setView('mock-exam')}>
+          Start First Mock Exam
+        </Button>
       </Card>
     );
   }
 
   return (
-    <Card className="p-5 border-blue-200 bg-gradient-to-br from-white via-blue-50/40 to-white h-full relative overflow-hidden ring-1 ring-blue-100/50 shadow-[0_4px_24px_-8px_rgba(15,76,129,0.18)]">
-      {/* Glossy decorative blooms */}
-      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-blue-100/40 blur-2xl pointer-events-none" />
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
+    <Card className="relative overflow-hidden rounded-2xl border border-white/60 dark:border-white/10 bg-gradient-to-br from-white/80 via-blue-50/40 to-white/90 dark:from-slate-900/85 dark:via-slate-800/80 dark:to-slate-950/90 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04),0_1px_3px_rgb(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_12px_40px_rgba(15,76,129,0.12)]">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent pointer-events-none" />
 
-      <div className="relative">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Zap className="h-4 w-4 text-blue-700 flex-shrink-0" />
-            <h3 className="font-bold tracking-tight text-stone-900 truncate">Weak Area Triggers</h3>
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-blue-500/20 flex-shrink-0">
+              <Zap className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">AI Triggers</span>
+                {highCount > 0 && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
+                    {highCount} High Priority
+                  </span>
+                )}
+              </div>
+              <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white truncate">Weak Area Triggers</h3>
+            </div>
           </div>
-          <Badge variant="outline" className="bg-white/70 backdrop-blur-sm border-blue-200 text-blue-700 flex-shrink-0">
-            <TrendingDown className="h-3 w-3" /> {highCount} high priority
+          <Badge variant="outline" className="border-slate-200 bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 text-[11px] font-medium flex-shrink-0">
+            {latest.accuracy}% acc
           </Badge>
         </div>
 
-        <p className="text-[11px] text-muted-foreground mb-3">
-          From your latest attempt · <span className="font-medium text-stone-700">{latest.examName}</span> · {latest.accuracy}% accuracy
-        </p>
-
-        <ol className="space-y-2">
-          {recs.map((r, i) => (
-            <li
+        {/* Compact, tightly aligned list of recommendations */}
+        <div className="space-y-1.5 my-2">
+          {recs.slice(0, 2).map((r, i) => (
+            <div
               key={i}
-              className="flex items-start gap-2 rounded-lg border border-blue-100 bg-white/70 backdrop-blur-sm p-2.5 hover:border-blue-200 transition-colors"
+              className="flex items-start gap-2 rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white/70 dark:bg-slate-800/70 p-2 text-left"
             >
-              <span className="flex-shrink-0 h-6 w-6 rounded-md bg-gradient-to-br from-blue-700 to-blue-900 text-white text-xs font-semibold flex items-center justify-center shadow-sm">
-                {i + 1}
-              </span>
+              <span className={cn('mt-0.5 h-2 w-2 rounded-full flex-shrink-0', urgencyDot(r.urgency))} />
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border',
-                      urgencyBadge(r.urgency)
-                    )}
-                  >
-                    <span className={cn('h-1.5 w-1.5 rounded-full', urgencyDot(r.urgency))} />
-                    {r.urgency}
-                  </span>
-                </div>
-                <p className="text-sm text-stone-800 leading-snug">{r.text}</p>
+                <p className="text-xs font-medium text-slate-800 dark:text-slate-200 leading-snug line-clamp-2">
+                  {r.text}
+                </p>
               </div>
-            </li>
+            </div>
           ))}
-        </ol>
-
-        <div className="flex flex-wrap gap-2 mt-4">
-          <Button
-            size="sm"
-            variant="default"
-            className="bg-blue-700 hover:bg-blue-800"
-            onClick={() => setView('weakness-radar')}
-          >
-            <RadarIcon className="h-3.5 w-3.5" /> View radar
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-            onClick={() => setView('mentor')}
-          >
-            <LifeBuoy className="h-3.5 w-3.5" /> Get help
-          </Button>
         </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800/80 text-[11px] mt-1">
+        <button
+          onClick={() => setView('weakness-radar')}
+          className="text-blue-600 dark:text-blue-400 font-semibold hover:underline inline-flex items-center gap-1"
+        >
+          Weakness Radar <ChevronRight className="h-3 w-3" />
+        </button>
+        <button
+          onClick={() => setView('mentor')}
+          className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium inline-flex items-center gap-1"
+        >
+          Ask AI Mentor <ChevronRight className="h-3 w-3" />
+        </button>
       </div>
     </Card>
   );
@@ -481,24 +423,24 @@ function categoryStyle(cat: NewsItem['category']): { badge: string; icon: React.
   switch (cat) {
     case 'Official':
       return {
-        badge: 'bg-blue-100 text-blue-700 border-blue-200',
-        icon: <Megaphone className="h-3 w-3" />,
+        badge: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
+        icon: <Megaphone className="h-2.5 w-2.5" />,
       };
     case 'News':
       return {
-        badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        icon: <Newspaper className="h-3 w-3" />,
+        badge: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
+        icon: <Newspaper className="h-2.5 w-2.5" />,
       };
     case 'Social Media':
       return {
-        badge: 'bg-amber-100 text-amber-700 border-amber-200',
-        icon: <Share2 className="h-3 w-3" />,
+        badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
+        icon: <Share2 className="h-2.5 w-2.5" />,
       };
     case 'Tips':
     default:
       return {
-        badge: 'bg-teal-100 text-teal-700 border-teal-200',
-        icon: <Lightbulb className="h-3 w-3" />,
+        badge: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20',
+        icon: <Lightbulb className="h-2.5 w-2.5" />,
       };
   }
 }
@@ -508,7 +450,7 @@ function priorityTag(priority: NewsItem['priority']): { tag: string; cls: string
     return { tag: 'URGENT', cls: 'bg-rose-600 text-white' };
   }
   if (priority === 'high') {
-    return { tag: 'HIGH', cls: 'bg-amber-500 text-white' };
+    return { tag: 'HOT', cls: 'bg-amber-500 text-white' };
   }
   return null;
 }
@@ -526,7 +468,6 @@ export function ExamNewsFeed({
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
   const [source, setSource] = React.useState<'web' | 'ai' | 'fallback' | null>(null);
-  const [breakdown, setBreakdown] = React.useState<{Official:number;News:number;'Social Media':number;Tips:number} | null>(null);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
   const [refreshing, setRefreshing] = React.useState<boolean>(false);
   const abortRef = React.useRef<AbortController | null>(null);
@@ -554,14 +495,11 @@ export function ExamNewsFeed({
         const parsed: NewsItem[] = Array.isArray(data?.items) ? data.items : [];
         setItems(parsed);
         setSource(data?.source === 'web' ? 'web' : data?.source === 'ai' ? 'ai' : 'fallback');
-        if (data?.breakdown) setBreakdown(data.breakdown);
-        else setBreakdown(null);
       } catch (e) {
         if ((e as Error).name === 'AbortError') return;
         setError((e as Error).message || 'Failed to load news');
         setItems([]);
         setSource(null);
-        setBreakdown(null);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -577,197 +515,100 @@ export function ExamNewsFeed({
   };
 
   return (
-    <Card className="p-3 border-blue-200 bg-gradient-to-br from-white/95 via-blue-50/50 to-white/95 backdrop-blur-xl ring-1 ring-blue-200/40 shadow-[0_2px_8px_-2px_rgba(15,76,129,0.10),0_8px_24px_-8px_rgba(15,76,129,0.18)] h-full flex flex-col relative overflow-hidden">
-      {/* Glossy decorative blooms */}
-      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-blue-100/40 blur-2xl pointer-events-none" />
-      {/* Top sheen */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent pointer-events-none" />
+    <Card className="relative overflow-hidden rounded-2xl border border-white/60 dark:border-white/10 bg-gradient-to-br from-white/80 via-blue-50/40 to-white/90 dark:from-slate-900/85 dark:via-slate-800/80 dark:to-slate-950/90 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04),0_1px_3px_rgb(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_12px_40px_rgba(15,76,129,0.12)]">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent pointer-events-none" />
 
-      <div className="relative flex flex-col h-full">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <Newspaper className="h-4 w-4 text-blue-600" />
-            <h3 className="font-semibold text-stone-900">Exam News Feed</h3>
-          </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Latest updates for {displayName}
-            {source && (
-              <span className="ml-1 text-[10px] uppercase tracking-wider text-blue-500">
-                ·{' '}
-                {source === 'web'
-                  ? 'Live web search'
-                  : source === 'ai'
-                  ? 'AI-curated'
-                  : 'curated feed'}
-              </span>
-            )}
-          </p>
-          {source === 'web' && breakdown && (
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {breakdown.Official > 0 && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 border border-blue-200 rounded px-1 py-0.5">
-                  <Megaphone className="h-2 w-2" /> {breakdown.Official} official
-                </span>
-              )}
-              {breakdown.News > 0 && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide bg-emerald-100 text-emerald-700 border border-emerald-200 rounded px-1 py-0.5">
-                  <Newspaper className="h-2 w-2" /> {breakdown.News} news
-                </span>
-              )}
-              {breakdown['Social Media'] > 0 && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 border border-amber-200 rounded px-1 py-0.5">
-                  <Share2 className="h-2 w-2" /> {breakdown['Social Media']} social
-                </span>
-              )}
-              {breakdown.Tips > 0 && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide bg-teal-100 text-teal-700 border border-teal-200 rounded px-1 py-0.5">
-                  <Lightbulb className="h-2 w-2" /> {breakdown.Tips} tips
-                </span>
-              )}
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-blue-500/20 flex-shrink-0">
+              <Newspaper className="h-4 w-4" />
             </div>
-          )}
-        </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          onClick={handleRefresh}
-          disabled={loading || refreshing}
-        >
-          <RefreshCw className={cn('h-3.5 w-3.5', (loading || refreshing) && 'animate-spin')} />
-          {loading || refreshing ? 'Loading' : 'Refresh'}
-        </Button>
-      </div>
-
-      {/* Scrollable news list */}
-      <ScrollArea className="flex-1 min-h-0 max-h-[220px] -mx-1 px-1">
-        {error ? (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 flex items-start gap-2">
-            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium">Couldn&apos;t load news</p>
-              <p className="text-xs text-rose-600 mt-0.5">{error}</p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-2 border-rose-300 text-rose-700 hover:bg-rose-50"
-                onClick={handleRefresh}
-              >
-                <RefreshCw className="h-3.5 w-3.5" /> Try again
-              </Button>
-            </div>
-          </div>
-        ) : loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-lg border border-blue-100 bg-white p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-4 w-12 ml-auto" />
-                </div>
-                <Skeleton className="h-4 w-11/12 mb-1.5" />
-                <Skeleton className="h-3 w-full mb-1" />
-                <Skeleton className="h-3 w-2/3" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Live Updates</span>
+                <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                  {displayName}
+                </span>
               </div>
-            ))}
+              <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white truncate">Exam News Feed</h3>
+            </div>
           </div>
-        ) : items.length === 0 ? (
-          <div className="rounded-lg border border-blue-100 bg-white p-6 text-center">
-            <Newspaper className="h-8 w-8 mx-auto text-blue-200 mb-2" />
-            <p className="text-sm text-muted-foreground">No news items available right now.</p>
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {items.map((item, i) => {
-              const cat = categoryStyle(item.category);
-              const prio = priorityTag(item.priority);
-              // Prefer sourceUrl (real URL), fall back to url.
-              const clickUrl = item.sourceUrl || item.url;
-              // Try to extract a clean host name to show under "via"
-              let hostLabel = '';
-              try {
-                if (clickUrl) {
-                  const u = new URL(clickUrl);
-                  hostLabel = u.hostname.replace(/^www\./, '');
-                }
-              } catch { /* ignore */ }
-              return (
-                <li key={`${i}-${item.title.slice(0, 24)}`}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 p-0 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400"
+            onClick={handleRefresh}
+            disabled={loading || refreshing}
+            title="Refresh news feed"
+          >
+            <RefreshCw className={cn('h-3.5 w-3.5', (loading || refreshing) && 'animate-spin')} />
+          </Button>
+        </div>
+
+        {/* Compact scroll area for news items */}
+        <ScrollArea className="max-h-[140px] pr-1.5 -mr-1.5">
+          {error ? (
+            <div className="rounded-xl border border-rose-200/60 bg-rose-50/60 p-2.5 text-xs text-rose-700 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Unable to fetch live feed.</span>
+            </div>
+          ) : loading ? (
+            <div className="space-y-1.5">
+              <Skeleton className="h-10 w-full rounded-xl" />
+              <Skeleton className="h-10 w-full rounded-xl" />
+            </div>
+          ) : items.length === 0 ? (
+            <p className="text-xs text-slate-500 py-4 text-center">No updates available currently.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {items.slice(0, 3).map((item, i) => {
+                const cat = categoryStyle(item.category);
+                const prio = priorityTag(item.priority);
+                const clickUrl = item.sourceUrl || item.url;
+                return (
                   <a
+                    key={`${i}-${item.title.slice(0, 20)}`}
                     href={clickUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block rounded-lg border border-blue-100 bg-white p-3 hover:border-blue-300 hover:shadow-sm transition group"
+                    className="block rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white/70 dark:bg-slate-800/70 p-2 hover:border-blue-400/50 hover:bg-blue-50/30 dark:hover:bg-slate-800/90 transition group text-left"
                   >
-                    <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-                      <span
-                        className={cn(
-                          'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border',
-                          cat.badge
-                        )}
-                      >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className={cn('inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold border', cat.badge)}>
                         {cat.icon}
                         {item.category}
                       </span>
                       {prio && (
-                        <span
-                          className={cn(
-                            'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide',
-                            prio.cls
-                          )}
-                        >
+                        <span className={cn('inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold', prio.cls)}>
                           {prio.tag}
                         </span>
                       )}
-                      {item.date && (
-                        <span className="text-[10px] text-muted-foreground">
-                          {relativeDate(item.date)}
-                        </span>
-                      )}
-                      <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-blue-700 font-medium">
-                        <ExternalLink className="h-3 w-3" />
-                        Source
+                      <span className="text-[10px] text-slate-400 ml-auto flex items-center gap-0.5">
+                        {item.source || 'Web'} <ExternalLink className="h-2.5 w-2.5 opacity-60 group-hover:opacity-100" />
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-stone-900 leading-snug group-hover:text-blue-700 transition">
+                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                       {item.title}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
-                      {item.summary}
-                    </p>
-                    {/* Source attribution row — shows the favicon + actual host name */}
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-stone-100">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] text-stone-600 min-w-0">
-                        {hostLabel && (
-                          <img
-                            src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostLabel)}&sz=32`}
-                            alt=""
-                            className="h-3.5 w-3.5 rounded-sm flex-shrink-0"
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                          />
-                        )}
-                        <span className="truncate">
-                          via <span className="font-medium text-stone-800">{item.source || hostLabel || 'Web'}</span>
-                          {hostLabel && hostLabel !== item.source && (
-                            <span className="text-muted-foreground"> · {hostLabel}</span>
-                          )}
-                        </span>
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] text-blue-700 font-medium group-hover:underline flex-shrink-0 ml-2">
-                        Open link <ExternalLink className="h-3 w-3" />
-                      </span>
-                    </div>
                   </a>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </ScrollArea>
+                );
+              })}
+            </div>
+          )}
+        </ScrollArea>
+      </div>
+
+      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800/80 text-[11px] mt-1">
+        <span className="text-slate-400 text-[10px]">Real-time NTA & Education Updates</span>
+        <button
+          onClick={handleRefresh}
+          className="text-blue-600 dark:text-blue-400 font-semibold hover:underline inline-flex items-center gap-1"
+        >
+          Latest Feed <ChevronRight className="h-3 w-3" />
+        </button>
       </div>
     </Card>
   );
 }
+

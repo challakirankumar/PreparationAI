@@ -96,7 +96,7 @@ export function PremiumHeader({
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-xs sm:text-sm text-blue-100/90 mt-1 max-w-xl truncate">
+                <p className="text-xs sm:text-sm text-blue-100/90 mt-1 max-w-2xl line-clamp-2 leading-relaxed">
                   {subtitle}
                 </p>
               )}

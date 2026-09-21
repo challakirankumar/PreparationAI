@@ -41,6 +41,9 @@ import {
   ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
+  Code2,
+  ShieldCheck,
+  Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,7 +77,10 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: 'Core',
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'taxonomy', label: 'Master Exam Taxonomy', icon: Layers },
+      { id: 'pyq-archive', label: '10-Year PYQ Library', icon: BookOpen },
       { id: 'mock-exam', label: 'Mock Exam', icon: FileText },
+      { id: 'coding-arena', label: 'Coding Arena', icon: Code2 },
       { id: 'analytics', label: 'Analytics', icon: BarChart3 },
       { id: 'planner', label: 'Planner', icon: CalendarDays },
     ],
@@ -89,6 +95,15 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: 'Explore',
     items: [
       { id: 'explore', label: 'Explore Hub', icon: Compass },
+    ],
+  },
+  {
+    title: 'Management',
+    items: [
+      { id: 'superadmin', label: 'SuperAdmin Control', icon: ShieldCheck },
+      { id: 'institution', label: 'Admin Portal', icon: Building2 },
+      { id: 'guardrail', label: 'AI Guardrails', icon: Shield },
+      { id: 'parent-dashboard', label: 'Parent Portal', icon: Heart },
     ],
   },
   {
@@ -213,7 +228,7 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
       {NAV_GROUPS.map((group) => {
         return (
         <div key={group.title}>
-          <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2.5">
+          <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400 mb-2.5">
             {group.title}
           </p>
           <div className="space-y-1.5">
@@ -238,14 +253,14 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
                     active
                       ? // Active: deep sapphire gradient + bright top sheen + soft glow
                         'bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 text-white ring-blue-900/50 shadow-[0_6px_18px_-4px_rgba(15,76,129,0.5)]'
-                      : // Idle: translucent white glass that intensifies on hover
-                        'text-slate-600 ring-slate-200/70 bg-white/60 backdrop-blur-sm hover:bg-white hover:text-blue-900 hover:ring-blue-200 hover:shadow-[0_4px_12px_-2px_rgba(15,76,129,0.12)]',
+                      : // Idle: translucent white glass that intensifies on hover (crisp dark mode support)
+                        'text-slate-700 dark:text-slate-200 ring-slate-200/70 dark:ring-slate-800/80 bg-white/70 dark:bg-slate-800/60 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-750 hover:text-blue-900 dark:hover:text-white hover:ring-blue-200 dark:hover:ring-blue-500/40 hover:shadow-[0_4px_12px_-2px_rgba(15,76,129,0.12)]',
                   )}
                 >
                   {/* Glossy top sheen — visible on every button, brighter on active */}
                   <span className={cn(
                     'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent',
-                    !active && 'opacity-40'
+                    !active && 'opacity-40 dark:opacity-10'
                   )} />
                   {/* Inner glassy bloom on the lower-right for active state */}
                   {active && (
@@ -255,13 +270,13 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
                     'h-[18px] w-[18px] flex-shrink-0 transition-all duration-300',
                     active
                       ? 'text-white drop-shadow-sm'
-                      : 'text-slate-500 group-hover:text-blue-700 group-hover:scale-110'
+                      : 'text-slate-500 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 group-hover:scale-110'
                   )} />
                   <span className={cn(
                     'flex-1 text-left truncate',
                     active
                       ? 'font-semibold tracking-tight text-white'
-                      : 'font-medium tracking-tight text-slate-700 group-hover:text-blue-900 group-hover:font-semibold'
+                      : 'font-medium tracking-tight text-slate-700 dark:text-slate-100 group-hover:text-blue-900 dark:group-hover:text-white group-hover:font-semibold'
                   )}>
                     {item.label}
                   </span>
@@ -270,7 +285,7 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
                       'h-3.5 w-3.5 transition-all',
                       active
                         ? 'text-white/80'
-                        : 'text-slate-400 group-hover:text-blue-700 group-hover:translate-x-0.5'
+                        : 'text-slate-400 dark:text-slate-500 group-hover:text-blue-700 dark:group-hover:text-blue-400 group-hover:translate-x-0.5'
                     )} />
                   )}
                   {isMockExam && attemptCount > 0 && (
@@ -278,7 +293,7 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
                       variant="outline"
                       className={cn(
                         'h-5 px-1.5 text-[10px] border-none font-semibold',
-                        active ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
+                        active ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200'
                       )}
                     >
                       {attemptCount}
@@ -343,39 +358,38 @@ function SidebarHeader({
 }) {
   return (
     <div className={cn(
-      'flex items-center h-16 border-b border-stone-200 flex-shrink-0 bg-gradient-to-r from-white via-blue-50/40 to-white relative overflow-hidden',
-      collapsed ? 'px-2 justify-center' : 'px-5',
+      'flex items-center h-16 border-b border-stone-200/80 dark:border-slate-800 flex-shrink-0 bg-gradient-to-r from-white via-blue-50/40 to-white dark:from-slate-900 dark:via-slate-850 dark:to-slate-900 relative overflow-hidden',
+      collapsed ? 'px-2 justify-center' : 'px-4 justify-between',
     )}>
       {/* Decorative glossy sheen */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-12 -left-8 h-32 w-32 rounded-full bg-blue-100/40 blur-3xl" />
+        <div className="absolute -top-12 -left-8 h-32 w-32 rounded-full bg-blue-100/40 dark:bg-blue-900/20 blur-3xl" />
       </div>
-      <div className="relative flex items-center gap-2.5 w-full">
-        {/* Brand text — ALWAYS visible, even when collapsed.
-            In collapsed mode it shrinks to a stacked "Prep / AI" mark so it
-            still fits in the narrow rail without disappearing. */}
+      <div className="relative flex items-center justify-between w-full">
+        {/* Brand text — ALWAYS visible, "PreparationAI" is never hidden */}
         {collapsed ? (
-          <p className="font-bold text-base leading-none tracking-tight text-center w-full select-none">
-            Prep
-            <br />
-            <span className="text-blue-700">AI</span>
-          </p>
+          <div className="flex flex-col items-center justify-center w-full select-none cursor-pointer" onClick={onToggleCollapse} title="Expand PreparationAI">
+            <span className="font-extrabold text-[11px] tracking-tight text-slate-900 dark:text-white leading-tight">
+              Preparation<span className="text-blue-600">AI</span>
+            </span>
+          </div>
         ) : (
-          <p className="font-bold text-2xl leading-tight tracking-tight flex-1">
-            Preparation<span className="text-blue-700">AI</span>
-          </p>
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="font-bold text-xl leading-tight tracking-tight truncate">
+              Preparation<span className="text-blue-600">AI</span>
+            </p>
+          </div>
         )}
 
-        {/* Transparent collapse toggle arrow — only visible in expanded mode.
-            Sits on the right edge; low opacity by default, full opacity on hover. */}
+        {/* Transparent collapse toggle arrow */}
         {!collapsed && onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
             aria-label="Collapse sidebar"
             title="Collapse sidebar"
-            className="group/toggle relative h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-700 hover:bg-blue-50 transition-all flex-shrink-0"
+            className="group/toggle relative h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50/60 dark:hover:bg-slate-800 transition-all flex-shrink-0"
           >
-            <PanelLeftClose className="h-4 w-4 opacity-50 group-hover/toggle:opacity-100 transition-opacity" />
+            <PanelLeftClose className="h-4 w-4 opacity-60 group-hover/toggle:opacity-100 transition-opacity" />
           </button>
         )}
       </div>
@@ -428,22 +442,32 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
   }
 
   return (
-    <div className="border-t border-stone-200 p-3 flex-shrink-0">
+    <div className="border-t border-stone-200 dark:border-slate-800 p-3 flex-shrink-0 bg-stone-50/50 dark:bg-slate-900/40">
       <div className="flex items-center gap-2 mb-2">
-        <Avatar className="h-8 w-8">
+        <Avatar className="h-8 w-8 ring-1 ring-stone-200 dark:ring-slate-750">
           {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
           <AvatarFallback className="bg-gradient-to-br from-blue-700 to-blue-900 text-white text-xs font-semibold">
             {initials(user.name)}
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate text-stone-900">{user.name}</p>
-          <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-semibold truncate text-stone-900 dark:text-white">{user.name}</p>
+            <span className={cn(
+              "text-[9px] px-1.5 py-0.2 rounded font-black uppercase tracking-wider",
+              user.role === 'superadmin' ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" :
+              user.role === 'admin' ? "bg-purple-500/20 text-purple-400 border border-purple-500/40" :
+              "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+            )}>
+              {user.role || 'student'}
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground dark:text-slate-400 truncate">{user.email}</p>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-stone-500 hover:text-rose-600"
+          className="h-8 w-8 text-stone-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
           onClick={logout}
           title="Log out"
         >

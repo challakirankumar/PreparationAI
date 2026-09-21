@@ -7,7 +7,7 @@ import type { View } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { PremiumHeader } from '@/components/shared/premium-header';
 import {
-  Briefcase, GraduationCap, Award, ArrowRight, Compass,
+  Briefcase, GraduationCap, Award, ArrowRight, Compass, Code2,
 } from 'lucide-react';
 
 interface ExploreCard {
@@ -21,6 +21,21 @@ interface ExploreCard {
 }
 
 const EXPLORE_CARDS: ExploreCard[] = [
+  {
+    id: 'coding-arena',
+    title: 'Coding Arena',
+    subtitle: 'LeetCode & HackerRank DSA Studio',
+    description:
+      'Interactive multi-language code runner with real-time test execution, custom test cases, DSA problem bank (Arrays, Trees, Graphs, DP), Socratic AI hints, and time/space complexity analysis.',
+    icon: Code2,
+    accent: 'from-blue-600 to-indigo-600',
+    features: [
+      '10+ Languages (Python, Java, C++, JS, TS, Rust...)',
+      'Test case execution & custom input runner',
+      'Curated DSA problems by topic & company',
+      'Socratic AI hints & Big-O complexity radar',
+    ],
+  },
   {
     id: 'career',
     title: 'Career Guide',

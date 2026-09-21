@@ -191,7 +191,8 @@ export function AISearchBar() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={() => { if (hasSearched && result) setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            onClick={() => setOpen(true)}
             placeholder="Search study material, concepts, videos…"
             className="pl-9 pr-20 bg-white/70 backdrop-blur-sm border-stone-200 focus-visible:ring-blue-300 h-9 text-sm font-medium"
             aria-label="AI semantic search"

@@ -29,6 +29,8 @@ import {
   Loader2,
   SkipForward,
   CheckCircle2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -128,12 +130,22 @@ const STEP_DEFS: { step: SignupStep; label: string; shortLabel: string }[] = [
   { step: 7, label: 'Verify number', shortLabel: 'OTP' },
 ];
 
-export function AuthScreen() {
+export function AuthScreen({
+  initialTab = 'signup',
+  onClose,
+}: {
+  initialTab?: 'login' | 'signup';
+  onClose?: () => void;
+} = {}) {
   const register = useStore((s) => s.register);
   const loginWithCredentials = useStore((s) => s.loginWithCredentials);
   const { toast } = useToast();
 
-  const [tab, setTab] = React.useState<'login' | 'signup'>('signup');
+  const [tab, setTab] = React.useState<'login' | 'signup'>(initialTab);
+
+  React.useEffect(() => {
+    if (initialTab) setTab(initialTab);
+  }, [initialTab]);
 
   // Shared state — used by both login (just email/password) and signup (full wizard)
   const [name, setName] = React.useState('');
@@ -154,6 +166,8 @@ export function AuthScreen() {
   const [enteredOtp, setEnteredOtp] = React.useState('');
   const [serverOtp, setServerOtp] = React.useState<string | null>(null); // dev mode shows the code
 
+  const [showLoginPassword, setShowLoginPassword] = React.useState(false);
+
   // Exams filtered by the selected country + userType
   const availableExams = React.useMemo(() => {
     // Country-popular exams first, then fall back to user-type exams.
@@ -173,7 +187,7 @@ export function AuthScreen() {
   }
 
   // ---------------- LOGIN ----------------
-  function handleLoginSubmit(e: React.FormEvent) {
+  async function handleLoginSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim() || !email.includes('@')) {
       toast({ title: 'Please enter a valid email', variant: 'destructive' });
@@ -183,11 +197,11 @@ export function AuthScreen() {
       toast({ title: 'Password must be at least 4 characters', variant: 'destructive' });
       return;
     }
-    doLogin();
+    await doLogin();
   }
 
-  function doLogin() {
-    const result = loginWithCredentials(email.trim(), password);
+  async function doLogin() {
+    const result = await loginWithCredentials(email.trim(), password);
     if (!result.success) {
       toast({ title: 'Login failed', description: result.error, variant: 'destructive' });
       return;
@@ -399,8 +413,20 @@ export function AuthScreen() {
   const nextLabel = step === 6 ? 'Accept & continue' : 'Continue';
 
   return (
-    <div className="min-h-screen bg-premium">
-      <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 lg:grid-cols-2">
+    <div className="min-h-screen bg-premium relative">
+      {onClose && (
+        <div className="absolute top-4 left-4 z-20">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 bg-white/70 dark:bg-slate-850/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/60 shadow-sm"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" /> Back to Home
+          </Button>
+        </div>
+      )}
+      <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 lg:grid-cols-2 pt-12 lg:pt-0">
         {/* Left side — brand & value */}
         <div className="hidden lg:flex flex-col justify-between p-10 xl:p-14">
           <div>
@@ -506,13 +532,22 @@ export function AuthScreen() {
                       <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="auth-password"
-                        type="password"
+                        type={showLoginPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="pl-8"
+                        className="pl-8 pr-10"
                         autoComplete="current-password"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword((v) => !v)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-stone-900 focus:outline-none p-1"
+                        tabIndex={-1}
+                        aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                      >
+                        {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                   </div>
                   <Button type="submit" className="w-full bg-blue-700 hover:bg-blue-800">
@@ -600,6 +635,9 @@ function StepDetails({
   password: string; setPassword: (v: string) => void;
   confirmPassword: string; setConfirmPassword: (v: string) => void;
 }) {
+  const [showPw, setShowPw] = React.useState(false);
+  const [showConfirmPw, setShowConfirmPw] = React.useState(false);
+
   return (
     <div className="space-y-3.5">
       <div>
@@ -633,14 +671,48 @@ function StepDetails({
           <Label htmlFor="su-pw">Password</Label>
           <div className="relative">
             <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input id="su-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pl-8" autoComplete="new-password" />
+            <Input
+              id="su-pw"
+              type={showPw ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="pl-8 pr-10"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-stone-900 focus:outline-none p-1"
+              tabIndex={-1}
+              aria-label={showPw ? "Hide password" : "Show password"}
+            >
+              {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="su-pw2">Confirm password</Label>
           <div className="relative">
             <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input id="su-pw2" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="pl-8" autoComplete="new-password" />
+            <Input
+              id="su-pw2"
+              type={showConfirmPw ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              className="pl-8 pr-10"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPw((v) => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-stone-900 focus:outline-none p-1"
+              tabIndex={-1}
+              aria-label={showConfirmPw ? "Hide password" : "Show password"}
+            >
+              {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
         </div>
       </div>
@@ -730,9 +802,15 @@ function StepExams({
   const [query, setQuery] = React.useState('');
   const filtered = React.useMemo(() => {
     if (!query.trim()) return availableExams;
-    const q = query.toLowerCase();
+    const q = query.toLowerCase().trim();
     return availableExams.filter(
-      (p) => p.name.toLowerCase().includes(q) || p.fullName.toLowerCase().includes(q),
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.fullName.toLowerCase().includes(q) ||
+        (p.state && p.state.toLowerCase().includes(q)) ||
+        (p.conductingBody && p.conductingBody.toLowerCase().includes(q)) ||
+        (p.domainCategory && p.domainCategory.toLowerCase().includes(q)) ||
+        (p.postOrCourse && p.postOrCourse.toLowerCase().includes(q)),
     );
   }, [availableExams, query]);
 

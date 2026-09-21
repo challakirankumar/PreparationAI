@@ -26,6 +26,8 @@ import {
   Flame,
   Brain,
   ArrowUpRight,
+  BookOpen,
+  Layers,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,6 +58,44 @@ interface FeatureDef {
 }
 
 const FEATURES: FeatureDef[] = [
+  {
+    view: 'taxonomy',
+    icon: Layers,
+    title: 'Master Exam Taxonomy (5-Tier)',
+    subtitle: 'Exam Family → Exam → Stream/Paper → Subject → Topic → Subtopic hierarchy.',
+    accent: 'teal',
+    badge: '30 Domains',
+    detailTitle: 'Master Exam Taxonomy (5-Tier)',
+    detailDescription: 'Comprehensive hierarchical syllabus mapping across 30 master exam families with many-to-many question bank reusability.',
+    detailBody: (
+      <ul className="space-y-1.5">
+        <li>• 30 GATE Papers (CS, DA, EC, EE, ME, CE, CH, etc.) mapped down to subtopics</li>
+        <li>• UPSC (Prelims GS/CSAT, Mains GS 1-4 & Optionals), SSC, Banking, 28 State PSCs</li>
+        <li>• Dedicated CS / IT / AI candidate opportunity hub connecting 20+ examinations</li>
+        <li>• Universal cross-exam question bank reusability (one question shared across exams)</li>
+      </ul>
+    ),
+    ctaLabel: 'Explore 5-Tier Taxonomy',
+  },
+  {
+    view: 'pyq-archive',
+    icon: BookOpen,
+    title: '10-Year PYQ Multi-Volume Archive',
+    subtitle: '2015–2025 past papers with Volume 1 to Volume N, step solutions & AI hints.',
+    accent: 'purple',
+    badge: '10-Year Hub',
+    detailTitle: '10-Year PYQ Multi-Volume Archive',
+    detailDescription: 'Official authentic past 10 years question papers across UPSC, GATE, JEE, NEET, SSC, and State PSCs with Volume 1..N separation.',
+    detailBody: (
+      <ul className="space-y-1.5">
+        <li>• Complete 10-year (2015–2025) question archive with multi-volume collections</li>
+        <li>• Practice Mode with instant answer checking and Socratic step-by-step guidance</li>
+        <li>• Timed Volume Simulations with realistic marking rules and scorecards</li>
+        <li>• SuperAdmin dynamic ingestion for creating Volume N and custom questions</li>
+      </ul>
+    ),
+    ctaLabel: 'Open 10Y PYQ Library',
+  },
   {
     view: 'mock-exam',
     icon: FileText,

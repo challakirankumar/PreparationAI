@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { AppShell } from '@/components/app-shell';
 import { AuthScreen } from '@/components/auth/auth-screen';
+import { LandingPage } from '@/components/landing/landing-page';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { DailyPlanModal } from '@/components/dashboard/daily-plan-modal';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { MockExamEngine } from '@/components/mock-exam/mock-exam-engine';
@@ -34,6 +36,10 @@ import { RagTutorView } from '@/components/views/rag-tutor';
 import { DigitalTwin, ExamReadiness, RankPredictor, SuccessSimulator } from '@/components/views/ai-features';
 import { AiAgentsDashboard } from '@/components/views/ai-agents-dashboard';
 import { ExploreDashboard } from '@/components/views/explore-dashboard';
+import { CodingArenaView } from '@/components/views/coding-arena';
+import PYQArchiveView from '@/components/views/pyq-archive';
+import SuperadminPortalView from '@/components/views/superadmin-portal';
+import TaxonomyExplorerView from '@/components/views/taxonomy-explorer';
 import { SubModuleHeader } from '@/components/shared/sub-module-header';
 import type { View } from '@/lib/types';
 import {
@@ -46,8 +52,16 @@ function ViewRouter({ view }: { view: View }) {
   switch (view) {
     case 'dashboard':
       return <Dashboard />;
+    case 'taxonomy':
+      return <TaxonomyExplorerView />;
+    case 'pyq-archive':
+      return <PYQArchiveView />;
+    case 'superadmin':
+      return <SuperadminPortalView />;
     case 'mock-exam':
       return <ExamRunnerOrEngine />;
+    case 'coding-arena':
+      return <CodingArenaView />;
     case 'analytics':
       return <PerformanceAnalytics />;
     case 'ai-agents':
@@ -190,6 +204,7 @@ function ExamRunnerOrEngine() {
 
 export default function Home() {
   const { user, view, hydrated, setView } = useStore();
+  const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
 
   useEffect(() => {
     if (hydrated && user && view === 'auth') {
@@ -209,7 +224,10 @@ export default function Home() {
   }
 
   if (!user) {
-    return <AuthScreen />;
+    if (authModal) {
+      return <AuthScreen initialTab={authModal} onClose={() => setAuthModal(null)} />;
+    }
+    return <LandingPage onOpenAuth={(mode) => setAuthModal(mode)} />;
   }
 
   return (

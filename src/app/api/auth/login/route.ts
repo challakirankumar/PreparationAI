@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       id: row.id,
       name: row.name,
       email: row.email,
+      role: email.includes('admin') || row.name.toLowerCase().includes('admin') ? 'superadmin' : 'student',
       phone: row.phone ?? undefined,
       country: row.country ?? undefined,
       institution: row.institution ?? undefined,

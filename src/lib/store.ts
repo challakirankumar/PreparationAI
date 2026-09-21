@@ -117,10 +117,12 @@ interface StoreState {
   // Local cache of registered users' passwords (used as a fallback when the
   // backend is unreachable — keeps the app fully functional offline).
   registeredUsers: Record<string, SavedUserData>;
+  customPYQVolumes: import('./types').PYQVolume[];
+  customPYQQuestions: import('./types').PYQQuestion[];
 
   setHydrated: (v: boolean) => void;
   register: (newUser: User, password: string) => { success: boolean; error?: string };
-  loginWithCredentials: (email: string, password: string) => { success: boolean; error?: string };
+  loginWithCredentials: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   setView: (v: View) => void;
   startExam: (exam: GeneratedExam, examId: string) => void;
@@ -138,6 +140,9 @@ interface StoreState {
   addAcademicRecord: (record: AcademicRecord) => void;
   updateAcademicRecord: (id: string, updates: Partial<AcademicRecord>) => void;
   removeAcademicRecord: (id: string) => void;
+  addPYQVolume: (volume: import('./types').PYQVolume) => void;
+  addPYQQuestion: (question: import('./types').PYQQuestion) => void;
+  deletePYQVolume: (volumeId: string) => void;
 }
 
 function saveToRegistered(set: any, get: any, newUser: User, extra?: Partial<SavedUserData>) {
@@ -160,87 +165,101 @@ export const useStore = create<StoreState>()(
       user: null, view: 'auth', currentExam: null, currentExamId: null,
       attempts: [], mentorMessages: [], dailyPlanDismissed: null, hydrated: false,
       seenSignatures: [], registeredUsers: {},
+      customPYQVolumes: [], customPYQQuestions: [],
 
       setHydrated: (v) => set({ hydrated: v }),
+
+      addPYQVolume: (volume) => {
+        set((s) => ({ customPYQVolumes: [...s.customPYQVolumes, volume] }));
+        void fetch('/api/pyq-bank', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add-volume', volume }),
+        });
+      },
+
+      addPYQQuestion: (question) => {
+        set((s) => ({ customPYQQuestions: [...s.customPYQQuestions, question] }));
+        void fetch('/api/pyq-bank', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add-question', question }),
+        });
+      },
+
+      deletePYQVolume: (volumeId) => {
+        set((s) => ({
+          customPYQVolumes: s.customPYQVolumes.filter((v) => v.id !== volumeId),
+          customPYQQuestions: s.customPYQQuestions.filter((q) => q.volumeId !== volumeId),
+        }));
+      },
 
       register: (newUser, password) => {
         const email = newUser.email.toLowerCase().trim();
         if (get().registeredUsers[email]) {
           return { success: false, error: 'An account with this email already exists. Please log in instead.' };
         }
-        // Dynamic-data-only: new users start with NO seeded attempts. Their
-        // dashboard, analytics, and AI agents reflect only real attempts
-        // they take themselves. The store stays empty until the first mock
-        // exam is submitted.
-        const saved: SavedUserData = { password, user: newUser, attempts: [], seenSignatures: [], mentorMessages: [] };
+        const userWithRole: User = {
+          ...newUser,
+          role: newUser.role || (email.includes('admin') || newUser.name.toLowerCase().includes('admin') ? 'superadmin' : 'student'),
+        };
+        const saved: SavedUserData = { password, user: userWithRole, attempts: [], seenSignatures: [], mentorMessages: [] };
         set((s) => ({
           registeredUsers: { ...s.registeredUsers, [email]: saved },
-          user: newUser, view: 'dashboard', attempts: saved.attempts,
+          user: userWithRole, view: 'dashboard', attempts: saved.attempts,
           seenSignatures: [], mentorMessages: [], currentExam: null, currentExamId: null, dailyPlanDismissed: null,
         }));
-        // Persist to backend DB. Fire-and-forget — local state is already
-        // updated optimistically so the UX is instant even if the API is slow.
-        void apiRegister({ user: newUser, password });
+        void apiRegister({ user: userWithRole, password });
         return { success: true };
       },
 
-      loginWithCredentials: (email, password) => {
+      loginWithCredentials: async (email, password) => {
         const key = email.toLowerCase().trim();
-        // Try backend first; fall back to local cache if the API is unreachable
-        // (keeps the app usable during dev when the DB is mid-migration).
-        // We do this asynchronously to avoid blocking the UI, but the
-        // synchronous login still works against the local cache.
-        const local = get().registeredUsers[key];
-        if (local && local.password === password) {
+        // 1. Try backend API first (queries MongoDB Atlas)
+        const apiRes = await apiLogin(key, password);
+        if (apiRes.success && apiRes.user) {
           set({
-            user: local.user, view: 'dashboard', attempts: local.attempts,
-            seenSignatures: local.seenSignatures, mentorMessages: local.mentorMessages,
-            currentExam: null, currentExamId: null,
-          });
-          // Refresh from backend in the background so newer DB data wins.
-          void apiLogin(key, password).then((res) => {
-            if (res.success && res.user) {
-              set({
-                user: res.user,
-                attempts: res.attempts ?? [],
-                seenSignatures: res.seenSignatures ?? [],
-                mentorMessages: res.mentorMessages ?? [],
-              });
-            }
+            user: apiRes.user,
+            view: 'dashboard',
+            attempts: apiRes.attempts ?? [],
+            seenSignatures: apiRes.seenSignatures ?? [],
+            mentorMessages: apiRes.mentorMessages ?? [],
+            currentExam: null,
+            currentExamId: null,
+            registeredUsers: {
+              ...get().registeredUsers,
+              [key]: {
+                password,
+                user: apiRes.user,
+                attempts: apiRes.attempts ?? [],
+                seenSignatures: apiRes.seenSignatures ?? [],
+                mentorMessages: apiRes.mentorMessages ?? [],
+              },
+            },
           });
           return { success: true };
         }
-        if (!local) {
-          // No local record — try the backend directly (covers the case where
-          // the user signed up on a different device).
-          // We can't await here without making this function async, so we
-          // return a "not found" and let the user retry. The UI shows the
-          // error message; if the backend does have the user, a refresh will
-          // eventually sync the local cache.
-          void apiLogin(key, password).then((res) => {
-            if (res.success && res.user) {
-              set({
-                user: res.user, view: 'dashboard',
-                attempts: res.attempts ?? [],
-                seenSignatures: res.seenSignatures ?? [],
-                mentorMessages: res.mentorMessages ?? [],
-                currentExam: null, currentExamId: null,
-                registeredUsers: {
-                  ...get().registeredUsers,
-                  [key]: {
-                    password,
-                    user: res.user,
-                    attempts: res.attempts ?? [],
-                    seenSignatures: res.seenSignatures ?? [],
-                    mentorMessages: res.mentorMessages ?? [],
-                  },
-                },
-              });
-            }
+
+        // 2. Fall back to local cache if offline or API unreachable
+        const local = get().registeredUsers[key];
+        if (local && local.password === password) {
+          set({
+            user: local.user,
+            view: 'dashboard',
+            attempts: local.attempts,
+            seenSignatures: local.seenSignatures,
+            mentorMessages: local.mentorMessages,
+            currentExam: null,
+            currentExamId: null,
           });
-          return { success: false, error: 'No account found with this email. Please sign up first.' };
+          return { success: true };
         }
-        return { success: false, error: 'Incorrect password. Please try again.' };
+
+        if (apiRes.error) {
+          return { success: false, error: apiRes.error };
+        }
+
+        return { success: false, error: 'Incorrect email or password. Please try again.' };
       },
 
       logout: () => {
@@ -332,9 +351,9 @@ export const useStore = create<StoreState>()(
 
       recordSeenSignatures: (sigs) => {
         set((s) => {
-          const existing = new Set(s.seenSignatures);
+          const existing = new Set<string>(s.seenSignatures);
           for (const sig of sigs) existing.add(sig);
-          const arr = Array.from(existing).slice(-5000);
+          const arr: string[] = Array.from(existing).slice(-5000);
           if (s.user) {
             saveToRegistered(set, get, s.user, { seenSignatures: arr });
             void apiRecordSignatures(s.user.id, sigs);

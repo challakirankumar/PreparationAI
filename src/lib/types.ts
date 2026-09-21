@@ -34,9 +34,14 @@ export type View =
   | 'nudge-bot'
   | 'league'
   | 'voice-mentor'
-  | 'rag-tutor';
+  | 'rag-tutor'
+  | 'coding-arena'
+  | 'pyq-archive'
+  | 'superadmin'
+  | 'taxonomy';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
+export type UserRole = 'student' | 'admin' | 'superadmin';
 
 export type ClockFace = 'digital' | 'analog';
 export type ClockTheme = 'day' | 'dark';
@@ -46,6 +51,7 @@ export interface User {
   name: string;
   email: string;
   emailVerified?: boolean;
+  role?: UserRole;                 // 'student' | 'admin' | 'superadmin'
   type: UserType;
   examGoal: string;
   examGoals: string[];
@@ -137,6 +143,15 @@ export interface ExamPattern {
   name: string;
   fullName: string;
   category: 'school' | 'ug' | 'grad';
+  examType?: 'Government' | 'Entrance' | 'Professional' | 'Defence' | 'Corporate' | 'International';
+  domainCategory?: string;
+  conductingBody?: string;
+  examFamily?: string;
+  state?: string;
+  qualification?: string;
+  stream?: string;
+  postOrCourse?: string;
+  notificationYear?: string;
   totalQuestions: number;
   durationSec: number;
   totalMarks: number;
@@ -444,4 +459,60 @@ export interface IntegrityReport {
     description: string;
     evidenceUrl?: string;
   }[];
+}
+
+// ============================================================================
+// 10-YEAR PREVIOUS YEAR QUESTIONS (PYQ) MULTI-VOLUME SYSTEM
+// ============================================================================
+
+export interface PYQQuestion {
+  id: string;
+  examId: string;                 // 'upsc', 'gate-cs', 'jee-main', 'neet-ug', etc.
+  examName: string;
+  year: number;                   // 2015 - 2025
+  volumeId: string;               // 'vol-1', 'vol-2', 'vol-custom', etc.
+  volumeName: string;             // 'Volume I: Core & Foundations (2015-2018)'
+  paperName?: string;             // 'Paper 1 (GS)', 'Morning Slot', 'Shift 2'
+  questionNumber: number;
+  subject: string;                // 'Polity', 'Data Structures', 'Physics', etc.
+  topic: string;                  // 'Fundamental Rights', 'Binary Trees', 'Thermodynamics'
+  subtopic?: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;          // 0-indexed option
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  marks: number;
+  negativeMarks: number;
+  explanation: string;            // Detailed official/editorial worked step-by-step
+  citation?: string;              // 'UPSC CSE Prelims 2023 Paper 1 Q14', etc.
+  tags: string[];                 // ['High Frequency', 'Repeat Archetype', 'Core']
+  historicalFrequency?: string;   // 'Asked 4 times in last 7 years'
+}
+
+export interface PYQVolume {
+  id: string;
+  examId: string;
+  examName: string;
+  volumeNumber: number;
+  title: string;
+  subtitle: string;
+  yearRange: string;              // '2015 - 2018', '2019 - 2022', '2023 - 2025'
+  description: string;
+  totalQuestions: number;
+  papersCount: number;
+  subjects: string[];
+  color: string;
+  badge?: string;                 // 'Flagship', 'Reformed Pattern', 'Recent Hot'
+  isCustom?: boolean;             // true if dynamically added by SuperAdmin
+  createdAt?: string;
+}
+
+export interface PYQFilter {
+  examId?: string;
+  year?: number | 'all';
+  volumeId?: string | 'all';
+  subject?: string | 'all';
+  topic?: string | 'all';
+  difficulty?: 'all' | 'Easy' | 'Medium' | 'Hard';
+  searchQuery?: string;
 }

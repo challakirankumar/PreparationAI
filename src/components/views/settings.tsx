@@ -445,16 +445,16 @@ export function SettingsView() {
         {/* PROFILE TAB                                                     */}
         {/* ============================================================= */}
         <TabsContent value="profile" className="mt-4">
-          <Card className="border-stone-200">
+          <Card className="border-stone-200 dark:border-slate-800 dark:bg-slate-900">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <UserIcon className="h-4 w-4 text-blue-600" /> Profile
+              <CardTitle className="flex items-center gap-2 text-base text-stone-900 dark:text-white">
+                <UserIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Profile
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               {/* Avatar upload */}
               <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20 border-2 border-blue-100">
+                <Avatar className="h-20 w-20 border-2 border-blue-100 dark:border-slate-700">
                   {user.avatar ? (
                     <AvatarImage src={user.avatar} alt={user.name} />
                   ) : null}
@@ -490,7 +490,7 @@ export function SettingsView() {
                       </Button>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-stone-500 dark:text-slate-400">
                     PNG / JPG up to 2 MB. Stored locally in your browser.
                   </p>
                 </div>
@@ -519,10 +519,10 @@ export function SettingsView() {
                       id="set-email"
                       value={user.email}
                       readOnly
-                      className="pl-8 pr-24 bg-stone-50 text-stone-600"
+                      className="pl-8 pr-24 bg-stone-50 dark:bg-slate-800/80 text-stone-700 dark:text-slate-200 border-stone-200 dark:border-slate-700"
                     />
                     {user.emailVerified !== false && (
-                      <Badge className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-100 text-blue-700 border-blue-200">
+                      <Badge className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800">
                         <CheckCircle2 className="h-3 w-3" /> Verified
                       </Badge>
                     )}
@@ -596,7 +596,7 @@ export function SettingsView() {
                     </SelectContent>
                   </Select>
                   {examGoal && getPattern(examGoal) && (
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-stone-500 dark:text-slate-400">
                       {getPattern(examGoal)!.totalQuestions} questions · {Math.round(getPattern(examGoal)!.durationSec / 60)} min · {getPattern(examGoal)!.totalMarks} marks
                     </p>
                   )}
@@ -604,29 +604,33 @@ export function SettingsView() {
               </div>
 
               {/* User type badge */}
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50/60 border border-blue-100">
+              <div className="flex items-center gap-3 p-3.5 rounded-lg bg-stone-50/80 dark:bg-slate-800/90 border border-stone-200 dark:border-slate-700">
                 <div className="h-9 w-9 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
                   <GraduationCap className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  <p className="text-[10px] uppercase tracking-wider text-stone-600 dark:text-slate-300 font-bold">
                     User type
                   </p>
-                  <Badge className="mt-0.5 bg-blue-100 text-blue-700 border-blue-200">
+                  <Badge className="mt-0.5 bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800 font-semibold">
                     {USER_TYPE_LABEL[user.type] || user.type}
                   </Badge>
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-1">
-                <Button variant="outline" onClick={resetProfile}>
+                <Button
+                  variant="outline"
+                  onClick={resetProfile}
+                  className="border-stone-300 dark:border-slate-700 text-stone-700 dark:text-slate-200 hover:bg-stone-100 dark:hover:bg-slate-800"
+                >
                   Reset
                 </Button>
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm"
                   onClick={saveProfile}
                 >
-                  <Save className="h-4 w-4" /> Save changes
+                  <Save className="h-4 w-4 mr-1" /> Save changes
                 </Button>
               </div>
             </CardContent>
@@ -638,10 +642,10 @@ export function SettingsView() {
         {/* ============================================================= */}
         <TabsContent value="security" className="mt-4">
           <div className="grid lg:grid-cols-2 gap-4">
-            <Card className="border-stone-200">
+            <Card className="border-stone-200 dark:border-slate-800 dark:bg-slate-900">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Lock className="h-4 w-4 text-blue-600" /> Change password
+                <CardTitle className="flex items-center gap-2 text-base text-stone-900 dark:text-white">
+                  <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Change password
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -707,14 +711,14 @@ export function SettingsView() {
               </CardContent>
             </Card>
 
-            <Card className="border-rose-200">
+            <Card className="border-rose-200 dark:border-rose-900/60 dark:bg-slate-900">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base text-rose-700">
+                <CardTitle className="flex items-center gap-2 text-base text-rose-700 dark:text-rose-400">
                   <AlertTriangle className="h-4 w-4" /> Danger zone
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-stone-500 dark:text-slate-400">
                   Deleting your account permanently removes your profile, exam
                   attempts, mentor history, and academic records from this
                   browser. This cannot be undone.
@@ -757,13 +761,13 @@ export function SettingsView() {
         {/* ACADEMIC RECORDS TAB                                           */}
         {/* ============================================================= */}
         <TabsContent value="academic" className="mt-4 space-y-4">
-          <Card className="border-stone-200">
+          <Card className="border-stone-200 dark:border-slate-800 dark:bg-slate-900">
             <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="font-semibold flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-blue-600" /> Academic records
+                <h3 className="font-semibold flex items-center gap-2 text-stone-900 dark:text-white">
+                  <GraduationCap className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Academic records
                 </h3>
-                <p className="text-sm text-muted-foreground mt-0.5">
+                <p className="text-sm text-stone-500 dark:text-slate-400 mt-0.5">
                   Upload past exam marks and get an AI-powered readiness analysis.
                 </p>
               </div>
@@ -972,28 +976,28 @@ export function SettingsView() {
         {/* APPEARANCE TAB                                                 */}
         {/* ============================================================= */}
         <TabsContent value="appearance" className="mt-4">
-          <Card className="border-stone-200">
+          <Card className="border-stone-200 dark:border-slate-800 dark:bg-slate-900">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Moon className="h-4 w-4 text-blue-600" /> Appearance
+              <CardTitle className="flex items-center gap-2 text-base text-stone-900 dark:text-white">
+                <Moon className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Appearance
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg border border-stone-200">
+              <div className="flex items-center justify-between p-3.5 rounded-lg border border-stone-200 dark:border-slate-700 bg-stone-50/80 dark:bg-slate-800/90">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <Moon className="h-4 w-4 text-blue-600" />
+                  <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950 flex items-center justify-center border border-blue-100 dark:border-blue-900">
+                    <Moon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-stone-900">Dark mode</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-semibold text-stone-900 dark:text-white">Dark mode</p>
+                    <p className="text-xs text-stone-600 dark:text-slate-300">
                       Toggle dark theme for the app.
                     </p>
                   </div>
                 </div>
                 <Switch checked={darkMode} onCheckedChange={toggleDarkMode} />
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-stone-500 dark:text-slate-400">
                 Dark mode preference is saved to your profile and persists across
                 sessions on this device.
               </p>
@@ -1005,10 +1009,10 @@ export function SettingsView() {
         {/* NOTIFICATIONS TAB (UI-only)                                    */}
         {/* ============================================================= */}
         <TabsContent value="notifications" className="mt-4">
-          <Card className="border-stone-200">
+          <Card className="border-stone-200 dark:border-slate-800 dark:bg-slate-900">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Bell className="h-4 w-4 text-blue-600" /> Notifications
+              <CardTitle className="flex items-center gap-2 text-base text-stone-900 dark:text-white">
+                <Bell className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Notifications
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -1033,7 +1037,7 @@ export function SettingsView() {
                 checked={notifDigest}
                 onChange={setNotifDigest}
               />
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-stone-500 dark:text-slate-400 mt-2">
                 These toggles are UI-only for this demo and are not persisted.
               </p>
             </CardContent>
@@ -1062,14 +1066,14 @@ function NotifRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg border border-stone-200">
+    <div className="flex items-center justify-between p-3 rounded-lg border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-850/70">
       <div className="flex items-center gap-3">
-        <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
-          <Icon className="h-4 w-4 text-blue-600" />
+        <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/70 flex items-center justify-center">
+          <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
-          <p className="text-sm font-medium text-stone-900">{label}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-sm font-semibold text-stone-900 dark:text-white">{label}</p>
+          <p className="text-xs text-stone-500 dark:text-slate-300">{description}</p>
         </div>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
@@ -1102,14 +1106,14 @@ function AcademicRecordCard({
   );
 
   return (
-    <Card className="border-stone-200 hover:shadow-md transition">
+    <Card className="border-stone-200 dark:border-slate-800 dark:bg-slate-900 hover:shadow-md transition">
       <CardContent className="p-5 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="font-semibold text-stone-900 truncate">
+            <h3 className="font-semibold text-stone-900 dark:text-white truncate">
               {record.examName}
             </h3>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+            <p className="text-xs text-stone-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
               <Calendar className="h-3 w-3" />{' '}
               {new Date(record.date).toLocaleDateString('en-US', {
                 day: 'numeric',
@@ -1123,10 +1127,10 @@ function AcademicRecordCard({
             className={cn(
               'border',
               accent === 'blue'
-                ? 'bg-blue-100 text-blue-700 border-blue-200'
+                ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'
                 : accent === 'amber'
-                ? 'bg-amber-100 text-amber-700 border-amber-200'
-                : 'bg-rose-100 text-rose-700 border-rose-200'
+                ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                : 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
             )}
           >
             {record.percentage.toFixed(1)}%
@@ -1134,10 +1138,10 @@ function AcademicRecordCard({
         </div>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-stone-900">
+          <span className="text-2xl font-bold text-stone-900 dark:text-white">
             {record.totalMarks}
           </span>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-stone-500 dark:text-slate-400">
             / {record.maxMarks} marks
           </span>
         </div>
@@ -1151,15 +1155,15 @@ function AcademicRecordCard({
             return (
               <div key={i} className="space-y-0.5">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-medium text-stone-700 truncate">
+                  <span className="font-medium text-stone-700 dark:text-slate-200 truncate">
                     {s.name}
                   </span>
-                  <span className="text-muted-foreground tabular-nums">
+                  <span className="text-stone-500 dark:text-slate-400 tabular-nums">
                     {s.marks}/{s.maxMarks}
                     {s.grade ? ` · ${s.grade}` : ''}
                   </span>
                 </div>
-                <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-stone-100 dark:bg-slate-800 overflow-hidden">
                   <div
                     className={cn('h-full rounded-full transition-all', sc)}
                     style={{ width: `${(sp / maxSubjectPct) * 100}%` }}
@@ -1173,12 +1177,12 @@ function AcademicRecordCard({
         {/* Overall bar */}
         <div>
           <div className="flex items-center justify-between text-[11px] mb-0.5">
-            <span className="text-muted-foreground">Overall</span>
-            <span className="font-semibold text-stone-700">
+            <span className="text-stone-500 dark:text-slate-400">Overall</span>
+            <span className="font-semibold text-stone-700 dark:text-slate-200">
               {pct.toFixed(1)}%
             </span>
           </div>
-          <div className="h-2 rounded-full bg-stone-100 overflow-hidden">
+          <div className="h-2 rounded-full bg-stone-100 dark:bg-slate-800 overflow-hidden">
             <div
               className={cn('h-full rounded-full', barColor)}
               style={{ width: `${pct}%` }}
@@ -1186,11 +1190,11 @@ function AcademicRecordCard({
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-stone-100">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-stone-100 dark:border-slate-800">
           {record.aiAnalysis ? (
             <Button
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
               onClick={onViewAnalysis}
             >
               <Brain className="h-3.5 w-3.5" /> View AI analysis
@@ -1198,7 +1202,7 @@ function AcademicRecordCard({
           ) : (
             <Badge
               variant="outline"
-              className="bg-stone-50 text-stone-500"
+              className="bg-stone-50 dark:bg-slate-800 text-stone-500 dark:text-slate-400 border-stone-200 dark:border-slate-700"
             >
               <Loader2 className="h-3 w-3 animate-spin" /> Awaiting analysis
             </Badge>
@@ -1206,7 +1210,7 @@ function AcademicRecordCard({
           <Button
             size="sm"
             variant="ghost"
-            className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+            className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700"
             onClick={onRemove}
           >
             <Trash2 className="h-3.5 w-3.5" /> Remove

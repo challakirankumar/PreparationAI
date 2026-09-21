@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { PremiumHeader } from '@/components/shared/premium-header';
 import {
   MessageSquare, Brain, Mic, HelpCircle, BookOpen, TrendingUp, UserCog,
-  Sparkles, Gauge, Trophy, School, Radar, ArrowRight, Sparkle,
+  Sparkles, Gauge, Trophy, School, Radar, ArrowRight, Sparkle, Code2,
 } from 'lucide-react';
 
 interface AgentCard {
@@ -22,6 +22,16 @@ interface AgentCard {
 }
 
 const AGENT_CARDS: AgentCard[] = [
+  {
+    id: 'coding-arena',
+    title: 'Coding Arena & Judge',
+    subtitle: 'LeetCode & HackerRank DSA Studio',
+    description:
+      'Solve coding problems across 10 programming languages (Python, Java, C++, JS, TS, C, Go, Rust, C#, SQL). Includes test case execution, time/memory telemetry, test suite judge, and Socratic AI hints.',
+    icon: Code2,
+    accent: 'from-blue-600 to-indigo-700',
+    badge: 'New',
+  },
   {
     id: 'mentor',
     title: 'AI Mentor',

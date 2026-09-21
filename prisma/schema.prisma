@@ -1,10 +1,5 @@
 // ============================================================================
-// PreparationAI — Prisma schema
-// ----------------------------------------------------------------------------
-// SQLite for local dev (file:./db/custom.db). Switch the `provider` to
-// "postgresql" and set DATABASE_URL to a Postgres connection string when
-// deploying to production (Vercel + Neon / Supabase / Railway / etc.). The
-// rest of the schema works identically on both providers.
+// PreparationAI — Prisma schema (MongoDB Atlas)
 // ============================================================================
 
 generator client {
@@ -12,42 +7,42 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 // ----------------------------------------------------------------------------
-// User — primary account record (replaces the localStorage user object)
+// User — primary account record
 // ----------------------------------------------------------------------------
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  phone        String?
-  country      String?
-  institution  String?  // school / college / university name
-  userType     String   @default("school-12") // school-11 | school-12 | ug | grad
-  examGoal     String   @default("")          // primary exam id
-  examGoals    String   @default("")          // JSON-encoded string[]
-  examDates    String   @default("{}")        // JSON-encoded Record<string,string>
-  examDate     String?                          // ISO yyyy-mm-dd primary
-  targetScore  Int?
-  avatar       String?
-  darkMode     Boolean  @default(false)
-  emailVerified Boolean @default(false)
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  email         String   @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  country       String?
+  institution   String?  // school / college / university name
+  userType      String   @default("school-12") // school-11 | school-12 | ug | grad
+  examGoal      String   @default("")          // primary exam id
+  examGoals     String   @default("")          // JSON-encoded string[]
+  examDates     String   @default("{}")        // JSON-encoded Record<string,string>
+  examDate      String?                        // ISO yyyy-mm-dd primary
+  targetScore   Int?
+  avatar        String?
+  darkMode      Boolean  @default(false)
+  emailVerified Boolean  @default(false)
   // Clock widget preferences (used by the live clock on the dashboard)
-  clockTimezone String  @default("Asia/Kolkata")  // IANA tz name
-  clockFace    String   @default("digital")        // "digital" | "analog"
-  clockTheme   String   @default("day")            // "day" | "dark"
-  joinedAt     DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  clockTimezone String   @default("Asia/Kolkata")  // IANA tz name
+  clockFace     String   @default("digital")        // "digital" | "analog"
+  clockTheme    String   @default("day")            // "day" | "dark"
+  joinedAt      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  attempts          ExamAttempt[]
-  mentorMessages    MentorMessage[]
-  notifications     Notification[]
-  seenSignatures    SeenQuestionSignature[]
-  academicRecords   AcademicRecord[]
+  attempts        ExamAttempt[]
+  mentorMessages  MentorMessage[]
+  notifications   Notification[]
+  seenSignatures  SeenQuestionSignature[]
+  academicRecords AcademicRecord[]
 
   @@map("users")
 }
@@ -56,34 +51,32 @@ model User {
 // ExamAttempt — one row per mock exam submission
 // ----------------------------------------------------------------------------
 model ExamAttempt {
-  id              String   @id @default(cuid())
-  userId           String
-  examId          String
-  examName        String
-  startedAt       DateTime
-  submittedAt     DateTime @default(now())
-  durationSec     Int
-  score           Float
-  totalMarks      Float
-  percentile      Float
-  rank            Int
-  accuracy        Float
-  speed           Float
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String   @db.ObjectId
+  examId             String
+  examName           String
+  startedAt          DateTime
+  submittedAt        DateTime @default(now())
+  durationSec        Int
+  score              Float
+  totalMarks         Float
+  percentile         Float
+  rank               Int
+  accuracy           Float
+  speed              Float
   avgTimePerQuestion Int
-  readinessIndex  Int
-  attemptNumber   Int      @default(1)
-  // JSON-encoded blobs — kept as text so SQLite can store them without
-  // migrations when the shape evolves. The API layer (de)serializes.
-  answers         String   @default("{}") // Record<string, AnswerValue>
-  subjectScores   String   @default("[]")
-  topicScores     String   @default("[]")
-  results         String   @default("[]")
-  youtubeRecs     String   @default("[]")
-  weakTopics      String   @default("[]")
-  strongTopics    String   @default("[]")
-  behavior        String?  // JSON-encoded BehaviorAnalysis
+  readinessIndex     Int
+  attemptNumber      Int      @default(1)
+  answers            String   @default("{}") // Record<string, AnswerValue>
+  subjectScores      String   @default("[]")
+  topicScores        String   @default("[]")
+  results            String   @default("[]")
+  youtubeRecs        String   @default("[]")
+  weakTopics         String   @default("[]")
+  strongTopics       String   @default("[]")
+  behavior           String?  // JSON-encoded BehaviorAnalysis
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, examId])
   @@map("exam_attempts")
@@ -93,8 +86,8 @@ model ExamAttempt {
 // MentorMessage — saved AI Mentor conversation per user
 // ----------------------------------------------------------------------------
 model MentorMessage {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   role      String   // 'user' | 'assistant'
   content   String
   createdAt DateTime @default(now())
@@ -109,8 +102,8 @@ model MentorMessage {
 // Notification — bell-icon notifications
 // ----------------------------------------------------------------------------
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   type      String   // 'welcome' | 'mock_submitted' | 'achievement' | 'system' | 'nudge'
   title     String
   body      String
@@ -128,8 +121,8 @@ model Notification {
 // SeenQuestionSignature — per-user cross-attempt question dedup memory
 // ----------------------------------------------------------------------------
 model SeenQuestionSignature {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   signature String
   createdAt DateTime @default(now())
 
@@ -141,13 +134,13 @@ model SeenQuestionSignature {
 }
 
 // ----------------------------------------------------------------------------
-// AcademicRecord — uploaded marksheet analyses (optional, used by some agents)
+// AcademicRecord — uploaded marksheet analyses
 // ----------------------------------------------------------------------------
 model AcademicRecord {
-  id          String   @id @default(cuid())
-  userId      String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
   examName    String
-  institution  String?
+  institution String?
   totalMarks  Float
   maxMarks    Float
   percentage  Float
@@ -155,7 +148,7 @@ model AcademicRecord {
   date        String
   uploadedAt  DateTime @default(now())
   subjects    String   @default("[]") // JSON
-  aiAnalysis  String?               // JSON
+  aiAnalysis  String?                 // JSON
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
