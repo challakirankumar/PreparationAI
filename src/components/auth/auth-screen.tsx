@@ -555,6 +555,40 @@ export function AuthScreen({
                     <Sparkles className="h-4 w-4" />
                   </Button>
                 </form>
+
+                {/* 1-Click Demo Credentials */}
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">
+                    ⚡ Quick Demo Login
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-8 border-slate-200 hover:bg-blue-50 hover:text-blue-700 font-semibold"
+                      onClick={() => {
+                        setEmail('student@preparationai.com');
+                        setPassword('password123');
+                      }}
+                    >
+                      🎓 Student
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-8 border-amber-200 bg-amber-50/50 hover:bg-amber-100/70 text-amber-900 font-semibold"
+                      onClick={() => {
+                        setEmail('admin@preparationai.com');
+                        setPassword('adminpassword123');
+                      }}
+                    >
+                      🛡️ SuperAdmin
+                    </Button>
+                  </div>
+                </div>
+
                 <p className="text-[11px] text-muted-foreground text-center">
                   By continuing you agree to our Terms & Privacy Policy.
                 </p>
