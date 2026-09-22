@@ -47,9 +47,9 @@ export const COUNTRIES: CountryInfo[] = [
   },
   {
     code: 'ae',
-    name: 'UAE',
+    name: 'UAE (GCC)',
     flag: '🇦🇪',
-    popularExams: ['ielts', 'toefl', 'sat', 'gre', 'gmat'],
+    popularExams: ['jee-main', 'neet', 'ielts', 'toefl', 'sat', 'gre', 'gmat'],
   },
   {
     code: 'sg',
@@ -95,9 +95,33 @@ export const COUNTRIES: CountryInfo[] = [
   },
   {
     code: 'sa',
-    name: 'Saudi Arabia',
+    name: 'Saudi Arabia (GCC)',
     flag: '🇸🇦',
-    popularExams: ['ielts', 'toefl', 'sat', 'gre', 'gmat'],
+    popularExams: ['jee-main', 'neet', 'ielts', 'toefl', 'sat', 'gre', 'gmat'],
+  },
+  {
+    code: 'qa',
+    name: 'Qatar (GCC)',
+    flag: '🇶🇦',
+    popularExams: ['jee-main', 'neet', 'ielts', 'toefl', 'sat'],
+  },
+  {
+    code: 'om',
+    name: 'Oman (GCC)',
+    flag: '🇴🇲',
+    popularExams: ['jee-main', 'neet', 'ielts', 'toefl', 'sat'],
+  },
+  {
+    code: 'kw',
+    name: 'Kuwait (GCC)',
+    flag: '🇰🇼',
+    popularExams: ['jee-main', 'neet', 'ielts', 'toefl', 'sat'],
+  },
+  {
+    code: 'bh',
+    name: 'Bahrain (GCC)',
+    flag: '🇧🇭',
+    popularExams: ['jee-main', 'neet', 'ielts', 'toefl', 'sat'],
   },
   {
     code: 'other',
@@ -106,6 +130,23 @@ export const COUNTRIES: CountryInfo[] = [
     popularExams: ['ielts', 'toefl', 'sat', 'gre', 'gmat'],
   },
 ];
+
+export type ExamRegion = 'India' | 'GCC' | 'Global';
+
+export const GCC_COUNTRY_CODES = ['ae', 'sa', 'qa', 'om', 'kw', 'bh'];
+
+export function getRegionForCountry(countryCode?: string): ExamRegion {
+  if (!countryCode) return 'India';
+  const c = countryCode.toLowerCase().trim();
+  if (c === 'in' || c === 'india') return 'India';
+  if (
+    GCC_COUNTRY_CODES.includes(c) ||
+    ['gcc', 'uae', 'united arab emirates', 'dubai', 'abu dhabi', 'saudi', 'saudi arabia', 'qatar', 'doha', 'oman', 'muscat', 'kuwait', 'bahrain'].some((k) => c.includes(k))
+  ) {
+    return 'GCC';
+  }
+  return 'Global';
+}
 
 /**
  * Returns the list of popular exam IDs for a country code.

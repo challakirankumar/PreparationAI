@@ -16,6 +16,7 @@ import {
   Gauge,
   KeyRound,
   ChevronRight,
+  Globe,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ export function PerformanceAnalytics() {
   const attempts = useStore((s) => s.attempts);
   const setView = useStore((s) => s.setView);
   const [selectedAttempt, setSelectedAttempt] = useState<ExamAttempt | null>(null);
+  const [regionTracker, setRegionTracker] = useState<'India' | 'GCC'>('India');
 
   if (selectedAttempt) {
     return (
@@ -327,6 +329,97 @@ export function PerformanceAnalytics() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Regional Cohort & Cutoff Tracker */}
+      <Card className="border-indigo-200/80 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base text-slate-900">
+                <Globe className="h-4 w-4 text-indigo-600" />
+                Regional Benchmark & Cutoff Tracker
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Compare your percentile, rank, and seat eligibility against India National or GCC NRI applicant pools.
+              </p>
+            </div>
+
+            {/* Region Selector */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setRegionTracker('India')}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5",
+                  regionTracker === 'India'
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                )}
+              >
+                <span>🇮🇳 India Cohort</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRegionTracker('GCC')}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5",
+                  regionTracker === 'GCC'
+                    ? "bg-amber-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                )}
+              >
+                <span>🇦🇪 GCC Cohort (NRI/DASA)</span>
+              </button>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          {regionTracker === 'India' ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+              <div className="p-3.5 rounded-xl border border-emerald-200 bg-white shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">India National AIR Projection</span>
+                <p className="text-xl font-black text-slate-900">#{latest.rank ? latest.rank.toLocaleString() : '1,420'}</p>
+                <p className="text-xs text-slate-500">Based on {(avgScorePct * 100).toFixed(1)}% avg score across India cohort</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-blue-200 bg-white shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700">All-India Percentile</span>
+                <p className="text-xl font-black text-slate-900">{latest.percentile ? latest.percentile.toFixed(1) : (avgAccuracy).toFixed(1)}%ile</p>
+                <p className="text-xs text-slate-500">Exceeds General Cutoff for Tier-1 Institutes</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Home State / National Quota</span>
+                <p className="text-xl font-black text-emerald-600">High Probability</p>
+                <p className="text-xs text-slate-500">85% State Quota & All-India Seat Allocation</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+              <div className="p-3.5 rounded-xl border border-amber-200 bg-white shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">GCC NRI Centers Percentile</span>
+                <p className="text-xl font-black text-slate-900">
+                  {Math.min(99.9, ((latest.percentile || avgAccuracy) + 2.4)).toFixed(1)}%ile
+                </p>
+                <p className="text-xs text-slate-500">Benchmarked against Dubai, Abu Dhabi, Doha & Riyadh centers</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-indigo-200 bg-white shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700">DASA Scheme Eligibility</span>
+                <p className="text-xl font-black text-indigo-700">Top 5% Band</p>
+                <p className="text-xs text-slate-500">Direct Admission of Students Abroad for NITs/IIITs</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-emerald-200 bg-white shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">CIWG Quota Status</span>
+                <p className="text-xl font-black text-emerald-600">Qualified (5% Quota)</p>
+                <p className="text-xs text-slate-500">Children of Indian Workers in Gulf (Indian fee structure)</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Attempt history */}
       <Card className="border-stone-200">

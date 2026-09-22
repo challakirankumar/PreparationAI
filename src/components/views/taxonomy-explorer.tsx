@@ -27,7 +27,8 @@ import {
   Zap,
   Filter,
   Check,
-  Scale
+  Scale,
+  Globe,
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import {
@@ -62,14 +63,22 @@ export default function TaxonomyExplorerView() {
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [csAiOnly, setCsAiOnly] = useState(false);
+  const [regionFilter, setRegionFilter] = useState<'All' | 'India' | 'GCC'>('All');
 
   // Calculate search results
   const searchResults = searchQuery.trim().length >= 2 ? searchMasterTaxonomy(searchQuery) : [];
 
   // Filtered categories
-  const displayedCategories = csAiOnly
+  const displayedCategories = (csAiOnly
     ? MASTER_EXAM_TAXONOMY.filter(cat => cat.exams.some(e => e.isCSOrAIRelated))
-    : MASTER_EXAM_TAXONOMY;
+    : MASTER_EXAM_TAXONOMY
+  ).filter(cat => {
+    if (regionFilter === 'GCC') {
+      // Show exams conducted in GCC centers or NRI DASA eligible (Engineering, Medical, Overseas)
+      return ['Engineering & Architecture', 'Medical & Dental', 'Management & Business', 'Overseas Admissions', 'School & Foundation'].includes(cat.categoryName);
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-8 animate-fade-in pb-16">
@@ -100,7 +109,38 @@ export default function TaxonomyExplorerView() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Region Tracker Filter */}
+            <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+              <span className="text-[11px] font-bold text-slate-400 px-2 uppercase tracking-wider flex items-center gap-1">
+                <Globe className="w-3.5 h-3.5 text-cyan-400" /> Region:
+              </span>
+              <button
+                onClick={() => setRegionFilter('All')}
+                className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                  regionFilter === 'All' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setRegionFilter('India')}
+                className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1 ${
+                  regionFilter === 'India' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span>🇮🇳 India</span>
+              </button>
+              <button
+                onClick={() => setRegionFilter('GCC')}
+                className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1 ${
+                  regionFilter === 'GCC' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span>🇦🇪 GCC</span>
+              </button>
+            </div>
+
             <button
               onClick={() => setCsAiOnly(!csAiOnly)}
               className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 border transition-all cursor-pointer ${
@@ -110,7 +150,7 @@ export default function TaxonomyExplorerView() {
               }`}
             >
               <Code2 className="w-4 h-4" />
-              <span>{csAiOnly ? '✓ CS / IT / AI Filter Active' : 'Filter CS / IT / AI Opportunities'}</span>
+              <span>{csAiOnly ? '✓ CS / IT / AI Active' : 'CS / IT / AI'}</span>
             </button>
           </div>
         </div>

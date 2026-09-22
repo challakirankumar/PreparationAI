@@ -30,13 +30,16 @@ import {
   Layers,
   Terminal,
   ShieldCheck,
-  Check
+  Check,
+  Globe
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { User, PYQVolume, PYQQuestion } from '@/lib/types';
 import { EXAM_PATTERNS } from '@/lib/exams/patterns';
 import { DEFAULT_PYQ_VOLUMES, DEFAULT_PYQ_QUESTIONS } from '@/lib/pyq/volume-bank';
+import { cn } from '@/lib/utils';
+import { getRegionForCountry } from '@/lib/country-exam-data';
 
 const EXAMS = EXAM_PATTERNS;
 
@@ -57,6 +60,7 @@ export default function SuperadminPortalView() {
   // Student surveillance filters & inspector
   const [searchQuery, setSearchQuery] = useState('');
   const [examFilter, setExamFilter] = useState<string>('all');
+  const [regionFilter, setRegionFilter] = useState<'all' | 'india' | 'gcc'>('all');
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
 
   // New Volume Form State
@@ -92,11 +96,27 @@ export default function SuperadminPortalView() {
     userList.unshift(user);
   }
 
+  // Helper to determine candidate region
+  const getUserRegion = (u: User): 'India' | 'GCC' => {
+    const reg = getRegionForCountry(u.country);
+    if (reg === 'GCC') return 'GCC';
+    // Check phone code
+    const phone = u.phone || '';
+    if (['+971', '+966', '+974', '+968', '+965', '+973'].some(p => phone.startsWith(p))) return 'GCC';
+    return 'India';
+  };
+
+  // Regional breakdown
+  const indiaCount = userList.filter(u => getUserRegion(u) === 'India').length;
+  const gccCount = userList.filter(u => getUserRegion(u) === 'GCC').length;
+
   // Filter students
   const filteredStudents = userList.filter(u => {
     const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesExam = examFilter === 'all' || u.targetExam === examFilter;
-    return matchesSearch && matchesExam;
+    const reg = getUserRegion(u);
+    const matchesRegion = regionFilter === 'all' || (regionFilter === 'india' && reg === 'India') || (regionFilter === 'gcc' && reg === 'GCC');
+    return matchesSearch && matchesExam && matchesRegion;
   });
 
   // Calculate high-level stats
@@ -253,7 +273,7 @@ export default function SuperadminPortalView() {
         </div>
 
         {/* Top KPI row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800/80">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-8 pt-6 border-t border-slate-800/80">
           <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-slate-800">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400 uppercase">Enrolled Students</span>
@@ -267,12 +287,23 @@ export default function SuperadminPortalView() {
 
           <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-slate-800">
             <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-400 uppercase">Region Split</span>
+              <Globe className="w-4 h-4 text-emerald-400" />
+            </div>
+            <p className="text-lg font-black text-white mt-1">🇮🇳 {indiaCount} · 🇦🇪 {gccCount}</p>
+            <span className="text-[11px] text-cyan-400 flex items-center gap-1 mt-1 font-medium">
+              India & GCC Active
+            </span>
+          </div>
+
+          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-slate-800">
+            <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400 uppercase">10Y PYQ Volumes</span>
               <BookOpen className="w-4 h-4 text-amber-400" />
             </div>
             <p className="text-2xl font-black text-white mt-1">{allVolumes.length}</p>
             <span className="text-[11px] text-amber-400 flex items-center gap-1 mt-1 font-medium">
-              <Layers className="w-3 h-3" /> N-Volume Multi-Tier Bank
+              <Layers className="w-3 h-3" /> N-Volume Bank
             </span>
           </div>
 
@@ -287,7 +318,7 @@ export default function SuperadminPortalView() {
             </span>
           </div>
 
-          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-slate-800">
+          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-slate-800 col-span-2 sm:col-span-1">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400 uppercase">System Integrity</span>
               <ShieldAlert className="w-4 h-4 text-emerald-400" />
@@ -360,8 +391,8 @@ export default function SuperadminPortalView() {
       {/* TAB 1: Student Surveillance & Inspection */}
       {activeTab === 'students' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/70 p-4 rounded-2xl border border-slate-800">
-            <div className="relative w-full sm:w-80">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-slate-900/70 p-4 rounded-2xl border border-slate-800">
+            <div className="relative flex-1 max-w-sm">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
@@ -372,18 +403,59 @@ export default function SuperadminPortalView() {
               />
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <label className="text-xs text-slate-400 whitespace-nowrap font-medium">Filter Target Exam:</label>
-              <select
-                value={examFilter}
-                onChange={e => setExamFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
-              >
-                <option value="all">All Registered Exams (40+)</option>
-                {EXAMS.map(x => (
-                  <option key={x.id} value={x.id}>{x.name}</option>
-                ))}
-              </select>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Region Filter Section */}
+              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <span className="text-[11px] font-bold text-slate-400 px-2 uppercase tracking-wider flex items-center gap-1">
+                  <Globe className="w-3 h-3 text-cyan-400" /> Region:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setRegionFilter('all')}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                    regionFilter === 'all' ? "bg-indigo-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                  )}
+                >
+                  All ({userList.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRegionFilter('india')}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1",
+                    regionFilter === 'india' ? "bg-emerald-600 text-white shadow-sm font-bold" : "text-slate-400 hover:text-slate-200"
+                  )}
+                >
+                  <span>🇮🇳 India</span>
+                  <span className="text-[10px] opacity-80 font-normal">({indiaCount})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRegionFilter('gcc')}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1",
+                    regionFilter === 'gcc' ? "bg-amber-600 text-white shadow-sm font-bold" : "text-slate-400 hover:text-slate-200"
+                  )}
+                >
+                  <span>🇦🇪 GCC</span>
+                  <span className="text-[10px] opacity-80 font-normal">({gccCount})</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-slate-400 whitespace-nowrap font-medium">Exam:</label>
+                <select
+                  value={examFilter}
+                  onChange={e => setExamFilter(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="all">All Registered Exams (40+)</option>
+                  {EXAMS.map(x => (
+                    <option key={x.id} value={x.id}>{x.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -393,6 +465,7 @@ export default function SuperadminPortalView() {
               <thead className="bg-slate-950 text-slate-400 font-semibold text-xs uppercase tracking-wider border-b border-slate-800">
                 <tr>
                   <th className="px-6 py-4">Student & Account</th>
+                  <th className="px-6 py-4">Region</th>
                   <th className="px-6 py-4">Target Exam</th>
                   <th className="px-6 py-4">Role / Access</th>
                   <th className="px-6 py-4">Readiness & Streak</th>
@@ -403,7 +476,7 @@ export default function SuperadminPortalView() {
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                       No student records match the search filter.
                     </td>
                   </tr>
@@ -411,6 +484,7 @@ export default function SuperadminPortalView() {
                   filteredStudents.map(student => {
                     const targetExamObj = EXAMS.find(x => x.id === student.targetExam);
                     const role = student.role || 'student';
+                    const reg = getUserRegion(student);
 
                     return (
                       <tr key={student.id} className="hover:bg-slate-800/40 transition-colors">
@@ -429,6 +503,17 @@ export default function SuperadminPortalView() {
                               <div className="text-xs text-slate-400">{student.email}</div>
                             </div>
                           </div>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <span className={cn(
+                            "px-2.5 py-1 rounded-lg text-xs font-bold border inline-flex items-center gap-1.5",
+                            reg === 'GCC'
+                              ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                              : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                          )}>
+                            {reg === 'GCC' ? '🇦🇪 GCC' : '🇮🇳 India'}
+                          </span>
                         </td>
 
                         <td className="px-6 py-4">
