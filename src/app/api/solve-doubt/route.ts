@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
+import { executeAI } from '@/lib/ai-engine';
 import { getEduScope, buildContext } from '@/lib/ai-guards/eduscope';
 import type { User } from '@/lib/types';
 
@@ -104,30 +104,17 @@ Be concise (≤ 280 words), warm, and exam-focused.`;
   }
 
   try {
-    const zai = await ZAI.create();
+    const aiRes = await executeAI({
+      systemPrompt: decision.rewrittenSystemPrompt,
+      messages: [
+        ...(body.history ?? []).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+        { role: 'user', content: finalUserText },
+      ],
+      imageDataUrl: body.imageDataUrl,
+      imageUrl: body.imageUrl,
+    });
 
-    // If we have an image, use the vision endpoint; else fall back to chat.
-    const hasImageForCall = hasImage;
-    const completion = hasImageForCall
-      ? await (zai as any).chat.completions.createVision({
-          messages: [
-            { role: 'system', content: decision.rewrittenSystemPrompt },
-            ...(body.history ?? []).map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: userContent },
-          ],
-          thinking: { type: 'disabled' },
-        })
-      : await zai.chat.completions.create({
-          model: 'glm-4.6',
-          stream: false,
-          messages: [
-            { role: 'system', content: decision.rewrittenSystemPrompt },
-            ...(body.history ?? []).map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: finalUserText },
-          ],
-        });
-
-    let reply = completion?.choices?.[0]?.message?.content || "I couldn't analyse that. Could you upload a clearer image or rephrase your question?";
+    let reply = aiRes.content || "I couldn't analyse that. Could you upload a clearer image or rephrase your question?";
 
     // Inspect response for safety/PII
     const inspection = guard.inspectResponse(reply, decision.auditId);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   BarChart3,
   Target,
@@ -14,6 +14,8 @@ import {
   Trophy,
   Clock,
   Gauge,
+  KeyRound,
+  ChevronRight,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,10 +23,36 @@ import { Badge } from '@/components/ui/badge';
 import { PageHeader, StatCard } from '@/components/shared';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { ExamResults } from '@/components/mock-exam/exam-results';
+import type { ExamAttempt } from '@/lib/types';
 
 export function PerformanceAnalytics() {
   const attempts = useStore((s) => s.attempts);
   const setView = useStore((s) => s.setView);
+  const [selectedAttempt, setSelectedAttempt] = useState<ExamAttempt | null>(null);
+
+  if (selectedAttempt) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setSelectedAttempt(null)} className="text-slate-600">
+            ← Back to Analytics Overview
+          </Button>
+          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+            Viewing Past Mock Solutions
+          </Badge>
+        </div>
+        <ExamResults
+          attempt={selectedAttempt}
+          onRetake={() => {
+            setSelectedAttempt(null);
+            setView('mock-exam');
+          }}
+          onExit={() => setSelectedAttempt(null)}
+        />
+      </div>
+    );
+  }
 
   // Empty state
   if (attempts.length === 0) {
@@ -348,6 +376,14 @@ export function PerformanceAnalytics() {
                         Strong: {a.strongTopics[0]}
                       </Badge>
                     )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs font-semibold text-blue-700 border-blue-200 hover:bg-blue-50 ml-auto"
+                      onClick={() => setSelectedAttempt(a)}
+                    >
+                      <KeyRound className="h-3 w-3 mr-1" /> View Key & Solutions
+                    </Button>
                   </div>
                 </div>
               );

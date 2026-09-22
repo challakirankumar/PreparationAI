@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
+import { executeAI } from '@/lib/ai-engine';
 import { getPyqExam } from '@/lib/pyq/pyq-data';
 import { computeExamTrendReport } from '@/lib/pyq/trend-engine';
 import { getEduScope } from '@/lib/ai-guards/eduscope';
@@ -165,7 +165,6 @@ interface PyqAnalysis {
 Return ONLY the JSON object.`;
 
   try {
-    const zai = await ZAI.create();
     const systemContentWithSchema = decision.rewrittenSystemPrompt + `
 
 The JSON must conform to this TypeScript interface:
@@ -180,16 +179,13 @@ interface PyqAnalysis {
   generatedAt: string;
 }`;
 
-    const completion = await zai.chat.completions.create({
-      model: 'glm-4.6',
-      stream: false,
-      messages: [
-        { role: 'system', content: systemContentWithSchema },
-        { role: 'user', content: decision.sanitizedPrompt || userContent },
-      ],
+    const aiRes = await executeAI({
+      systemPrompt: systemContentWithSchema,
+      messages: [{ role: 'user', content: decision.sanitizedPrompt || userContent }],
+      jsonMode: true,
     });
 
-    const raw = completion?.choices?.[0]?.message?.content || '';
+    const raw = aiRes.content || '';
     const parsed = extractJsonObject(raw);
     if (parsed && isPyqAnalysis(parsed)) {
       const analysis = parsed as PyqAnalysis;

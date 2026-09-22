@@ -212,6 +212,7 @@ export async function POST(request: Request) {
       readinessIndex,
       attemptNumber,
       behavior: behaviour,
+      questions: exam.questions,
     };
 
     // Auto-ingest wrong answers into the Error Journal (if userId provided)

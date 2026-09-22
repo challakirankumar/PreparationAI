@@ -44,6 +44,7 @@ import {
   Code2,
   ShieldCheck,
   Layers,
+  Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,6 +62,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
+import { useSubscriptionStore, PLANS } from '@/lib/subscription/store';
 import { getPattern } from '@/lib/exams/patterns';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { AISearchBar } from '@/components/search/ai-search-bar';
@@ -107,8 +109,9 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     ],
   },
   {
-    title: 'Account',
+    title: 'Account & Plans',
     items: [
+      { id: 'pricing', label: 'Upgrade to Pro ⚡', icon: Zap },
       { id: 'settings', label: 'Settings', icon: Settings2 },
     ],
   },
@@ -481,6 +484,7 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
 function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const user = useStore((s) => s.user);
   const setView = useStore((s) => s.setView);
+  const currentPlan = useSubscriptionStore((s) => s.currentPlan);
   if (!user) return null;
 
   return (
@@ -504,8 +508,25 @@ function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       {/* Spacer — pushes right cluster to the right edge */}
       <div className="flex-1" />
 
-      {/* Right cluster — search + notifications + profile, tightly grouped */}
+      {/* Right cluster — subscription status + search + notifications + profile */}
       <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        {/* Subscription Plan Badge / Upgrade Button */}
+        {currentPlan === 'free' ? (
+          <button
+            onClick={() => setView('pricing')}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-sm hover:opacity-95 transition-all hover:scale-105"
+          >
+            <Zap className="h-3.5 w-3.5 fill-white" /> Upgrade Pro
+          </button>
+        ) : (
+          <button
+            onClick={() => setView('pricing')}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm hover:opacity-95 transition-all"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> {PLANS[currentPlan].name}
+          </button>
+        )}
+
         {/* AI Semantic Search — beside the notification bell */}
         <div className="hidden md:block">
           <AISearchBar />

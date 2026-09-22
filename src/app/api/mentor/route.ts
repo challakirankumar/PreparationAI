@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
+import { executeAI } from '@/lib/ai-engine';
 import { getEduScope, buildContext } from '@/lib/ai-guards/eduscope';
 import type { User } from '@/lib/types';
 
@@ -67,17 +67,12 @@ Limit response to 250 words unless asked otherwise. Never invent fake scores; if
           : m.content,
     }));
 
-    const zai = await ZAI.create();
-    const completion = await zai.chat.completions.create({
-      model: 'glm-4.6',
-      stream: false,
-      messages: [
-        { role: 'system', content: systemContent },
-        ...finalUserMessages,
-      ],
+    const aiRes = await executeAI({
+      systemPrompt: systemContent,
+      messages: finalUserMessages,
     });
 
-    let reply = completion?.choices?.[0]?.message?.content || 'I am here to help. Could you rephrase your question?';
+    let reply = aiRes.content || 'I am here to help. Could you rephrase your question?';
 
     // Inspect the model's response for safety/PII before returning.
     const inspection = guard.inspectResponse(reply, decision.auditId);

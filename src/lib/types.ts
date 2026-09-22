@@ -38,6 +38,7 @@ export type View =
   | 'coding-arena'
   | 'pyq-archive'
   | 'superadmin'
+  | 'pricing'
   | 'taxonomy';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
@@ -116,6 +117,13 @@ export interface BaseQuestion {
   marks: number;
   negativeMarks: number;
   unit?: string;
+  isPYQ?: boolean;
+  pyqYear?: number | string;
+  pyqExam?: string;
+  frequencyCount?: number;
+  repeatTag?: 'Most Repeated' | 'High Yield' | 'Direct PYQ' | 'Trending';
+  appearedYears?: number[];
+  explanation?: string;
 }
 
 export type Question = BaseQuestion;
@@ -269,6 +277,7 @@ export interface ExamAttempt {
   readinessIndex: number;
   attemptNumber?: number;
   behavior?: BehaviorAnalysis;
+  questions?: Question[];
 }
 
 export interface ChatMessage {

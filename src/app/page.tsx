@@ -40,18 +40,21 @@ import { CodingArenaView } from '@/components/views/coding-arena';
 import PYQArchiveView from '@/components/views/pyq-archive';
 import SuperadminPortalView from '@/components/views/superadmin-portal';
 import TaxonomyExplorerView from '@/components/views/taxonomy-explorer';
+import { PricingPortalView } from '@/components/views/pricing-portal';
 import { SubModuleHeader } from '@/components/shared/sub-module-header';
 import type { View } from '@/lib/types';
 import {
   MessageSquare, Brain, Mic, HelpCircle, BookOpen, TrendingUp, UserCog,
   Sparkles, Gauge, Trophy, School, Radar,
-  Briefcase, GraduationCap, Award,
+  Briefcase, GraduationCap, Award, Zap,
 } from 'lucide-react';
 
 function ViewRouter({ view }: { view: View }) {
   switch (view) {
     case 'dashboard':
       return <Dashboard />;
+    case 'pricing':
+      return <PricingPortalView />;
     case 'taxonomy':
       return <TaxonomyExplorerView />;
     case 'pyq-archive':

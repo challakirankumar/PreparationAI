@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
+import { executeAI } from '@/lib/ai-engine';
 import { getEduScope, buildContext } from '@/lib/ai-guards/eduscope';
 import type { User } from '@/lib/types';
 import {
@@ -132,25 +132,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const zai = await ZAI.create();
+    const aiRes = await executeAI({
+      systemPrompt: decision.rewrittenSystemPrompt,
+      messages: [{ role: 'user', content: decision.sanitizedPrompt || promptText }],
+      imageDataUrl: body.imageDataUrl,
+      imageUrl: body.imageUrl,
+      jsonMode: true,
+    });
 
-    const completion = body.imageDataUrl
-      ? await (zai as any).chat.completions.createVision({
-          messages: [
-            { role: 'system', content: decision.rewrittenSystemPrompt },
-            { role: 'user', content: userContent },
-          ],
-          thinking: { type: 'disabled' },
-        })
-      : await (zai as any).chat.completions.createVision({
-          messages: [
-            { role: 'system', content: decision.rewrittenSystemPrompt },
-            { role: 'user', content: userContent },
-          ],
-          thinking: { type: 'disabled' },
-        });
-
-    const raw = completion?.choices?.[0]?.message?.content || '';
+    const raw = aiRes.content || '';
 
     // EduScope response inspection
     const inspection = guard.inspectResponse(raw, decision.auditId);

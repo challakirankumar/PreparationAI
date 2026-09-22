@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
+import { executeAI } from '@/lib/ai-engine';
 import type { AcademicRecord, AcademicAnalysis } from '@/lib/types';
 import { getEduScope, buildContext } from '@/lib/ai-guards/eduscope';
 import type { User } from '@/lib/types';
@@ -203,7 +203,6 @@ export async function POST(request: Request) {
     const systemContent = decision.rewrittenSystemPrompt + `\n\nReturn ONLY the JSON object — no prose, no markdown fences.`;
 
     try {
-      const zai = await ZAI.create();
       const subjectLines = record.subjects.map((s) => {
         const pct = s.maxMarks > 0 ? ((s.marks / s.maxMarks) * 100).toFixed(1) : '0';
         const gradeSuffix = s.grade ? ` · grade ${s.grade}` : '';
@@ -235,16 +234,13 @@ interface AcademicAnalysis {
   generatedAt: string;                  // ISO 8601 timestamp
 }`;
 
-      const completion = await zai.chat.completions.create({
-        model: 'glm-4.6',
-        stream: false,
-        messages: [
-          { role: 'system', content: systemContentWithSchema },
-          { role: 'user', content: decision.sanitizedPrompt || userContent },
-        ],
+      const aiRes = await executeAI({
+        systemPrompt: systemContentWithSchema,
+        messages: [{ role: 'user', content: decision.sanitizedPrompt || userContent }],
+        jsonMode: true,
       });
 
-      const raw = completion?.choices?.[0]?.message?.content || '';
+      const raw = aiRes.content || '';
       const parsed = extractJsonObject(raw);
       if (parsed && isAcademicAnalysis(parsed)) {
         const analysis: AcademicAnalysis = parsed;

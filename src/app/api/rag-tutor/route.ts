@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
+import { executeAI } from '@/lib/ai-engine';
 import { getEduScope, buildContext } from '@/lib/ai-guards/eduscope';
 import type { User } from '@/lib/types';
 import { retrieve, buildContextForLLM, type ContextCitation } from '@/lib/rag/retrieval-engine';
@@ -103,18 +103,15 @@ ${context}
 Now answer the student's question, citing sources inline as [Source N] or [Source N, p. X]. After your answer, list "Sources used:" with a numbered list.`;
 
   try {
-    const zai = await ZAI.create();
-    const completion = await zai.chat.completions.create({
-      model: 'glm-4.6',
-      stream: false,
+    const aiRes = await executeAI({
+      systemPrompt: decision.rewrittenSystemPrompt,
       messages: [
-        { role: 'system', content: decision.rewrittenSystemPrompt },
-        ...(body.history ?? []).slice(-4).map(m => ({ role: m.role, content: m.content })),
+        ...(body.history ?? []).slice(-4).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
         { role: 'user', content: userPromptForLLM },
       ],
     });
 
-    let reply = completion?.choices?.[0]?.message?.content || "I couldn't generate an answer from the provided sources. Please try rephrasing your question.";
+    let reply = aiRes.content || "I couldn't generate an answer from the provided sources. Please try rephrasing your question.";
 
     // Inspect response for safety/PII
     const inspection = guard.inspectResponse(reply, decision.auditId);

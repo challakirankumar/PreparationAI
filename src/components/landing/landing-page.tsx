@@ -240,62 +240,81 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
           </div>
 
           {/* ---------------------------------------------------------- */}
-          {/* Live Diagnostic Preview Card                                */}
+          {/* Core System Capabilities Matrix                            */}
           {/* ---------------------------------------------------------- */}
           <div className="mt-12 max-w-5xl mx-auto">
-            <div className="relative rounded-2xl border border-white/60 dark:border-white/10 bg-gradient-to-b from-white/90 via-blue-50/30 to-white/90 dark:from-slate-900/90 dark:via-slate-850/80 dark:to-slate-900/90 p-4 sm:p-6 backdrop-blur-2xl shadow-[0_20px_50px_rgba(15,76,129,0.12)]">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-200/60 dark:border-slate-800">
+            <div className="relative rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-b from-white via-blue-50/20 to-white dark:from-slate-900 dark:via-slate-850 dark:to-slate-900 p-5 sm:p-7 backdrop-blur-2xl shadow-xl shadow-blue-500/5">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold shadow-md">
                     <Activity className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white">Live Candidate Diagnostic Matrix</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Continuous 3PL IRT Latent Ability (θ) & Readiness Tracking</p>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">Built-In Educational Architecture</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Scientific psychometrics, authentic past papers, and proctoring integrity</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 text-xs">
-                    ● Real-Time Calibrated
+                  <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20 text-xs">
+                    ● Real-Time Adaptive Engine
                   </Badge>
-                  <Badge variant="outline" className="border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs">
-                    Target: JEE / NEET / GRE
+                  <Badge variant="outline" className="border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs">
+                    17+ Exams Supported
                   </Badge>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
-                <div className="rounded-xl border border-blue-200/50 dark:border-slate-800 bg-white/70 dark:bg-slate-800/70 p-3 text-center">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Exam Readiness</p>
-                  <p className="text-2xl font-black text-blue-700 dark:text-blue-400 mt-0.5">88.4%</p>
-                  <span className="text-[10px] text-emerald-600 font-medium">↑ 4.2% this week</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 my-5">
+                <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-4 text-left">
+                  <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2.5">
+                    <Cpu className="h-4 w-4" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">3PL IRT Testing</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    Latent ability (θ) estimation adjusting difficulty dynamically.
+                  </p>
                 </div>
-                <div className="rounded-xl border border-blue-200/50 dark:border-slate-800 bg-white/70 dark:bg-slate-800/70 p-3 text-center">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Avg Accuracy</p>
-                  <p className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">76.8%</p>
-                  <span className="text-[10px] text-slate-500">1.2m avg speed / Q</span>
+
+                <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-4 text-left">
+                  <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-2.5">
+                    <BookOpen className="h-4 w-4" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">10-Year PYQ Bank</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    Past papers with shift tags and frequency counts.
+                  </p>
                 </div>
-                <div className="rounded-xl border border-blue-200/50 dark:border-slate-800 bg-white/70 dark:bg-slate-800/70 p-3 text-center">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Proctoring Score</p>
-                  <p className="text-2xl font-black text-emerald-600 mt-0.5">99.1%</p>
-                  <span className="text-[10px] text-emerald-600 font-medium">Clean Verdict</span>
+
+                <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-4 text-left">
+                  <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2.5">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">NTA UFM Proctoring</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    Anti-cheat browser lock, gaze drift, and webcam telemetry.
+                  </p>
                 </div>
-                <div className="rounded-xl border border-blue-200/50 dark:border-slate-800 bg-white/70 dark:bg-slate-800/70 p-3 text-center">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Error Journal Fix</p>
-                  <p className="text-2xl font-black text-indigo-600 mt-0.5">92%</p>
-                  <span className="text-[10px] text-slate-500">Spaced Repetition</span>
+
+                <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-4 text-left">
+                  <div className="h-8 w-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2.5">
+                    <Brain className="h-4 w-4" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">EduScope Guardrails</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    Syllabus-grounded answers with zero generic hallucinations.
+                  </p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/60 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
                 <span className="flex items-center gap-1.5">
-                  <Zap className="h-3.5 w-3.5 text-amber-500" /> Active Diagnostic: Weakness Radar detected slip in <strong>Rotational Mechanics</strong>. Auto-remedial drill scheduled.
+                  <Zap className="h-3.5 w-3.5 text-amber-500" /> Multi-tier AI Fallback Cascade: Z-AI, Groq Llama 3.3, and Google Gemini.
                 </span>
                 <button
                   onClick={() => onOpenAuth('signup')}
                   className="text-blue-700 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-1 flex-shrink-0"
                 >
-                  Experience Full Diagnostic <ChevronRight className="h-3 w-3" />
+                  Explore Platform <ChevronRight className="h-3 w-3" />
                 </button>
               </div>
             </div>

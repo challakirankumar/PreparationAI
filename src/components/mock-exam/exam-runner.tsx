@@ -311,6 +311,9 @@ export function ExamRunner({ onExit }: Props) {
 
       const data = await resp.json();
       const attempt: ExamAttempt = data.attempt;
+      if (!attempt.questions || attempt.questions.length === 0) {
+        attempt.questions = currentExam.questions;
+      }
 
       // Patch vsPrevious with accurate percentage-based deltas
       if (previousAttempt && attempt.behavior) {

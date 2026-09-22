@@ -15,7 +15,7 @@ import {
   Trophy, Target, Gauge, TrendingUp, AlertTriangle, Youtube, ExternalLink, RotateCcw,
   ArrowRight, Zap, Brain, Award, Flame, BookOpen, Lightbulb, FileText, Clock,
   CheckCircle2, Circle, AlertCircle, ChevronRight, BarChart3, Activity, Sparkles,
-  ShieldCheck,
+  ShieldCheck, Layers, KeyRound, XCircle, Check, Filter,
 } from 'lucide-react';
 import { IntegrityReportTab } from '@/components/proctoring/integrity-report';
 import type { IntegrityReport } from '@/lib/types';
@@ -129,16 +129,22 @@ export function ExamResults({ attempt, onRetake, onExit, integrityReport }: Prop
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="subjects">
+      <Tabs defaultValue="solutions">
         <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="subjects"><BookOpen className="h-3.5 w-3.5" /> Subjects</TabsTrigger>
-          <TabsTrigger value="topics"><Layers /> Topics</TabsTrigger>
-          <TabsTrigger value="behavior"><Brain className="h-3.5 w-3.5" /> Behavior</TabsTrigger>
-          <TabsTrigger value="insights"><Lightbulb className="h-3.5 w-3.5" /> Insights</TabsTrigger>
-          <TabsTrigger value="youtube"><Youtube className="h-3.5 w-3.5" /> YouTube Fixes</TabsTrigger>
-          <TabsTrigger value="integrity"><ShieldCheck className="h-3.5 w-3.5" /> Integrity</TabsTrigger>
+          <TabsTrigger value="solutions" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white font-semibold">
+            <KeyRound className="h-3.5 w-3.5 mr-1" /> Answer Key & Full Solutions
+          </TabsTrigger>
+          <TabsTrigger value="subjects"><BookOpen className="h-3.5 w-3.5 mr-1" /> Subjects</TabsTrigger>
+          <TabsTrigger value="topics"><Layers className="h-3.5 w-3.5 mr-1" /> Topics</TabsTrigger>
+          <TabsTrigger value="behavior"><Brain className="h-3.5 w-3.5 mr-1" /> Behavior</TabsTrigger>
+          <TabsTrigger value="insights"><Lightbulb className="h-3.5 w-3.5 mr-1" /> Insights</TabsTrigger>
+          <TabsTrigger value="youtube"><Youtube className="h-3.5 w-3.5 mr-1" /> YouTube Fixes</TabsTrigger>
+          <TabsTrigger value="integrity"><ShieldCheck className="h-3.5 w-3.5 mr-1" /> Integrity</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="solutions" className="mt-4">
+          <SolutionsTab attempt={attempt} />
+        </TabsContent>
         <TabsContent value="subjects" className="mt-4">
           <SubjectsTab attempt={attempt} />
         </TabsContent>
@@ -195,11 +201,6 @@ export function ExamResults({ attempt, onRetake, onExit, integrityReport }: Prop
       </Card>
     </div>
   );
-}
-
-// Fix the Layers icon import usage in tabs trigger
-function Layers({ className }: { className?: string }) {
-  return <BookOpen className={className} />;
 }
 
 // ----------------- Subjects tab -----------------
@@ -920,3 +921,412 @@ function YoutubeTab({
     </div>
   );
 }
+
+const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+function formatOptionValue(opt: unknown): string {
+  if (opt === null || opt === undefined) return '';
+  if (typeof opt === 'string') return opt;
+  if (typeof opt === 'number') {
+    const rounded = Math.round(opt * 100) / 100;
+    return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+  }
+  if (Array.isArray(opt)) {
+    return opt.map(formatOptionValue).filter(Boolean).join(' ');
+  }
+  return String(opt);
+}
+
+function SolutionsTab({ attempt }: { attempt: ExamAttempt }) {
+  const setView = useStore((s) => s.setView);
+  const addMentorMessage = useStore((s) => s.addMentorMessage);
+  const { toast } = useToast();
+
+  const [statusFilter, setStatusFilter] = React.useState<'all' | 'correct' | 'incorrect' | 'unattempted'>('all');
+  const [subjectFilter, setSubjectFilter] = React.useState<string>('all');
+  const [expandedSolutions, setExpandedSolutions] = React.useState<Record<string, boolean>>({});
+
+  const questionsMap = React.useMemo(() => {
+    const map = new Map<string, any>();
+    (attempt.questions || []).forEach((q) => map.set(q.id, q));
+    return map;
+  }, [attempt.questions]);
+
+  const results = attempt.results || [];
+
+  const correctCount = results.filter((r) => r.correct).length;
+  const incorrectCount = results.filter((r) => !r.correct && attempt.answers[r.questionId] && attempt.answers[r.questionId].type !== 'unanswered').length;
+  const unattemptedCount = results.filter((r) => !attempt.answers[r.questionId] || attempt.answers[r.questionId].type === 'unanswered').length;
+
+  const subjects = React.useMemo(() => {
+    return Array.from(new Set(results.map((r) => r.subject)));
+  }, [results]);
+
+  const filteredResults = React.useMemo(() => {
+    return results.map((r, originalIdx) => ({ r, originalIdx })).filter(({ r }) => {
+      const ans = attempt.answers[r.questionId];
+      const isUnattempted = !ans || ans.type === 'unanswered';
+      const isCorrect = r.correct;
+      const isIncorrect = !isCorrect && !isUnattempted;
+
+      if (statusFilter === 'correct' && !isCorrect) return false;
+      if (statusFilter === 'incorrect' && !isIncorrect) return false;
+      if (statusFilter === 'unattempted' && !isUnattempted) return false;
+
+      if (subjectFilter !== 'all' && r.subject !== subjectFilter) return false;
+
+      return true;
+    });
+  }, [results, attempt.answers, statusFilter, subjectFilter]);
+
+  const toggleExpand = (qId: string) => {
+    setExpandedSolutions((prev) => ({ ...prev, [qId]: !prev[qId] }));
+  };
+
+  const handleAskMentor = (q: any, result: any, index: number) => {
+    const qText = q?.text || `Question #${index + 1}`;
+    const userAns = attempt.answers[result.questionId];
+    let userAnsStr = 'Unattempted';
+    if (userAns) {
+      if (userAns.type === 'mcq') userAnsStr = `Option ${LETTERS[userAns.optionIndex]}`;
+      else if (userAns.type === 'numerical') userAnsStr = `${userAns.value}`;
+    }
+
+    addMentorMessage({
+      id: Math.random().toString(36).slice(2, 11),
+      role: 'user',
+      content: `I need help understanding Question #${index + 1} (${result.subject} - ${result.topic}) from my ${attempt.examName} test: "${qText}". My answer was: ${userAnsStr}. Can you explain the fundamental principle and step-by-step method to solve this?`,
+      timestamp: new Date().toISOString(),
+    });
+
+    setView('mentor');
+    toast({
+      title: 'Opening AI Mentor',
+      description: `Question #${index + 1} loaded into chat.`,
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Overview Statistics Banner */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="border-emerald-200 bg-emerald-50/40 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-emerald-800">Correct Answers</span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          </div>
+          <p className="text-2xl font-black text-emerald-700 mt-1">{correctCount}</p>
+          <span className="text-[10px] text-emerald-600 font-medium">+{correctCount * 4} marks gained</span>
+        </Card>
+
+        <Card className="border-rose-200 bg-rose-50/40 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-rose-800">Incorrect Answers</span>
+            <XCircle className="h-4 w-4 text-rose-600" />
+          </div>
+          <p className="text-2xl font-black text-rose-700 mt-1">{incorrectCount}</p>
+          <span className="text-[10px] text-rose-600 font-medium">-{incorrectCount} negative marks</span>
+        </Card>
+
+        <Card className="border-slate-200 bg-slate-50/60 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-700">Unattempted</span>
+            <Circle className="h-4 w-4 text-slate-400" />
+          </div>
+          <p className="text-2xl font-black text-slate-800 mt-1">{unattemptedCount}</p>
+          <span className="text-[10px] text-slate-500">0 penalty</span>
+        </Card>
+
+        <Card className="border-blue-200 bg-blue-50/40 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-blue-800">Accuracy</span>
+            <Target className="h-4 w-4 text-blue-600" />
+          </div>
+          <p className="text-2xl font-black text-blue-700 mt-1">{attempt.accuracy}%</p>
+          <span className="text-[10px] text-blue-600 font-medium">{attempt.speed} q/hr speed</span>
+        </Card>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 shadow-2xs">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs font-bold text-slate-500 mr-1 flex items-center gap-1">
+            <Filter className="h-3.5 w-3.5" /> Filter:
+          </span>
+          <Button
+            size="sm"
+            variant={statusFilter === 'all' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('all')}
+            className="h-7 text-xs font-semibold rounded-lg"
+          >
+            All ({results.length})
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'correct' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('correct')}
+            className={cn('h-7 text-xs font-semibold rounded-lg', statusFilter === 'correct' && 'bg-emerald-600 text-white')}
+          >
+            Correct ({correctCount})
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'incorrect' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('incorrect')}
+            className={cn('h-7 text-xs font-semibold rounded-lg', statusFilter === 'incorrect' && 'bg-rose-600 text-white')}
+          >
+            Incorrect ({incorrectCount})
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'unattempted' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('unattempted')}
+            className={cn('h-7 text-xs font-semibold rounded-lg', statusFilter === 'unattempted' && 'bg-slate-700 text-white')}
+          >
+            Unattempted ({unattemptedCount})
+          </Button>
+        </div>
+
+        {subjects.length > 1 && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs text-slate-500 font-medium">Subject:</span>
+            <select
+              value={subjectFilter}
+              onChange={(e) => setSubjectFilter(e.target.value)}
+              className="h-8 text-xs border border-slate-200 rounded-lg px-2.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
+            >
+              <option value="all">All Subjects</option>
+              {subjects.map((sub) => (
+                <option key={sub} value={sub}>{sub}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Questions List */}
+      <div className="space-y-4">
+        {filteredResults.length === 0 ? (
+          <div className="text-center py-12 border rounded-2xl bg-slate-50/50">
+            <CheckCircle2 className="h-10 w-10 text-slate-400 mx-auto mb-2" />
+            <p className="text-sm font-semibold text-slate-700">No questions match the selected filter.</p>
+          </div>
+        ) : (
+          filteredResults.map(({ r: res, originalIdx: idx }) => {
+            const q = questionsMap.get(res.questionId);
+            const userAns = attempt.answers[res.questionId];
+            const isUnattempted = !userAns || userAns.type === 'unanswered';
+            const isCorrect = res.correct;
+            const isIncorrect = !isCorrect && !isUnattempted;
+            const isExpanded = expandedSolutions[res.questionId] ?? true; // expanded by default
+
+            const options = (q?.options || []).map(formatOptionValue);
+            const correctOptIdx = q?.correctOptions?.[0] ?? 0;
+            const userOptIdx = userAns && userAns.type === 'mcq' ? userAns.optionIndex : null;
+
+            return (
+              <Card
+                key={res.questionId}
+                className={cn(
+                  'border transition-all overflow-hidden',
+                  isCorrect && 'border-emerald-300 bg-white dark:bg-slate-900',
+                  isIncorrect && 'border-rose-300 bg-white dark:bg-slate-900',
+                  isUnattempted && 'border-slate-200 bg-white dark:bg-slate-900'
+                )}
+              >
+                {/* Header Bar */}
+                <div
+                  className={cn(
+                    'p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 border-b',
+                    isCorrect && 'bg-emerald-50/50 border-emerald-200',
+                    isIncorrect && 'bg-rose-50/50 border-rose-200',
+                    isUnattempted && 'bg-slate-50/60 border-slate-200'
+                  )}
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={cn('text-xs font-bold text-white', isCorrect ? 'bg-emerald-600' : isIncorrect ? 'bg-rose-600' : 'bg-slate-600')}>
+                      {isCorrect ? '✓ Correct' : isIncorrect ? '✗ Incorrect' : '– Unattempted'}
+                    </Badge>
+                    <span className="font-bold text-sm text-slate-900 dark:text-white">Q {idx + 1}</span>
+                    <Badge variant="outline" className="border-slate-300 text-xs font-medium">{res.subject}</Badge>
+                    <Badge variant="outline" className="border-slate-300 text-xs font-medium">{res.topic}</Badge>
+                    <Badge variant="secondary" className="text-[11px] uppercase font-semibold">{res.difficulty}</Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className={cn('text-xs font-bold px-2 py-0.5 rounded', isCorrect ? 'bg-emerald-100 text-emerald-800' : isIncorrect ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-700')}>
+                      {res.awardedMarks > 0 ? `+${res.awardedMarks}` : res.awardedMarks} marks
+                    </span>
+                    <span className="text-xs text-slate-400">·</span>
+                    <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> {res.timeTakenSec}s
+                    </span>
+                  </div>
+                </div>
+
+                <CardContent className="p-4 sm:p-6 space-y-4">
+                  {/* PYQ Year and Frequency Tag */}
+                  {q?.isPYQ && (
+                    <div className="flex flex-wrap items-center justify-between gap-2 py-1.5 px-3 rounded-lg bg-blue-50/60 border border-blue-200 text-xs">
+                      <span className="font-semibold text-blue-900 flex items-center gap-1.5">
+                        <Target className="h-3.5 w-3.5 text-blue-600" />
+                        <span>{q.pyqExam || attempt.examName} PYQ: <strong>{q.pyqYear}</strong></span>
+                      </span>
+                      {q.repeatTag && (
+                        <Badge variant="outline" className="text-[10px] font-extrabold bg-rose-100 text-rose-800 border-rose-300">
+                          <Flame className="h-3 w-3 mr-1 fill-rose-500 text-rose-500" />
+                          {q.repeatTag} {q.frequencyCount > 1 ? `(${q.frequencyCount}x)` : ''}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Question Text */}
+                  <div>
+                    {q?.passage && (
+                      <div className="rounded-lg bg-teal-50 border border-teal-200 p-3 mb-3 text-xs text-teal-900 leading-relaxed">
+                        <p className="font-bold uppercase tracking-wider mb-1">Passage</p>
+                        {q.passage}
+                      </div>
+                    )}
+                    <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white leading-relaxed">
+                      {q?.text || `Problem from ${res.topic} in ${res.subject}.`}
+                    </p>
+                  </div>
+
+                  {/* Options Comparison for MCQ */}
+                  {options.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Answer Choices & Verification</p>
+                      <div className="grid grid-cols-1 gap-2">
+                        {options.map((opt, optIdx) => {
+                          const isSelected = userOptIdx === optIdx;
+                          const isRight = correctOptIdx === optIdx;
+
+                          return (
+                            <div
+                              key={optIdx}
+                              className={cn(
+                                'flex items-center justify-between p-3 rounded-xl border text-xs sm:text-sm transition-all',
+                                isRight && 'border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 font-semibold ring-1 ring-emerald-500/30',
+                                isSelected && !isRight && 'border-rose-400 bg-rose-50/80 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100 font-medium',
+                                !isSelected && !isRight && 'border-slate-200 dark:border-slate-800 bg-slate-50/50 text-slate-700 dark:text-slate-300'
+                              )}
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className={cn(
+                                  'h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0',
+                                  isRight ? 'bg-emerald-600 text-white' : isSelected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-700'
+                                )}>
+                                  {LETTERS[optIdx]}
+                                </span>
+                                <span className="truncate">{opt}</span>
+                              </div>
+
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {isRight && (
+                                  <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+                                    ✓ Official Key
+                                  </Badge>
+                                )}
+                                {isSelected && !isRight && (
+                                  <Badge className="bg-rose-600 text-white text-[10px] font-bold">
+                                    ✗ Your Answer
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Numerical Answer Comparison */}
+                  {q?.type === 'numerical' && (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 text-xs sm:text-sm space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Your Submitted Value:</span>
+                        <span className={cn('font-bold', isCorrect ? 'text-emerald-700' : 'text-rose-700')}>
+                          {userAns && userAns.type === 'numerical' ? userAns.value : 'None (Skipped)'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-slate-200/60 pt-2">
+                        <span className="text-slate-900 font-semibold">Official Correct Answer Key:</span>
+                        <span className="font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                          {q.correctNumeric} {q.unit || ''} (tolerance ±{q.tolerance ?? 0.01})
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step-by-Step Explanation Card */}
+                  <div className="rounded-xl border border-blue-200/80 dark:border-blue-900/60 bg-gradient-to-br from-blue-50/40 via-indigo-50/20 to-white dark:from-slate-900 dark:via-slate-850 dark:to-slate-900 p-4 sm:p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-300 flex items-center gap-1.5">
+                        <Lightbulb className="h-4 w-4 text-blue-600" />
+                        Complete Step-by-Step Solution & Concept
+                      </h4>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => toggleExpand(res.questionId)}
+                        className="text-xs text-blue-700 hover:text-blue-800"
+                      >
+                        {isExpanded ? 'Collapse' : 'Expand'}
+                      </Button>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 space-y-3 leading-relaxed border-t border-blue-100 dark:border-blue-900/40 pt-3">
+                        {q?.explanation ? (
+                          <div className="whitespace-pre-wrap">{q.explanation}</div>
+                        ) : (
+                          <>
+                            <div className="space-y-1">
+                              <p className="font-bold text-slate-900 dark:text-white">1. Governing Principle & Formula:</p>
+                              <p className="text-slate-600 dark:text-slate-400">
+                                This problem tests the core concept of <strong>{res.topic}</strong> in <strong>{res.subject}</strong>. Apply fundamental equations and identify all given constraints.
+                              </p>
+                            </div>
+
+                            <div className="space-y-1">
+                              <p className="font-bold text-slate-900 dark:text-white">2. Step-by-Step Derivation:</p>
+                              <p className="text-slate-600 dark:text-slate-400">
+                                • Set up the equilibrium / standard state equations.<br />
+                                • Substitute the given numerical parameters with SI unit consistency.<br />
+                                • Simplify algebraic terms to arrive at the unique solution: <strong className="text-emerald-700 dark:text-emerald-400">Option {LETTERS[correctOptIdx]} ({options[correctOptIdx] || q?.correctNumeric})</strong>.
+                              </p>
+                            </div>
+
+                            <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-amber-900 dark:text-amber-200 text-xs">
+                              <strong>💡 Pro Exam Tip:</strong> Always double check dimensional consistency and watch out for sign conventions in {res.topic}.
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Ask AI Mentor Button */}
+                    <div className="pt-2 flex justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAskMentor(q, res, idx)}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:hover:bg-slate-800 font-semibold text-xs"
+                      >
+                        <Brain className="h-3.5 w-3.5 mr-1 text-blue-600" />
+                        Ask AI Mentor about this Question
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+

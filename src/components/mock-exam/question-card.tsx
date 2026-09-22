@@ -12,6 +12,7 @@ import type { AnswerValue, Question } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import {
   FileText, Mic, Volume2, AlertTriangle, Award, Check, Plus, Minus, Gauge,
+  Target, Flame, Sparkles, History,
 } from 'lucide-react';
 
 interface Props {
@@ -135,8 +136,44 @@ export function QuestionCard({ question, index, total, value, onChange }: Props)
           </div>
         )}
 
+        {/* PYQ Year and Most Repeated Tag Banner */}
+        {question.isPYQ && (
+          <div className="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-slate-50 dark:from-slate-850 dark:via-slate-800 dark:to-slate-850 border border-blue-200/80 dark:border-slate-750 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+                <Target className="h-3.5 w-3.5 text-blue-600" />
+                <span>{question.pyqExam || 'Exam'} PYQ: <strong>{question.pyqYear}</strong></span>
+              </span>
+
+              {question.repeatTag && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-[10px] font-extrabold px-2 py-0.5 rounded-full border shadow-2xs',
+                    question.repeatTag === 'Most Repeated'
+                      ? 'bg-rose-100/90 text-rose-800 dark:bg-rose-950 dark:text-rose-200 border-rose-300'
+                      : question.repeatTag === 'High Yield'
+                      ? 'bg-amber-100/90 text-amber-800 dark:bg-amber-950 dark:text-amber-200 border-amber-300'
+                      : 'bg-blue-100/90 text-blue-800 dark:bg-blue-950 dark:text-blue-200 border-blue-300'
+                  )}
+                >
+                  {question.repeatTag === 'Most Repeated' && <Flame className="h-3 w-3 mr-1 fill-rose-500 text-rose-500" />}
+                  {question.repeatTag}
+                  {question.frequencyCount && question.frequencyCount > 1 ? ` (${question.frequencyCount}x)` : ''}
+                </Badge>
+              )}
+            </div>
+
+            {question.appearedYears && question.appearedYears.length > 1 && (
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                Repeated in: <strong className="text-slate-800 dark:text-slate-200">{question.appearedYears.join(', ')}</strong>
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Question text */}
-        <p className="text-base leading-relaxed font-medium text-stone-900 whitespace-pre-wrap">
+        <p className="text-base leading-relaxed font-medium text-stone-900 dark:text-stone-100 whitespace-pre-wrap">
           {question.text}
         </p>
 

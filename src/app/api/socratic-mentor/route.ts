@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
+import { executeAI } from '@/lib/ai-engine';
 import { getEduScope, buildContext } from '@/lib/ai-guards/eduscope';
 import {
   detectMisconception,
@@ -337,18 +337,15 @@ export async function POST(request: Request) {
     if (session.history.length > 12) session.history = session.history.slice(-12);
 
     try {
-      const zai = await ZAI.create();
-      const completion = await zai.chat.completions.create({
-        model: 'glm-4.6',
-        stream: false,
+      const aiRes = await executeAI({
+        systemPrompt: decision.rewrittenSystemPrompt,
         messages: [
-          { role: 'system', content: decision.rewrittenSystemPrompt },
-          ...session.history.slice(-6),
+          ...session.history.slice(-6).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
           { role: 'user', content: finalUserPrompt },
         ],
       });
 
-      let reply = completion?.choices?.[0]?.message?.content || "Let me think about that. Could you walk me through how you arrived at your answer?";
+      let reply = aiRes.content || "Let me think about that. Could you walk me through how you arrived at your answer?";
 
       // Inspect response for safety / PII
       const inspection = guard.inspectResponse(reply, decision.auditId);
