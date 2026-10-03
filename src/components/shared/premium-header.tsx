@@ -46,8 +46,8 @@ interface PremiumHeaderProps {
 // All variants now share the same sapphire→midnight gradient so every
 // module header looks consistent with the dashboard.
 const GRADIENTS: Record<NonNullable<PremiumHeaderProps['variant']>, string> = {
-  sapphire: 'from-blue-700 via-blue-800 to-slate-900',
-  midnight: 'from-slate-800 via-blue-900 to-slate-950',
+  sapphire: 'from-blue-700 via-blue-800 to-indigo-800',
+  midnight: 'from-blue-800 via-blue-900 to-indigo-900',
 };
 
 export function PremiumHeader({

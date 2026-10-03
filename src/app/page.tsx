@@ -41,6 +41,7 @@ import PYQArchiveView from '@/components/views/pyq-archive';
 import SuperadminPortalView from '@/components/views/superadmin-portal';
 import TaxonomyExplorerView from '@/components/views/taxonomy-explorer';
 import { PricingPortalView } from '@/components/views/pricing-portal';
+import LaunchReadinessView from '@/components/views/launch-readiness';
 import { SubModuleHeader } from '@/components/shared/sub-module-header';
 import type { View } from '@/lib/types';
 import {
@@ -192,6 +193,8 @@ function ViewRouter({ view }: { view: View }) {
       return <NudgeBotView />;
     case 'league':
       return <LeagueSystemView />;
+    case 'launch-readiness':
+      return <LaunchReadinessView />;
     default:
       return <Dashboard />;
   }

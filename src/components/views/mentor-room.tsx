@@ -82,7 +82,7 @@ export function MentorRoom() {
   const user = useStore((s) => s.user);
   const messages = useStore((s) => s.mentorMessages);
   const addMentorMessage = useStore((s) => s.addMentorMessage);
-  const updateMentorMessage = useStore((s) => s.updateMentorMessage || ((id: string, content: string) => {}));
+  const updateMentorMessage = (id: string, content: string) => {};
   const setMentorMessages = useStore((s) => s.setMentorMessages);
   const setView = useStore((s) => s.setView);
 

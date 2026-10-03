@@ -13,8 +13,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    if (!userId || !/^[0-9a-fA-F]{24}$/.test(userId)) {
+      return NextResponse.json({ notifications: [], unreadCount: 0 });
     }
 
     const notifications = await db.notification.findMany({

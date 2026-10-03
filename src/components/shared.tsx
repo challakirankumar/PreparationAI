@@ -20,7 +20,7 @@ export function PageHeader({ icon: Icon, title, subtitle, accent = 'emerald', ri
   // the Dashboard's PremiumHeader — no per-page accent variation. The
   // `accent` prop is kept for backwards compatibility but no longer affects
   // the gradient.
-  const grad = 'from-blue-700 via-blue-800 to-slate-900';
+  const grad = 'from-blue-700 via-blue-800 to-indigo-900';
   return (
     <div className={cn(
       // Glossy pill header — sapphire gradient + soft glow + inner top sheen

@@ -10,8 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          // Premium glossy primary button — sapphire gradient + top sheen
-          "relative overflow-hidden text-primary-foreground bg-gradient-to-b from-blue-700 to-blue-900 shadow-[0_1px_2px_rgba(15,76,129,0.3),0_4px_12px_-2px_rgba(15,76,129,0.25)] hover:from-blue-800 hover:to-slate-900 hover:shadow-[0_2px_4px_rgba(15,76,129,0.4),0_8px_20px_-4px_rgba(15,76,129,0.35)] active:scale-[0.98]",
+          "relative overflow-hidden text-primary-foreground bg-gradient-to-b from-blue-700 to-blue-900 shadow-[0_1px_2px_rgba(15,76,129,0.3),0_4px_12px_-2px_rgba(15,76,129,0.25)] hover:from-blue-800 hover:to-blue-900 hover:shadow-[0_2px_4px_rgba(15,76,129,0.4),0_8px_20px_-4px_rgba(15,76,129,0.35)] active:scale-[0.98]",
         destructive:
           "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:

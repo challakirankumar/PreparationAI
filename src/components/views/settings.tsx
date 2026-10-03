@@ -396,7 +396,7 @@ export function SettingsView() {
   }
 
   // ---- Appearance: dark mode Switch → updateProfile({darkMode}) ----
-  const [darkMode, setDarkMode] = React.useState<boolean>(!!user?.darkMode);
+  const [darkMode, setDarkMode] = React.useState<boolean>(user?.darkMode !== false);
 
   function toggleDarkMode(v: boolean) {
     setDarkMode(v);

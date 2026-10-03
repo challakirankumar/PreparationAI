@@ -15,7 +15,7 @@ import {
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type FeatureAccent = 'emerald' | 'amber' | 'teal' | 'rose';
+export type FeatureAccent = 'emerald' | 'amber' | 'teal' | 'rose' | 'purple';
 
 const ACCENTS: Record<
   FeatureAccent,
@@ -29,36 +29,44 @@ const ACCENTS: Record<
   }
 > = {
   emerald: {
-    iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-600',
+    iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-500',
     iconText: 'text-white',
-    blob: 'bg-blue-100',
-    badge: 'bg-blue-50 text-blue-700 border-blue-200',
-    ring: 'group-hover:border-blue-300',
-    cta: 'text-blue-700 hover:text-blue-800',
+    blob: 'bg-cyan-500/10',
+    badge: 'bg-cyan-950/60 text-cyan-300 border-cyan-800/50',
+    ring: 'group-hover:border-cyan-400 group-hover:shadow-[0_0_20px_-4px_rgba(56,189,248,0.25)]',
+    cta: 'text-cyan-400 hover:text-cyan-300',
   },
   amber: {
     iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
     iconText: 'text-white',
-    blob: 'bg-amber-100',
-    badge: 'bg-amber-50 text-amber-700 border-amber-200',
-    ring: 'group-hover:border-amber-300',
-    cta: 'text-amber-700 hover:text-amber-800',
+    blob: 'bg-amber-500/10',
+    badge: 'bg-amber-950/60 text-amber-300 border-amber-800/50',
+    ring: 'group-hover:border-amber-400 group-hover:shadow-[0_0_20px_-4px_rgba(245,158,11,0.25)]',
+    cta: 'text-amber-400 hover:text-amber-300',
   },
   teal: {
-    iconBg: 'bg-gradient-to-br from-teal-500 to-cyan-600',
+    iconBg: 'bg-gradient-to-br from-teal-500 to-emerald-500',
     iconText: 'text-white',
-    blob: 'bg-teal-100',
-    badge: 'bg-teal-50 text-teal-700 border-teal-200',
-    ring: 'group-hover:border-teal-300',
-    cta: 'text-teal-700 hover:text-teal-800',
+    blob: 'bg-teal-500/10',
+    badge: 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50',
+    ring: 'group-hover:border-emerald-400 group-hover:shadow-[0_0_20px_-4px_rgba(16,185,129,0.25)]',
+    cta: 'text-emerald-400 hover:text-emerald-300',
   },
   rose: {
     iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500',
     iconText: 'text-white',
-    blob: 'bg-rose-100',
-    badge: 'bg-rose-50 text-rose-700 border-rose-200',
-    ring: 'group-hover:border-rose-300',
-    cta: 'text-rose-700 hover:text-rose-800',
+    blob: 'bg-rose-500/10',
+    badge: 'bg-rose-950/60 text-rose-300 border-rose-800/50',
+    ring: 'group-hover:border-rose-400 group-hover:shadow-[0_0_20px_-4px_rgba(244,63,94,0.25)]',
+    cta: 'text-rose-400 hover:text-rose-300',
+  },
+  purple: {
+    iconBg: 'bg-gradient-to-br from-purple-500 to-indigo-500',
+    iconText: 'text-white',
+    blob: 'bg-purple-500/10',
+    badge: 'bg-purple-950/60 text-purple-300 border-purple-800/50',
+    ring: 'group-hover:border-purple-400 group-hover:shadow-[0_0_20px_-4px_rgba(168,85,247,0.25)]',
+    cta: 'text-purple-400 hover:text-purple-300',
   },
 };
 
@@ -179,7 +187,7 @@ export function FeatureCard({
             </div>
           </DialogHeader>
 
-          {detailBody && <div className="space-y-3 text-sm text-stone-700">{detailBody}</div>}
+          {detailBody && <div className="space-y-3 text-sm text-slate-300">{detailBody}</div>}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>

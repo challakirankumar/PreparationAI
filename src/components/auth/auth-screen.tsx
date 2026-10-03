@@ -474,13 +474,13 @@ export function AuthScreen({
               <div className="pointer-events-none absolute -top-6 -left-4 h-20 w-20 rounded-full bg-blue-200/30 blur-2xl" />
               <div className="pointer-events-none absolute -bottom-4 -right-4 h-16 w-16 rounded-full bg-blue-100/40 blur-2xl" />
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/50 to-transparent" />
-              <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 flex items-center justify-center shadow-md ring-1 ring-white/30 flex-shrink-0">
+              <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900 flex items-center justify-center shadow-md ring-1 ring-white/30 flex-shrink-0">
                 <Sparkles className="h-4 w-4 text-white" />
                 <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
               </div>
               <div className="relative min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-700/80">Crafted by</p>
-                <p className="text-base font-bold tracking-tight bg-gradient-to-r from-blue-800 via-blue-700 to-slate-900 bg-clip-text text-transparent leading-tight">
+                <p className="text-base font-bold tracking-tight bg-gradient-to-r from-blue-800 via-blue-700 to-indigo-900 bg-clip-text text-transparent leading-tight">
                   Kiran Challa and Team
                 </p>
               </div>

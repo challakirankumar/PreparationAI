@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { PageHeader } from '@/components/shared';
 import { useStore } from '@/lib/store';
 import type { User, ExamAttempt } from '@/lib/types';
 import type {
@@ -23,11 +22,13 @@ import type {
 import {
   Building2, Users, GraduationCap, ClipboardList, BarChart3, UserCog,
   Plus, RefreshCw, TrendingUp, AlertTriangle, Award, Clock, Target,
-  Calendar, BookOpen, UserPlus, Activity, School,
+  Calendar, BookOpen, UserPlus, Activity, School, X, Sparkles, CheckCircle2,
+  Search, SlidersHorizontal, ArrowUpRight, ShieldCheck, ChevronRight
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // ============================================================================
-// Institution Dashboard — combined Admin + Teacher view
+// Institution Dashboard — Redesigned White & Royal Blue B2B Module
 // ============================================================================
 
 type Role = 'admin' | 'teacher' | 'student';
@@ -46,14 +47,15 @@ export function InstitutionDashboardView() {
   const [data, setData] = useState<InstitutionResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [batchSearch, setBatchSearch] = useState('');
+  const [selectedTier, setSelectedTier] = useState<string>('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const serializedRegisteredUsers = useMemo(() => {
-    // Build the JSON blob the API expects: { [email]: { user, attempts } }
     const out: Record<string, { user: User; attempts: ExamAttempt[] }> = {};
     for (const [email, saved] of Object.entries(registeredUsers)) {
       out[email] = { user: saved.user, attempts: saved.attempts ?? [] };
     }
-    // Always include the current user (might not be in registeredUsers yet)
     if (user && !Object.values(out).some(e => e.user.id === user.id)) {
       out[`__self__${user.email}`] = { user, attempts: [] };
     }
@@ -91,87 +93,225 @@ export function InstitutionDashboardView() {
   const selectedBatch = batches.find(b => b.id === selectedBatchId) ?? batches[0];
   const selectedBatchMetrics = selectedBatch?.metrics;
 
+  const filteredBatches = useMemo(() => {
+    return batches.filter(b => {
+      const matchesSearch = b.name.toLowerCase().includes(batchSearch.toLowerCase()) ||
+        b.targetExam.toLowerCase().includes(batchSearch.toLowerCase());
+      const matchesTier = selectedTier === 'all' || b.cohortTier === selectedTier;
+      return matchesSearch && matchesTier;
+    });
+  }, [batches, batchSearch, selectedTier]);
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Institution Dashboard"
-        subtitle={institution ? `${institution.name} · ${institution.city}, ${institution.country}` : 'B2B / Coaching Institute Module'}
-        accent="blue"
-        icon={Building2}
-      />
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* 1. Header Banner — Royal Blue Gradient */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 p-6 md:p-8 text-white shadow-xl shadow-blue-900/15">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-12 w-48 h-48 rounded-full bg-blue-400/20 blur-xl pointer-events-none" />
 
-      {/* Role switcher + refresh */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-stone-500">Viewing as:</span>
-          <Select value={role} onValueChange={(v) => setRole(v as Role)}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Institute Admin</SelectItem>
-              <SelectItem value="teacher">Teacher</SelectItem>
-              <SelectItem value="student">Student</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
-
-      {/* Top KPI strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiCard
-          label="Total Batches"
-          value={summary?.totalBatches ?? 0}
-          icon={<School className="h-5 w-5" />}
-          color="blue"
-        />
-        <KpiCard
-          label="Total Students"
-          value={summary?.totalStudents ?? 0}
-          icon={<Users className="h-5 w-5" />}
-          color="cyan"
-        />
-        <KpiCard
-          label="Teachers"
-          value={summary?.totalTeachers ?? 0}
-          icon={<UserCog className="h-5 w-5" />}
-          color="purple"
-        />
-        <KpiCard
-          label="Mocks Attempted"
-          value={summary?.totalMocksTaken ?? 0}
-          icon={<ClipboardList className="h-5 w-5" />}
-          color="emerald"
-        />
-      </div>
-
-      {/* Main tabs */}
-      <Tabs defaultValue={role === 'admin' ? 'batches' : role === 'teacher' ? 'cohort' : 'assignments'} key={role}>
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-          <TabsTrigger value="batches"><School className="h-4 w-4 mr-1 inline" />Batches</TabsTrigger>
-          <TabsTrigger value="cohort"><BarChart3 className="h-4 w-4 mr-1 inline" />Cohort Analytics</TabsTrigger>
-          <TabsTrigger value="assignments"><ClipboardList className="h-4 w-4 mr-1 inline" />Assignments</TabsTrigger>
-          {role === 'admin' && (
-            <TabsTrigger value="teachers"><UserCog className="h-4 w-4 mr-1 inline" />Teachers</TabsTrigger>
-          )}
-        </TabsList>
-
-        {/* BATCHES TAB */}
-        <TabsContent value="batches" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-stone-800">Active Batches</h3>
-            {role === 'admin' && <CreateBatchDialog institutionId={institution?.id} onCreated={refresh} />}
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center text-white shadow-md flex-shrink-0">
+              <Building2 className="w-7 h-7" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+                  Institution Command Dashboard
+                </h1>
+                <Badge className="bg-emerald-500/25 text-emerald-100 border border-emerald-400/40 text-xs font-bold px-2.5 py-0.5">
+                  <ShieldCheck className="w-3.5 h-3.5 mr-1 inline" /> Level 0 Partner Institute
+                </Badge>
+              </div>
+              <p className="text-blue-100 text-sm md:text-base mt-1 font-medium">
+                {institution ? `${institution.name} • ${institution.city}, ${institution.country}` : 'VidyaMandir Excellence Academy • Bengaluru, India'}
+              </p>
+            </div>
           </div>
+
+          {/* Quick Action Controls */}
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-xs">
+              <span className="text-blue-200 font-semibold">Viewing as:</span>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value as Role)}
+                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="admin" className="text-slate-900">Institute Admin</option>
+                <option value="teacher" className="text-slate-900">Faculty / Teacher</option>
+                <option value="student" className="text-slate-900">Student Cohort</option>
+              </select>
+            </div>
+
+            {role === 'admin' && (
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-white text-blue-800 hover:bg-blue-50 font-bold shadow-md shadow-black/10 border-0 h-9 px-4 rounded-xl text-xs cursor-pointer"
+              >
+                <Plus className="w-4 h-4 mr-1.5" />
+                Create Batch
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refresh}
+              disabled={loading}
+              className="bg-white/10 hover:bg-white/20 text-white border-white/25 h-9 px-3 rounded-xl cursor-pointer"
+            >
+              <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Top KPI Metric Cards — Crisp White */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="h-1 bg-gradient-to-r from-blue-600 to-indigo-600 absolute top-0 left-0 right-0" />
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Batches</span>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+              <School className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-slate-900">{summary?.totalBatches ?? batches.length}</span>
+            <span className="text-xs text-blue-700 font-semibold">Active Cohorts</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="h-1 bg-gradient-to-r from-cyan-500 to-blue-600 absolute top-0 left-0 right-0" />
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Enrolled</span>
+            <div className="w-9 h-9 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center font-bold">
+              <Users className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-slate-900">{summary?.totalStudents ?? 0}</span>
+            <span className="text-xs text-slate-500 font-semibold">Registered Students</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-600 absolute top-0 left-0 right-0" />
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Faculty & Mentors</span>
+            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+              <UserCog className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-slate-900">{summary?.totalTeachers ?? teachers.length}</span>
+            <span className="text-xs text-purple-700 font-semibold">Specialists Assigned</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-600 absolute top-0 left-0 right-0" />
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mocks Attempted</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+              <ClipboardList className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-slate-900">{summary?.totalMocksTaken ?? 0}</span>
+            <span className="text-xs text-emerald-700 font-semibold">Evaluated Tests</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Main Operational Tabs */}
+      <Tabs defaultValue="batches" className="space-y-6">
+        <div className="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-xs">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-slate-100/80 p-1 rounded-xl gap-1">
+            <TabsTrigger
+              value="batches"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md font-bold text-xs py-2.5 rounded-lg transition-all"
+            >
+              <School className="h-4 w-4 mr-1.5 inline" /> Active Batches ({batches.length})
+            </TabsTrigger>
+            <TabsTrigger
+              value="cohort"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md font-bold text-xs py-2.5 rounded-lg transition-all"
+            >
+              <BarChart3 className="h-4 w-4 mr-1.5 inline" /> Cohort Analytics
+            </TabsTrigger>
+            <TabsTrigger
+              value="assignments"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md font-bold text-xs py-2.5 rounded-lg transition-all"
+            >
+              <ClipboardList className="h-4 w-4 mr-1.5 inline" /> Assignments Hub
+            </TabsTrigger>
+            <TabsTrigger
+              value="teachers"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md font-bold text-xs py-2.5 rounded-lg transition-all"
+            >
+              <UserCog className="h-4 w-4 mr-1.5 inline" /> Teaching Faculty ({teachers.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* ----------------- TAB 1: BATCHES ----------------- */}
+        <TabsContent value="batches" className="space-y-4">
+          {/* Batch Filter & Search Bar */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search batch name or exam..."
+                value={batchSearch}
+                onChange={e => setBatchSearch(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 mr-1">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" /> Tier:
+              </span>
+              {['all', 'foundation', 'advanced', 'crash', 'test-series'].map((tier) => (
+                <button
+                  key={tier}
+                  onClick={() => setSelectedTier(tier)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer capitalize",
+                    selectedTier === tier
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  )}
+                >
+                  {tier}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Batches Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {batches.length === 0 ? (
-              <Card className="p-6 col-span-full text-center text-stone-500">
-                No batches yet. Create one to get started.
-              </Card>
+            {filteredBatches.length === 0 ? (
+              <div className="col-span-full bg-white p-12 rounded-2xl border border-dashed border-slate-200 text-center">
+                <School className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h4 className="font-bold text-slate-800 text-base">No batches found</h4>
+                <p className="text-slate-500 text-xs mt-1">Try adjusting your search query or create a new batch.</p>
+                {role === 'admin' && (
+                  <Button
+                    onClick={() => setShowCreateModal(true)}
+                    className="mt-4 bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold"
+                  >
+                    <Plus className="w-4 h-4 mr-1.5" /> Create New Batch
+                  </Button>
+                )}
+              </div>
             ) : (
-              batches.map(b => (
-                <BatchCard
+              filteredBatches.map(b => (
+                <BatchCardModern
                   key={b.id}
                   batch={b}
                   metrics={b.metrics}
@@ -183,117 +323,116 @@ export function InstitutionDashboardView() {
           </div>
         </TabsContent>
 
-        {/* COHORT ANALYTICS TAB */}
+        {/* ----------------- TAB 2: COHORT ANALYTICS ----------------- */}
         <TabsContent value="cohort" className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Label className="text-sm text-stone-600">Select batch:</Label>
-            <Select
-              value={selectedBatchId ?? ''}
-              onValueChange={setSelectedBatchId}
-            >
-              <SelectTrigger className="w-72"><SelectValue placeholder="Choose a batch" /></SelectTrigger>
-              <SelectContent>
-                {batches.map(b => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Cohort:</Label>
+              <Select value={selectedBatchId ?? ''} onValueChange={setSelectedBatchId}>
+                <SelectTrigger className="w-72 bg-slate-50 border-slate-200 font-semibold text-xs">
+                  <SelectValue placeholder="Choose a batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map(b => (
+                    <SelectItem key={b.id} value={b.id} className="text-xs font-medium">
+                      {b.name} ({b.targetExam.toUpperCase()})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedBatch && (
+              <Badge className="bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs py-1 px-3">
+                Target: {selectedBatch.targetExam.toUpperCase()} • Tier: {selectedBatch.cohortTier.toUpperCase()}
+              </Badge>
+            )}
           </div>
 
           {selectedBatchMetrics ? (
-            <CohortAnalyticsPanel metrics={selectedBatchMetrics} />
+            <CohortAnalyticsPanelModern metrics={selectedBatchMetrics} batchName={selectedBatch?.name || 'Cohort'} />
           ) : (
-            <Card className="p-6 text-center text-stone-500">
-              No analytics available — pick a batch with enrolled students.
-            </Card>
+            <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center shadow-xs">
+              <BarChart3 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <h4 className="font-bold text-slate-800 text-base">Cohort Diagnostics Awaiting Data</h4>
+              <p className="text-slate-500 text-xs mt-1">Pick a batch with enrolled students and mock submissions to see live telemetry.</p>
+            </div>
           )}
         </TabsContent>
 
-        {/* ASSIGNMENTS TAB */}
+        {/* ----------------- TAB 3: ASSIGNMENTS ----------------- */}
         <TabsContent value="assignments" className="space-y-4">
-          <AssignmentPanel
+          <AssignmentPanelModern
             batchId={selectedBatch?.id}
+            batchName={selectedBatch?.name}
             teacherId={role === 'teacher' ? teachers[0]?.id : undefined}
             onAssignmentCreated={refresh}
             canCreate={role !== 'student'}
           />
         </TabsContent>
 
-        {/* TEACHERS TAB (admin only) */}
-        {role === 'admin' && (
-          <TabsContent value="teachers" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-stone-800">Teaching Faculty</h3>
+        {/* ----------------- TAB 4: TEACHERS ----------------- */}
+        <TabsContent value="teachers" className="space-y-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-slate-900 text-base">Registered Teaching Faculty</h3>
+              <p className="text-xs text-slate-500">Subject matter experts supervising active student batches</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {teachers.map(t => (
-                <Card key={t.id} className="p-4 border-blue-200">
-                  <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold">
-                      {t.displayName.split(' ').map(w => w[0]).slice(0, 2).join('')}
+            <Badge className="bg-purple-100 text-purple-800 border border-purple-200 font-bold text-xs">
+              {teachers.length} Active Faculty
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {teachers.map(t => (
+              <div key={t.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3.5">
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md flex-shrink-0">
+                    {t.displayName.split(' ').map(w => w[0]).slice(0, 2).join('')}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-900 truncate text-sm">{t.displayName}</p>
+                    <p className="text-xs text-slate-500 truncate">{t.email}</p>
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {t.subjects.map(s => (
+                        <Badge key={s} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[11px] font-semibold">
+                          {s}
+                        </Badge>
+                      ))}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-stone-800 truncate">{t.displayName}</p>
-                      <p className="text-xs text-stone-500 truncate">{t.email}</p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {t.subjects.map(s => (
-                          <Badge key={s} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                            {s}
-                          </Badge>
-                        ))}
-                      </div>
-                      <p className="text-xs text-stone-400 mt-2">
-                        Batches: {t.batchIds.length}
-                      </p>
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
+                      <span>Assigned Batches: <strong className="text-slate-900">{t.batchIds.length}</strong></span>
+                      <span className="text-emerald-600 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                      </span>
                     </div>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
       </Tabs>
+
+      {/* 4. Modal Dialog for Creating New Batch (No Broken Inline Layout) */}
+      {showCreateModal && (
+        <CreateBatchModal
+          institutionId={institution?.id ?? 'inst_demo001'}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false);
+            refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// KPI card
+// Modern White Batch Card
 // ---------------------------------------------------------------------------
 
-function KpiCard({
-  label,
-  value,
-  icon,
-  color,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-  color: 'blue' | 'cyan' | 'purple' | 'emerald';
-}) {
-  const colors: Record<string, string> = {
-    blue: 'border-blue-200 bg-blue-50 text-blue-700',
-    cyan: 'border-cyan-200 bg-cyan-50 text-cyan-700',
-    purple: 'border-purple-200 bg-purple-50 text-purple-700',
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  };
-  return (
-    <Card className={`p-4 ${colors[color]}`}>
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase opacity-80">{label}</span>
-        <div className="opacity-80">{icon}</div>
-      </div>
-      <div className="mt-2 text-3xl font-bold tabular-nums">{value}</div>
-    </Card>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Batch card
-// ---------------------------------------------------------------------------
-
-function BatchCard({
+function BatchCardModern({
   batch,
   metrics,
   onSelect,
@@ -304,353 +443,205 @@ function BatchCard({
   onSelect: () => void;
   selected: boolean;
 }) {
-  const tierColors: Record<string, string> = {
-    foundation: 'bg-blue-50 text-blue-700 border-blue-200',
-    basic: 'bg-cyan-50 text-cyan-700 border-cyan-200',
-    advanced: 'bg-purple-50 text-purple-700 border-purple-200',
-    crash: 'bg-rose-50 text-rose-700 border-rose-200',
-    'test-series': 'bg-amber-50 text-amber-700 border-amber-200',
+  const tierBadges: Record<string, { bg: string; text: string }> = {
+    foundation: { bg: 'bg-blue-100', text: 'text-blue-800' },
+    basic: { bg: 'bg-cyan-100', text: 'text-cyan-800' },
+    advanced: { bg: 'bg-purple-100', text: 'text-purple-800' },
+    crash: { bg: 'bg-rose-100', text: 'text-rose-800' },
+    'test-series': { bg: 'bg-amber-100', text: 'text-amber-800' },
   };
+
+  const studentCount = metrics?.totalStudents ?? batch.studentIds.length;
+  const fillPct = Math.min(100, Math.round((studentCount / batch.capacity) * 100));
+
   return (
-    <Card
-      className={`p-4 cursor-pointer transition-all border-2 ${
-        selected ? 'border-blue-400 ring-2 ring-blue-100' : 'border-blue-200 hover:border-blue-300'
-      }`}
+    <div
       onClick={onSelect}
+      className={cn(
+        "bg-white p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group shadow-xs hover:shadow-md",
+        selected
+          ? "border-blue-600 ring-2 ring-blue-500/20 shadow-md"
+          : "border-slate-200 hover:border-blue-300"
+      )}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-stone-800 truncate">{batch.name}</p>
-          <div className="flex flex-wrap gap-1 mt-1">
-            <Badge variant="outline" className={`text-xs ${tierColors[batch.cohortTier] ?? 'bg-stone-50'}`}>
+          <h4 className="font-bold text-slate-900 truncate text-base group-hover:text-blue-700 transition-colors">
+            {batch.name}
+          </h4>
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            <span className={cn("text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md", tierBadges[batch.cohortTier]?.bg || "bg-slate-100", tierBadges[batch.cohortTier]?.text || "text-slate-800")}>
               {batch.cohortTier}
-            </Badge>
-            <Badge variant="outline" className="text-xs bg-stone-50 text-stone-700 border-stone-200">
+            </span>
+            <Badge variant="outline" className="text-[10px] font-bold bg-slate-50 text-slate-700 border-slate-200">
               {batch.targetExam.toUpperCase()}
             </Badge>
           </div>
         </div>
+        {selected && (
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-600 ring-4 ring-blue-100" />
+        )}
       </div>
-      <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+
+      <div className="grid grid-cols-3 gap-2 mt-4 text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
         <div>
-          <p className="text-xs text-stone-500">Students</p>
-          <p className="font-semibold text-stone-800 tabular-nums">
-            {metrics?.totalStudents ?? batch.studentIds.length}/{batch.capacity}
+          <p className="text-[10px] font-bold uppercase text-slate-400">Enrollment</p>
+          <p className="font-extrabold text-slate-900 text-sm mt-0.5">
+            {studentCount} / {batch.capacity}
           </p>
         </div>
         <div>
-          <p className="text-xs text-stone-500">Active</p>
-          <p className="font-semibold text-blue-700 tabular-nums">{metrics?.activeStudents ?? 0}</p>
+          <p className="text-[10px] font-bold uppercase text-slate-400">Active</p>
+          <p className="font-extrabold text-blue-700 text-sm mt-0.5">
+            {metrics?.activeStudents ?? 0}
+          </p>
         </div>
         <div>
-          <p className="text-xs text-stone-500">Avg %</p>
-          <p className="font-semibold text-emerald-700 tabular-nums">{metrics?.avgScorePct ?? 0}%</p>
+          <p className="text-[10px] font-bold uppercase text-slate-400">Avg Score</p>
+          <p className="font-extrabold text-emerald-700 text-sm mt-0.5">
+            {metrics?.avgScorePct ?? 0}%
+          </p>
         </div>
       </div>
-      <div className="mt-2 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-blue-500"
-          style={{ width: `${Math.min(100, ((metrics?.totalStudents ?? batch.studentIds.length) / batch.capacity) * 100)}%` }}
-        />
+
+      {/* Capacity Progress Bar */}
+      <div className="mt-3">
+        <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium mb-1">
+          <span>Batch Utilization</span>
+          <span className="font-bold text-slate-700">{fillPct}%</span>
+        </div>
+        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all"
+            style={{ width: `${fillPct}%` }}
+          />
+        </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Cohort analytics panel — used by teachers and admins
+// Cohort Analytics Visualizer Panel
 // ---------------------------------------------------------------------------
 
-function CohortAnalyticsPanel({ metrics }: { metrics: CohortMetrics }) {
-  const maxBucket = Math.max(...metrics.scoreDistribution.map(b => b.count), 1);
-  const maxTrend = Math.max(...metrics.engagementTrend.map(d => d.mocksTaken), 1);
-  const maxWeak = Math.max(...metrics.topWeakTopics.map(t => t.affectedStudents), 1);
-
+function CohortAnalyticsPanelModern({ metrics, batchName }: { metrics: CohortMetrics; batchName: string }) {
   return (
     <div className="space-y-4">
-      {/* KPI strip */}
+      {/* 4 Quick Telemetry Gauges */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MiniStat label="Avg Score" value={`${metrics.avgScorePct}%`} icon={<Target className="h-4 w-4" />} color="blue" />
-        <MiniStat label="Avg Accuracy" value={`${metrics.avgAccuracy}%`} icon={<Award className="h-4 w-4" />} color="emerald" />
-        <MiniStat label="Avg Time/Q" value={`${metrics.avgTimePerQuestionSec}s`} icon={<Clock className="h-4 w-4" />} color="amber" />
-        <MiniStat label="Total Mocks" value={metrics.totalMocksTaken} icon={<Activity className="h-4 w-4" />} color="purple" />
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase">Avg Score</span>
+            <Target className="h-4 w-4 text-blue-600" />
+          </div>
+          <div className="text-2xl font-black text-slate-900 mt-1">{metrics.avgScorePct}%</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase">Accuracy</span>
+            <Award className="h-4 w-4 text-emerald-600" />
+          </div>
+          <div className="text-2xl font-black text-emerald-700 mt-1">{metrics.avgAccuracy}%</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase">Speed / Q</span>
+            <Clock className="h-4 w-4 text-amber-600" />
+          </div>
+          <div className="text-2xl font-black text-slate-900 mt-1">{metrics.avgTimePerQuestionSec}s</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase">Total Mocks</span>
+            <Activity className="h-4 w-4 text-purple-600" />
+          </div>
+          <div className="text-2xl font-black text-purple-700 mt-1">{metrics.totalMocksTaken}</div>
+        </div>
       </div>
 
+      {/* Charts & Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Score distribution */}
-        <Card className="p-4 border-blue-200">
-          <h4 className="font-semibold text-stone-800 mb-3 flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-blue-500" />
-            Score Distribution
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <h4 className="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-blue-600" />
+            Score Distribution — {batchName}
           </h4>
-          <div className="space-y-2">
-            {metrics.scoreDistribution.map(b => (
-              <div key={b.bucket} className="flex items-center gap-3">
-                <span className="text-xs w-16 text-stone-600">{b.bucket}</span>
-                <div className="flex-1 h-6 bg-stone-100 rounded overflow-hidden relative">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-end pr-2"
-                    style={{ width: `${(b.count / maxBucket) * 100}%` }}
-                  >
-                    {b.count > 0 && (
-                      <span className="text-xs font-medium text-white">{b.count}</span>
-                    )}
+          <div className="space-y-2.5">
+            {metrics.scoreDistribution.map(b => {
+              const maxCount = Math.max(...metrics.scoreDistribution.map(x => x.count), 1);
+              const pct = (b.count / maxCount) * 100;
+              return (
+                <div key={b.bucket} className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold text-slate-600">
+                    <span>{b.bucket}</span>
+                    <span className="font-bold text-slate-900">{b.count} students</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </Card>
+        </div>
 
-        {/* Engagement trend */}
-        <Card className="p-4 border-blue-200">
-          <h4 className="font-semibold text-stone-800 mb-3 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
-            Last 7 Days Engagement
+        {/* Top Weak Topics */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <h4 className="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600" />
+            Cohort Remedial Targets (Weak Topics)
           </h4>
-          <div className="flex items-end justify-between h-32 gap-1">
-            {metrics.engagementTrend.map(d => (
-              <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className="w-full bg-gradient-to-t from-blue-400 to-cyan-400 rounded-t"
-                  style={{ height: `${(d.mocksTaken / maxTrend) * 100}%`, minHeight: d.mocksTaken > 0 ? '8px' : '2px' }}
-                  title={`${d.mocksTaken} mocks on ${d.date}`}
-                />
-                <span className="text-[10px] text-stone-500">
-                  {new Date(d.date).toLocaleDateString('en', { weekday: 'short' }).slice(0, 2)}
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-stone-500 mt-2">
-            Total mocks this week: {metrics.engagementTrend.reduce((s, d) => s + d.mocksTaken, 0)}
-          </p>
-        </Card>
-
-        {/* Top weak topics */}
-        <Card className="p-4 border-amber-200">
-          <h4 className="font-semibold text-stone-800 mb-3 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            Top Weak Topics (Cohort)
-          </h4>
-          {metrics.topWeakTopics.length === 0 ? (
-            <p className="text-sm text-stone-400 italic">No weak topics flagged yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {metrics.topWeakTopics.map(t => (
-                <div key={`${t.topic}-${t.subject}`} className="flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-stone-700 truncate">{t.topic}</p>
-                    <p className="text-xs text-stone-500">{t.subject}</p>
+          <div className="space-y-2.5">
+            {metrics.topWeakTopics.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">No critical weak topics flagged for this batch.</p>
+            ) : (
+              metrics.topWeakTopics.map(t => (
+                <div key={t.topic} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-slate-900 text-xs">{t.topic}</p>
+                    <p className="text-[11px] text-slate-500">{t.subject}</p>
                   </div>
-                  <div className="w-24 h-2 bg-stone-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-amber-400 to-rose-500"
-                      style={{ width: `${(t.affectedStudents / maxWeak) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-stone-600 w-12 text-right">{t.affectedStudents} students</span>
+                  <Badge className="bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold">
+                    {t.affectedStudents} students impacted
+                  </Badge>
                 </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* Top performers + at-risk */}
-        <Card className="p-4 border-blue-200">
-          <h4 className="font-semibold text-stone-800 mb-3 flex items-center gap-2">
-            <Award className="h-4 w-4 text-amber-500" />
-            Top Performers & At-Risk Students
-          </h4>
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs font-semibold text-emerald-700 uppercase mb-1">Top Performers</p>
-              {metrics.topPerformers.length === 0 ? (
-                <p className="text-xs text-stone-400 italic">No top performers yet (need ≥3 mocks & ≥60% avg).</p>
-              ) : (
-                metrics.topPerformers.map(p => (
-                  <div key={p.studentId} className="flex items-center justify-between text-sm py-1">
-                    <span className="text-stone-700 truncate">{p.studentName}</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
-                        {p.avgScorePct}%
-                      </Badge>
-                      <span className="text-xs text-stone-500">{p.mocksTaken} mocks</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="border-t border-stone-100 pt-2">
-              <p className="text-xs font-semibold text-rose-700 uppercase mb-1">At-Risk Students</p>
-              {metrics.atRiskStudents.length === 0 ? (
-                <p className="text-xs text-stone-400 italic">No at-risk students — cohort looks healthy.</p>
-              ) : (
-                metrics.atRiskStudents.map(s => (
-                  <div key={s.studentId} className="flex items-center justify-between text-sm py-1">
-                    <div className="min-w-0">
-                      <p className="text-stone-700 truncate">{s.studentName}</p>
-                      <p className="text-xs text-stone-500 truncate">{s.reason}</p>
-                    </div>
-                    <Badge variant="outline" className="text-xs bg-rose-50 text-rose-700 border-rose-200">
-                      {s.avgScorePct}%
-                    </Badge>
-                  </div>
-                ))
-              )}
-            </div>
+              ))
+            )}
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );
 }
 
-function MiniStat({
-  label,
-  value,
-  icon,
-  color,
-}: {
-  label: string;
-  value: number | string;
-  icon: React.ReactNode;
-  color: 'blue' | 'emerald' | 'amber' | 'purple';
-}) {
-  const colors: Record<string, string> = {
-    blue: 'bg-blue-50 text-blue-700 border-blue-200',
-    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    amber: 'bg-amber-50 text-amber-700 border-amber-200',
-    purple: 'bg-purple-50 text-purple-700 border-purple-200',
-  };
-  return (
-    <div className={`p-3 rounded-lg border ${colors[color]}`}>
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-xs uppercase opacity-80">{label}</span>
-      </div>
-      <p className="text-xl font-bold tabular-nums mt-1">{value}</p>
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
-// Create batch dialog (admin only)
+// Assignment Panel Modern
 // ---------------------------------------------------------------------------
 
-function CreateBatchDialog({ institutionId, onCreated }: { institutionId?: string; onCreated: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [cohortTier, setCohortTier] = useState<string>('foundation');
-  const [targetExam, setTargetExam] = useState<string>('jee-main');
-  const [capacity, setCapacity] = useState(60);
-  const [creating, setCreating] = useState(false);
-
-  const submit = async () => {
-    if (!institutionId || !name.trim()) return;
-    setCreating(true);
-    try {
-      await fetch('/api/institution/batches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          institutionId,
-          name: name.trim(),
-          cohortTier,
-          targetExam,
-          capacity,
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
-        }),
-      });
-      setName('');
-      setOpen(false);
-      onCreated();
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  if (!open) {
-    return (
-      <Button size="sm" onClick={() => setOpen(true)}>
-        <Plus className="h-4 w-4 mr-1" />
-        New Batch
-      </Button>
-    );
-  }
-
-  return (
-    <Card className="p-4 border-blue-300">
-      <h4 className="font-semibold text-stone-800 mb-3">Create New Batch</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <Label className="text-xs text-stone-500">Batch Name</Label>
-          <Input value={name} onChange={e => setName(e.target.value)} placeholder="JEE 2026 Riser — Batch C" className="mt-1" />
-        </div>
-        <div>
-          <Label className="text-xs text-stone-500">Cohort Tier</Label>
-          <Select value={cohortTier} onValueChange={setCohortTier}>
-            <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="foundation">Foundation</SelectItem>
-              <SelectItem value="basic">Basic</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
-              <SelectItem value="crash">Crash Course</SelectItem>
-              <SelectItem value="test-series">Test Series</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label className="text-xs text-stone-500">Target Exam</Label>
-          <Select value={targetExam} onValueChange={setTargetExam}>
-            <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="jee-main">JEE Main</SelectItem>
-              <SelectItem value="neet">NEET</SelectItem>
-              <SelectItem value="gate">GATE</SelectItem>
-              <SelectItem value="cat">CAT</SelectItem>
-              <SelectItem value="upsc">UPSC</SelectItem>
-              <SelectItem value="gre">GRE</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label className="text-xs text-stone-500">Capacity</Label>
-          <Input type="number" value={capacity} onChange={e => setCapacity(Number(e.target.value) || 60)} className="mt-1" />
-        </div>
-      </div>
-      <div className="flex items-center gap-2 mt-3">
-        <Button onClick={submit} disabled={creating || !name.trim()}>
-          {creating ? 'Creating…' : 'Create Batch'}
-        </Button>
-        <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-      </div>
-    </Card>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Assignment panel
-// ---------------------------------------------------------------------------
-
-function AssignmentPanel({
+function AssignmentPanelModern({
   batchId,
+  batchName,
   teacherId,
   onAssignmentCreated,
   canCreate,
 }: {
   batchId?: string;
+  batchName?: string;
   teacherId?: string;
   onAssignmentCreated: () => void;
   canCreate: boolean;
 }) {
   const [assignments, setAssignments] = useState<BatchAssignment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-  const [newType, setNewType] = useState<'mock' | 'practice' | 'dpp' | 'revision'>('dpp');
   const [newDesc, setNewDesc] = useState('');
+  const [newType, setNewType] = useState<'dpp' | 'practice' | 'mock' | 'revision'>('dpp');
   const [dueDate, setDueDate] = useState('');
 
   const load = useCallback(async () => {
@@ -672,7 +663,7 @@ function AssignmentPanel({
   }, [load]);
 
   const createAssignment = async () => {
-    if (!batchId || !teacherId || !newTitle.trim()) return;
+    if (!batchId || !newTitle.trim()) return;
     await fetch('/api/institution/assignments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -695,99 +686,257 @@ function AssignmentPanel({
     onAssignmentCreated();
   };
 
-  const typeColors: Record<string, string> = {
-    mock: 'bg-rose-50 text-rose-700 border-rose-200',
-    practice: 'bg-blue-50 text-blue-700 border-blue-200',
-    dpp: 'bg-amber-50 text-amber-700 border-amber-200',
-    revision: 'bg-purple-50 text-purple-700 border-purple-200',
-  };
-
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-stone-800">
-          Assignments{batchId ? ` · ${assignments.length}` : ''}
-        </h3>
+    <div className="space-y-4">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div>
+          <h3 className="font-bold text-slate-900 text-base">
+            Assignments Hub {batchName ? `• ${batchName}` : ''}
+          </h3>
+          <p className="text-xs text-slate-500">Track daily practice problems, mock schedules, and student submissions</p>
+        </div>
         {canCreate && (
-          <Button size="sm" variant="outline" onClick={() => setShowCreate(s => !s)}>
-            <Plus className="h-4 w-4 mr-1" />
-            New Assignment
+          <Button
+            size="sm"
+            onClick={() => setShowCreate(!showCreate)}
+            className="bg-blue-600 text-white hover:bg-blue-700 font-bold text-xs"
+          >
+            <Plus className="h-4 w-4 mr-1.5" /> New Assignment
           </Button>
         )}
       </div>
 
       {showCreate && canCreate && (
-        <Card className="p-4 border-blue-300 space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="bg-white p-6 rounded-2xl border border-blue-300 shadow-md space-y-4">
+          <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-blue-600" /> Create & Publish Batch Assignment
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label className="text-xs text-stone-500">Title</Label>
-              <Input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Kinematics DPP Set 4" className="mt-1" />
+              <Label className="text-xs font-bold text-slate-600">Assignment Title</Label>
+              <Input
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                placeholder="e.g. Kinematics DPP Set 4"
+                className="mt-1 bg-slate-50"
+              />
             </div>
             <div>
-              <Label className="text-xs text-stone-500">Type</Label>
+              <Label className="text-xs font-bold text-slate-600">Type</Label>
               <Select value={newType} onValueChange={(v) => setNewType(v as any)}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="mt-1 bg-slate-50"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="dpp">DPP (Daily Practice)</SelectItem>
-                  <SelectItem value="practice">Practice Set</SelectItem>
-                  <SelectItem value="mock">Mock Test</SelectItem>
-                  <SelectItem value="revision">Revision</SelectItem>
+                  <SelectItem value="practice">Practice Problem Set</SelectItem>
+                  <SelectItem value="mock">Proctored Mock Test</SelectItem>
+                  <SelectItem value="revision">Sprint Revision</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="md:col-span-2">
-              <Label className="text-xs text-stone-500">Description</Label>
-              <Textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="10 problems on uniformly accelerated motion…" className="mt-1" rows={2} />
+              <Label className="text-xs font-bold text-slate-600">Instructions & Objectives</Label>
+              <Textarea
+                value={newDesc}
+                onChange={e => setNewDesc(e.target.value)}
+                placeholder="Complete 10 numerical problems on uniform acceleration..."
+                className="mt-1 bg-slate-50"
+                rows={2}
+              />
             </div>
             <div>
-              <Label className="text-xs text-stone-500">Due Date</Label>
-              <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="mt-1" />
+              <Label className="text-xs font-bold text-slate-600">Submission Due Date</Label>
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={e => setDueDate(e.target.value)}
+                className="mt-1 bg-slate-50"
+              />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={createAssignment} disabled={!newTitle.trim()}>Publish</Button>
-            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
+          <div className="flex items-center gap-2 pt-2">
+            <Button onClick={createAssignment} disabled={!newTitle.trim()} className="bg-blue-600 text-white font-bold text-xs">
+              Publish to Batch
+            </Button>
+            <Button variant="outline" onClick={() => setShowCreate(false)} className="text-xs font-bold">
+              Cancel
+            </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {loading ? (
-        <Card className="p-6 text-center text-stone-500">Loading assignments…</Card>
+        <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500">
+          Loading assignments...
+        </div>
       ) : assignments.length === 0 ? (
-        <Card className="p-6 text-center text-stone-500">No assignments yet for this batch.</Card>
+        <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-200 text-center">
+          <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+          <p className="font-bold text-slate-700 text-sm">No assignments published yet for this batch</p>
+          <p className="text-xs text-slate-400 mt-1">Create a DPP or Mock Test to assign work to your students.</p>
+        </div>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {assignments.map(a => (
-            <Card key={a.id} className="p-3 border-blue-100 hover:border-blue-300 transition-colors">
+            <div key={a.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs hover:border-blue-300 transition-colors">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className={`text-xs ${typeColors[a.type] ?? 'bg-stone-50'}`}>
-                      {a.type.toUpperCase()}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-blue-100 text-blue-800 border-0 text-[10px] font-extrabold uppercase">
+                      {a.type}
                     </Badge>
-                    <p className="font-medium text-stone-800">{a.title}</p>
+                    <h5 className="font-bold text-slate-900 text-sm">{a.title}</h5>
                   </div>
                   {a.description && (
-                    <p className="text-sm text-stone-600 mt-1 line-clamp-2">{a.description}</p>
+                    <p className="text-xs text-slate-600 mt-1 line-clamp-2">{a.description}</p>
                   )}
-                  <div className="flex items-center gap-3 mt-2 text-xs text-stone-500">
+                  <div className="flex items-center gap-3 mt-3 text-xs text-slate-500 font-medium">
                     <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
+                      <Calendar className="h-3.5 w-3.5 text-blue-600" />
                       Due: {new Date(a.dueDate).toLocaleDateString()}
                     </span>
-                    {a.examId && (
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="h-3 w-3" />
-                        {a.examId.toUpperCase()}
-                      </span>
-                    )}
+                    <span className="flex items-center gap-1">
+                      <BookOpen className="h-3.5 w-3.5 text-purple-600" />
+                      {(a.examId || 'general').toUpperCase()}
+                    </span>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Dedicated Modal Dialog for Creating New Batch
+// ---------------------------------------------------------------------------
+
+function CreateBatchModal({
+  institutionId,
+  onClose,
+  onCreated,
+}: {
+  institutionId: string;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [cohortTier, setCohortTier] = useState<string>('foundation');
+  const [targetExam, setTargetExam] = useState<string>('jee-main');
+  const [capacity, setCapacity] = useState(60);
+  const [creating, setCreating] = useState(false);
+
+  const submit = async () => {
+    if (!name.trim()) return;
+    setCreating(true);
+    try {
+      await fetch('/api/institution/batches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          institutionId,
+          name: name.trim(),
+          cohortTier,
+          targetExam,
+          capacity,
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+        }),
+      });
+      onCreated();
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in duration-150">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+              <School className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-lg">Create New Batch</h3>
+              <p className="text-xs text-slate-500">Configure curriculum, target exam & student capacity</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4 py-5">
+          <div>
+            <Label className="text-xs font-bold text-slate-700">Batch Name</Label>
+            <Input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="e.g. JEE 2026 Riser — Batch C"
+              className="mt-1 bg-slate-50"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs font-bold text-slate-700">Cohort Tier</Label>
+              <Select value={cohortTier} onValueChange={setCohortTier}>
+                <SelectTrigger className="mt-1 bg-slate-50"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="foundation">Foundation</SelectItem>
+                  <SelectItem value="basic">Basic</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                  <SelectItem value="crash">Crash Course</SelectItem>
+                  <SelectItem value="test-series">Test Series</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs font-bold text-slate-700">Target Exam</Label>
+              <Select value={targetExam} onValueChange={setTargetExam}>
+                <SelectTrigger className="mt-1 bg-slate-50"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="jee-main">JEE Main</SelectItem>
+                  <SelectItem value="neet">NEET</SelectItem>
+                  <SelectItem value="gate">GATE</SelectItem>
+                  <SelectItem value="cat">CAT</SelectItem>
+                  <SelectItem value="upsc">UPSC</SelectItem>
+                  <SelectItem value="gre">GRE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs font-bold text-slate-700">Student Capacity</Label>
+            <Input
+              type="number"
+              value={capacity}
+              onChange={e => setCapacity(Number(e.target.value) || 60)}
+              className="mt-1 bg-slate-50"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+          <Button variant="outline" onClick={onClose} className="font-bold text-xs">
+            Cancel
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={creating || !name.trim()}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20"
+          >
+            {creating ? 'Creating Batch...' : 'Create Batch'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

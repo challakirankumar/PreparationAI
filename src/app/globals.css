@@ -46,15 +46,12 @@
 }
 
 /* ============================================================================
-   PREMIUM THEME — Sapphire Blue + Midnight Blue, warm off-white, soft glass
-   ----------------------------------------------------------------------------
-   Palette intentionally avoids indigo/purple. Primary brand colour is a
-   deep sapphire blue (#0F4C81), accents shift toward midnight blue (#0F172A).
+   PREMIUM THEME — Clean White Canvas, Royal Blue & Indigo Gradients
    ============================================================================ */
 :root {
   --radius: 0.85rem;
 
-  /* Surfaces — warm off-white background, pure-white cards */
+  /* Surfaces — Crisp White & Modern Porcelain */
   --background: #f8fafc;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -62,75 +59,46 @@
   --popover: #ffffff;
   --popover-foreground: #0f172a;
 
-  /* Brand — Sapphire Blue primary (deep, rich, professional) */
-  --primary: #0F4C81;
+  /* Brand — Majestic Royal Blue Gradient Base */
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
 
   /* Secondary surfaces */
   --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --secondary-foreground: #1e293b;
   --muted: #f1f5f9;
-  --muted-foreground: #475569;
+  --muted-foreground: #64748b;
 
-  /* Accent — soft sapphire tint */
-  --accent: #e0f2fe;
-  --accent-foreground: #0c4a6e;
+  /* Accent */
+  --accent: #eff6ff;
+  --accent-foreground: #1d4ed8;
 
   /* States */
-  --destructive: #be123c;
+  --destructive: #ef4444;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #0F4C81;
+  --ring: #2563eb;
 
-  /* Charts — sapphire-anchored palette */
-  --chart-1: #0F4C81;
+  /* Charts */
+  --chart-1: #2563eb;
   --chart-2: #f59e0b;
-  --chart-3: #0d9488;
-  --chart-4: #d97706;
-  --chart-5: #be123c;
+  --chart-3: #10b981;
+  --chart-4: #8b5cf6;
+  --chart-5: #ef4444;
 
-  /* Sidebar — cool midnight-tinted white for depth */
+  /* Sidebar */
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
-  --sidebar-primary: #0F4C81;
+  --sidebar-primary: #2563eb;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e0f2fe;
-  --sidebar-accent-foreground: #0c4a6e;
+  --sidebar-accent: #eff6ff;
+  --sidebar-accent-foreground: #1d4ed8;
   --sidebar-border: #e2e8f0;
-  --sidebar-ring: #0F4C81;
+  --sidebar-ring: #2563eb;
 
-  /* Premium shadows — soft, layered, sapphire-tinted */
-  --shadow-premium: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 12px 24px -8px rgba(15, 76, 129, 0.10);
-  --shadow-glass: 0 4px 24px -4px rgba(15, 23, 42, 0.08), 0 1px 0 0 rgba(255, 255, 255, 0.6) inset;
-}
-
-.dark {
-  --background: #0a0f1e;
-  --foreground: #f1f5f9;
-  --card: #111827;
-  --card-foreground: #f1f5f9;
-  --popover: #111827;
-  --popover-foreground: #f1f5f9;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #f1f5f9;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #1e3a5f;
-  --accent-foreground: #93c5fd;
-  --destructive: #ef4444;
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #3b82f6;
-  --sidebar: #111827;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #3b82f6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e3a5f;
-  --sidebar-accent-foreground: #93c5fd;
-  --sidebar-border: #1e293b;
-  --sidebar-ring: #3b82f6;
+  /* Premium shadows */
+  --shadow-premium: 0 4px 20px -2px rgba(37, 99, 235, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  --shadow-glass: 0 8px 32px 0 rgba(37, 99, 235, 0.08), 0 1px 0 0 rgba(255, 255, 255, 0.8) inset;
 }
 
 @layer base {
@@ -139,6 +107,7 @@
   }
   html, body {
     @apply bg-background text-foreground;
+    color-scheme: light;
   }
   body {
     font-feature-settings: "cv11", "ss01";
@@ -150,125 +119,103 @@
     letter-spacing: -0.025em;
     font-weight: 600;
   }
-  /* Premium scrollbar */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: transparent; }
+  /* Crisp clean scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #f8fafc; }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+    background: #cbd5e1;
     border-radius: 8px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
+    border: 2px solid #f8fafc;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #94a3b8, #64748b);
-    background-clip: padding-box;
+    background: #94a3b8;
   }
 }
 
-.scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-thin::-webkit-scrollbar { width: 5px; height: 5px; }
 .scroll-thin::-webkit-scrollbar-track { background: transparent; }
 .scroll-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-.scroll-thin::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.scroll-thin::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
 /* ============================================================================
-   PREMIUM BACKDROP — soft radial gradients, very subtle (sapphire only)
+   PREMIUM BACKDROP — Clean White with Royal Blue Gradients & Aura
    ============================================================================ */
 .bg-premium {
   background:
-    radial-gradient(60% 80% at 12% 0%, rgba(15, 76, 129, 0.07), transparent 60%),
-    radial-gradient(50% 60% at 100% 100%, rgba(15, 23, 42, 0.04), transparent 60%),
-    radial-gradient(40% 50% at 100% 0%, rgba(15, 76, 129, 0.03), transparent 60%),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    radial-gradient(70% 60% at 15% 0%, rgba(37, 99, 235, 0.07), transparent 60%),
+    radial-gradient(60% 50% at 85% 10%, rgba(79, 70, 229, 0.05), transparent 60%),
+    radial-gradient(50% 50% at 50% 100%, rgba(59, 130, 246, 0.04), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   background-attachment: fixed;
 }
 
-.dark .bg-premium {
-  background:
-    radial-gradient(60% 80% at 12% 0%, rgba(59, 130, 246, 0.08), transparent 60%),
-    radial-gradient(50% 60% at 100% 100%, rgba(245, 158, 11, 0.04), transparent 60%),
-    linear-gradient(180deg, #0a0f1e 0%, #0f172a 100%);
-  background-attachment: fixed;
+.bg-hero-royal {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 45%, #2563eb 80%, #3b82f6 100%);
 }
 
 .bg-hero-emerald {
-  background:
-    linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #f8fafc 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
 }
 
-.dark .bg-hero-emerald {
-  background:
-    linear-gradient(135deg, #111827 0%, #0c1a2e 50%, #0a0f1e 100%);
+.text-gradient-royal {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .text-gradient-emerald {
-  background: linear-gradient(135deg, #0F4C81 0%, #0d9488 60%, #f59e0b 120%);
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .text-gradient-blue {
-  background: linear-gradient(135deg, #0F4C81 0%, #1e40af 50%, #0c4a6e 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #4f46e5 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 /* ============================================================================
-   PREMIUM CARDS — soft shadow + 1px hairline border + subtle gradient sheen
+   PREMIUM CARDS — Clean White with Royal Blue Border Glow
    ============================================================================ */
 .card-premium {
-  background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: var(--shadow-premium);
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
   border-radius: var(--radius);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.dark .card-premium {
-  background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  border-color: rgba(30, 41, 59, 0.8);
 }
 
 .card-lift {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
 }
 .card-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.08), 0 16px 40px -12px rgba(0, 123, 255, 0.18);
-  border-color: #93c5fd;
-}
-
-.dark .card-lift:hover {
-  border-color: #1e3a5f;
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4), 0 16px 40px -12px rgba(59, 130, 246, 0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px -4px rgba(37, 99, 235, 0.15), 0 0 15px -2px rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.4);
 }
 
 /* ============================================================================
-   GLASS TOPBAR — backdrop blur + subtle gradient
+   GLASS TOPBAR — Frosted Crisp White Glass
    ============================================================================ */
 .glass-topbar {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-}
-
-.dark .glass-topbar {
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-bottom-color: rgba(30, 41, 59, 0.6);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95);
 }
 
 /* ============================================================================
-   GLOSSY NAV BUTTONS — active state with blue gradient + soft glow
+   GLOSSY NAV BUTTONS — Active state with royal blue gradient + soft glow
    ============================================================================ */
 .palette-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
 .palette-btn:active { transform: scale(0.96); }
 
 /* ============================================================================
-   PREMIUM BUTTON SHIMMER — subtle gradient hover sweep
+   PREMIUM BUTTON SHIMMER — Royal blue gradient sweep
    ============================================================================ */
 .btn-shimmer {
   position: relative;
@@ -281,11 +228,36 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
   transition: left 0.6s ease;
 }
 .btn-shimmer:hover::after {
   left: 100%;
+}
+
+/* ============================================================================
+   ROYAL BLUE HERO GRADIENTS & ACCENTS
+   ============================================================================ */
+.badge-royal {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.glow-royal {
+  box-shadow: 0 0 25px -4px rgba(37, 99, 235, 0.35);
+}
+
+.gradient-royal-btn {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.35);
+  transition: all 0.2s ease;
+}
+.gradient-royal-btn:hover {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+  box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.45);
+  transform: translateY(-1px);
 }
 
 /* ============================================================================
@@ -333,12 +305,14 @@
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

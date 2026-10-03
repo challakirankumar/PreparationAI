@@ -45,6 +45,7 @@ import {
   ShieldCheck,
   Layers,
   Zap,
+  Rocket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -102,6 +103,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   {
     title: 'Management',
     items: [
+      { id: 'launch-readiness', label: 'Launch Readiness 🚀', icon: Rocket },
       { id: 'superadmin', label: 'SuperAdmin Control', icon: ShieldCheck },
       { id: 'institution', label: 'Admin Portal', icon: Building2 },
       { id: 'guardrail', label: 'AI Guardrails', icon: Shield },
@@ -161,12 +163,6 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
   const attempts = useStore((s) => s.attempts);
 
   if (collapsed) {
-    // ----------------------------------------------------------------
-    // COLLAPSED MODE — icon-only rail with tooltips on hover.
-    // Group titles are hidden, labels are hidden, badges are hidden.
-    // The "PreparationAI" brand text is rendered above this rail in
-    // the SidebarHeader and stays visible.
-    // ----------------------------------------------------------------
     return (
       <TooltipProvider delayDuration={150}>
         <nav className="flex-1 overflow-y-auto scroll-thin px-2 py-4 space-y-3">
@@ -187,26 +183,18 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
                         className={cn(
                           'relative w-full flex items-center justify-center rounded-xl p-2.5 transition-all duration-300 group overflow-hidden ring-1',
                           active
-                            ? 'bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 text-white ring-blue-900/50 shadow-[0_6px_18px_-4px_rgba(15,76,129,0.5)]'
-                            : 'text-slate-600 ring-slate-200/70 bg-white/60 backdrop-blur-sm hover:bg-white hover:text-blue-900 hover:ring-blue-200',
+                            ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 text-white ring-blue-600 shadow-md shadow-blue-500/25'
+                            : 'text-slate-600 ring-slate-200/60 bg-white hover:bg-blue-50 hover:text-blue-700 hover:ring-blue-300',
                         )}
                       >
-                        <span className={cn(
-                          'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent',
-                          !active && 'opacity-40'
-                        )} />
-                        {active && (
-                          <span className="pointer-events-none absolute -bottom-6 -right-3 h-16 w-16 rounded-full bg-blue-400/20 blur-2xl" />
-                        )}
                         <Icon className={cn(
                           'h-5 w-5 flex-shrink-0 transition-all duration-300',
                           active
-                            ? 'text-white drop-shadow-sm'
+                            ? 'text-white'
                             : 'text-slate-500 group-hover:text-blue-700 group-hover:scale-110'
                         )} />
-                        {/* Active indicator dot in the top-right corner */}
                         {active && (
-                          <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-white/80" />
+                          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-white ring-2 ring-blue-600" />
                         )}
                       </button>
                     </TooltipTrigger>
@@ -223,18 +211,15 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
     );
   }
 
-  // ----------------------------------------------------------------
-  // EXPANDED MODE — full glassy nav with labels, group titles, etc.
-  // ----------------------------------------------------------------
   return (
     <nav className="flex-1 overflow-y-auto scroll-thin px-3 py-4 space-y-6">
       {NAV_GROUPS.map((group) => {
         return (
         <div key={group.title}>
-          <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400 mb-2.5">
+          <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2.5">
             {group.title}
           </p>
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = isParentActive(item.id, view);
@@ -249,37 +234,24 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
                     onNavigate?.();
                   }}
                   className={cn(
-                    // Premium glassy button — base layer for both states
-                    'relative w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-all duration-300 group overflow-hidden',
-                    // Refined ring + 1px hairline border on every button (glass surface)
+                    'relative w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-all duration-200 group overflow-hidden',
                     'ring-1',
                     active
-                      ? // Active: deep sapphire gradient + bright top sheen + soft glow
-                        'bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 text-white ring-blue-900/50 shadow-[0_6px_18px_-4px_rgba(15,76,129,0.5)]'
-                      : // Idle: translucent white glass that intensifies on hover (crisp dark mode support)
-                        'text-slate-700 dark:text-slate-200 ring-slate-200/70 dark:ring-slate-800/80 bg-white/70 dark:bg-slate-800/60 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-750 hover:text-blue-900 dark:hover:text-white hover:ring-blue-200 dark:hover:ring-blue-500/40 hover:shadow-[0_4px_12px_-2px_rgba(15,76,129,0.12)]',
+                      ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 text-white ring-blue-600 font-semibold shadow-md shadow-blue-500/25'
+                      : 'text-slate-700 ring-slate-200/50 bg-white/80 hover:bg-blue-50/80 hover:text-blue-700 hover:ring-blue-200 hover:shadow-sm',
                   )}
                 >
-                  {/* Glossy top sheen — visible on every button, brighter on active */}
-                  <span className={cn(
-                    'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent',
-                    !active && 'opacity-40 dark:opacity-10'
-                  )} />
-                  {/* Inner glassy bloom on the lower-right for active state */}
-                  {active && (
-                    <span className="pointer-events-none absolute -bottom-8 -right-4 h-20 w-20 rounded-full bg-blue-400/20 blur-2xl" />
-                  )}
                   <Icon className={cn(
-                    'h-[18px] w-[18px] flex-shrink-0 transition-all duration-300',
+                    'h-[18px] w-[18px] flex-shrink-0 transition-all duration-200',
                     active
-                      ? 'text-white drop-shadow-sm'
-                      : 'text-slate-500 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 group-hover:scale-110'
+                      ? 'text-white'
+                      : 'text-slate-500 group-hover:text-blue-700 group-hover:scale-105'
                   )} />
                   <span className={cn(
                     'flex-1 text-left truncate',
                     active
                       ? 'font-semibold tracking-tight text-white'
-                      : 'font-medium tracking-tight text-slate-700 dark:text-slate-100 group-hover:text-blue-900 dark:group-hover:text-white group-hover:font-semibold'
+                      : 'font-medium tracking-tight text-slate-700 group-hover:text-blue-900'
                   )}>
                     {item.label}
                   </span>
@@ -287,8 +259,8 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
                     <ChevronRight className={cn(
                       'h-3.5 w-3.5 transition-all',
                       active
-                        ? 'text-white/80'
-                        : 'text-slate-400 dark:text-slate-500 group-hover:text-blue-700 dark:group-hover:text-blue-400 group-hover:translate-x-0.5'
+                        ? 'text-white/90'
+                        : 'text-slate-400 group-hover:text-blue-700 group-hover:translate-x-0.5'
                     )} />
                   )}
                   {isMockExam && attemptCount > 0 && (
@@ -296,7 +268,7 @@ function NavList({ onNavigate, collapsed = false }: { onNavigate?: () => void; c
                       variant="outline"
                       className={cn(
                         'h-5 px-1.5 text-[10px] border-none font-semibold',
-                        active ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200'
+                        active ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
                       )}
                     >
                       {attemptCount}
@@ -361,38 +333,34 @@ function SidebarHeader({
 }) {
   return (
     <div className={cn(
-      'flex items-center h-16 border-b border-stone-200/80 dark:border-slate-800 flex-shrink-0 bg-gradient-to-r from-white via-blue-50/40 to-white dark:from-slate-900 dark:via-slate-850 dark:to-slate-900 relative overflow-hidden',
+      'flex items-center h-16 border-b border-slate-200/80 flex-shrink-0 bg-white relative overflow-hidden',
       collapsed ? 'px-2 justify-center' : 'px-4 justify-between',
     )}>
-      {/* Decorative glossy sheen */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-12 -left-8 h-32 w-32 rounded-full bg-blue-100/40 dark:bg-blue-900/20 blur-3xl" />
-      </div>
       <div className="relative flex items-center justify-between w-full">
-        {/* Brand text — ALWAYS visible, "PreparationAI" is never hidden */}
+        {/* Brand text */}
         {collapsed ? (
           <div className="flex flex-col items-center justify-center w-full select-none cursor-pointer" onClick={onToggleCollapse} title="Expand PreparationAI">
-            <span className="font-extrabold text-[11px] tracking-tight text-slate-900 dark:text-white leading-tight">
-              Preparation<span className="text-blue-600">AI</span>
+            <span className="font-extrabold text-[12px] tracking-tight text-blue-900 leading-tight">
+              Prep<span className="text-blue-600">AI</span>
             </span>
           </div>
         ) : (
           <div className="flex items-center gap-2 min-w-0">
-            <p className="font-bold text-xl leading-tight tracking-tight truncate">
+            <p className="font-bold text-xl leading-tight tracking-tight truncate text-slate-900">
               Preparation<span className="text-blue-600">AI</span>
             </p>
           </div>
         )}
 
-        {/* Transparent collapse toggle arrow */}
+        {/* Collapse toggle arrow */}
         {!collapsed && onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
             aria-label="Collapse sidebar"
             title="Collapse sidebar"
-            className="group/toggle relative h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50/60 dark:hover:bg-slate-800 transition-all flex-shrink-0"
+            className="group/toggle relative h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all flex-shrink-0"
           >
-            <PanelLeftClose className="h-4 w-4 opacity-60 group-hover/toggle:opacity-100 transition-opacity" />
+            <PanelLeftClose className="h-4 w-4 opacity-70 group-hover/toggle:opacity-100 transition-opacity" />
           </button>
         )}
       </div>
@@ -407,20 +375,19 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
   if (!user) return null;
 
   if (collapsed) {
-    // Collapsed footer — just the avatar (with tooltip) + a tiny log-out button.
     return (
-      <div className="border-t border-stone-200 p-2 flex-shrink-0 flex flex-col items-center gap-1.5">
+      <div className="border-t border-slate-200/80 p-2 flex-shrink-0 flex flex-col items-center gap-1.5 bg-slate-50/50">
         <TooltipProvider delayDuration={150}>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={() => setView('settings')}
-                className="rounded-full ring-2 ring-white/80 hover:ring-blue-300 transition"
+                className="rounded-full ring-2 ring-white hover:ring-blue-400 transition"
                 aria-label="Open settings"
               >
                 <Avatar className="h-8 w-8">
                   {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
-                  <AvatarFallback className="bg-gradient-to-br from-blue-700 to-blue-900 text-white text-[10px] font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white text-[10px] font-semibold">
                     {initials(user.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -434,7 +401,7 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 text-slate-400 hover:text-rose-600"
+          className="h-7 w-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50"
           onClick={logout}
           title="Log out"
         >
@@ -445,32 +412,38 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
   }
 
   return (
-    <div className="border-t border-stone-200 dark:border-slate-800 p-3 flex-shrink-0 bg-stone-50/50 dark:bg-slate-900/40">
+    <div className="border-t border-slate-200/80 p-3 flex-shrink-0 bg-slate-50/80">
       <div className="flex items-center gap-2 mb-2">
-        <Avatar className="h-8 w-8 ring-1 ring-stone-200 dark:ring-slate-750">
+        <Avatar className="h-8 w-8 ring-1 ring-slate-200">
           {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
-          <AvatarFallback className="bg-gradient-to-br from-blue-700 to-blue-900 text-white text-xs font-semibold">
+          <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white text-xs font-semibold">
             {initials(user.name)}
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <p className="text-sm font-semibold truncate text-stone-900 dark:text-white">{user.name}</p>
-            <span className={cn(
-              "text-[9px] px-1.5 py-0.2 rounded font-black uppercase tracking-wider",
-              user.role === 'superadmin' ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" :
-              user.role === 'admin' ? "bg-purple-500/20 text-purple-400 border border-purple-500/40" :
-              "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-            )}>
-              {user.role || 'student'}
-            </span>
+            <p className="text-sm font-semibold truncate text-slate-900">{user.name}</p>
+            {(() => {
+              const isSuper = user.role === 'superadmin' || user.email?.toLowerCase().includes('admin') || user.name?.toLowerCase().includes('super admin');
+              const isAdmin = user.role === 'admin' || user.name?.toLowerCase().includes('admin');
+              return (
+                <span className={cn(
+                  "text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider",
+                  isSuper ? "bg-amber-100 text-amber-900 border border-amber-300" :
+                  isAdmin ? "bg-purple-100 text-purple-800 border border-purple-300" :
+                  "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                )}>
+                  {isSuper ? 'SUPERADMIN' : isAdmin ? 'ADMIN' : (user.role || 'STUDENT')}
+                </span>
+              );
+            })()}
           </div>
-          <p className="text-[11px] text-muted-foreground dark:text-slate-400 truncate">{user.email}</p>
+          <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-stone-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+          className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50"
           onClick={logout}
           title="Log out"
         >
@@ -583,7 +556,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Desktop sidebar — collapses from w-72 (expanded) to w-[76px] (collapsed) */}
       <aside
         className={cn(
-          'hidden lg:flex fixed inset-y-0 left-0 flex-col bg-gradient-to-b from-white via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border-r border-stone-200 dark:border-slate-700 z-40 shadow-sm transition-[width] duration-300',
+          'hidden lg:flex fixed inset-y-0 left-0 flex-col bg-white border-r border-slate-200/80 z-40 shadow-[2px_0_20px_rgba(37,99,235,0.03)] transition-[width] duration-300',
           collapsed ? 'w-[76px]' : 'w-72',
         )}
       >

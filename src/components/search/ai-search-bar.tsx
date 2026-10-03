@@ -222,8 +222,8 @@ export function AISearchBar() {
         align="end"
         className="w-[520px] max-w-[92vw] p-0 max-h-[520px] flex flex-col"
       >
-        {/* Header — premium sapphire gradient */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-blue-900/20 bg-gradient-to-r from-blue-700 via-blue-800 to-slate-900 flex-shrink-0">
+        {/* Header — Royal Blue Gradient */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-blue-900/20 bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="h-7 w-7 rounded-md bg-white/15 backdrop-blur ring-1 ring-white/25 flex items-center justify-center">
               <Sparkles className="h-3.5 w-3.5 text-white" />

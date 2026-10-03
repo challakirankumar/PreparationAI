@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     // Create the user row
     const created = await db.user.create({
       data: {
-        id: user.id,
+        ...(user.id && /^[0-9a-fA-F]{24}$/.test(user.id) ? { id: user.id } : {}),
         email,
         passwordHash: password, // NOTE: in production, hash this with bcrypt/argon2
         name: user.name,

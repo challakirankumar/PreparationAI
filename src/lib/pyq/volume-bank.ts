@@ -711,12 +711,12 @@ export function getPYQQuestions(
     if (filter.searchQuery) {
       const s = filter.searchQuery.toLowerCase().trim();
       const match =
-        q.question.toLowerCase().includes(s) ||
-        q.subject.toLowerCase().includes(s) ||
-        q.topic.toLowerCase().includes(s) ||
-        q.explanation.toLowerCase().includes(s) ||
-        q.citation?.toLowerCase().includes(s) ||
-        q.tags.some((t) => t.toLowerCase().includes(s));
+        (q.question || q.questionText || '').toLowerCase().includes(s) ||
+        (q.subject || '').toLowerCase().includes(s) ||
+        (q.topic || '').toLowerCase().includes(s) ||
+        (q.explanation || '').toLowerCase().includes(s) ||
+        (q.citation || q.officialCitation || '').toLowerCase().includes(s) ||
+        (q.tags || []).some((t) => t.toLowerCase().includes(s));
       if (!match) return false;
     }
     return true;

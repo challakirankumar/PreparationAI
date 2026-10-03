@@ -74,24 +74,23 @@ export default function TaxonomyExplorerView() {
     : MASTER_EXAM_TAXONOMY
   ).filter(cat => {
     if (regionFilter === 'GCC') {
-      // Show exams conducted in GCC centers or NRI DASA eligible (Engineering, Medical, Overseas)
-      return ['Engineering & Architecture', 'Medical & Dental', 'Management & Business', 'Overseas Admissions', 'School & Foundation'].includes(cat.categoryName);
+      return ['Engineering & Architecture', 'Medical & Dental', 'Management & Business', 'Overseas Admissions', 'School & Foundation'].includes(cat.title);
     }
     return true;
   });
 
   return (
     <div className="space-y-8 animate-fade-in pb-16">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 p-8 shadow-2xl">
-        <div className="absolute -right-16 -top-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-32 bottom-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Header Banner — Royal Blue Gradient */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-800 border border-blue-600 p-8 text-white shadow-xl shadow-blue-500/10">
+        <div className="absolute -right-16 -top-16 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-32 bottom-0 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-[2px] shadow-lg shadow-indigo-500/20">
-              <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center">
-                <Layers className="w-8 h-8 text-cyan-400" />
+            <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-md p-[2px] shadow-lg border border-white/20">
+              <div className="w-full h-full bg-white/10 rounded-[14px] flex items-center justify-center">
+                <Layers className="w-8 h-8 text-white" />
               </div>
             </div>
             <div>
@@ -99,26 +98,26 @@ export default function TaxonomyExplorerView() {
                 <h1 className="text-3xl font-extrabold text-white tracking-tight">
                   Master Exam Taxonomy & Knowledge Hierarchy
                 </h1>
-                <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 shadow-md">
+                <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-white text-blue-900 shadow-md">
                   5-Tier Unified Architecture
                 </span>
               </div>
-              <p className="text-slate-300 text-sm mt-1 max-w-3xl">
-                Structured hierarchy: <span className="font-semibold text-cyan-300">Exam Family → Exam → Stream/Paper → Subject → Topic → Subtopic</span> with many-to-many cross-exam question bank reusability.
+              <p className="text-blue-100 text-sm mt-1 max-w-3xl">
+                Structured hierarchy: <span className="font-semibold text-white">Exam Family → Exam → Stream/Paper → Subject → Topic → Subtopic</span> with many-to-many cross-exam question bank reusability.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Region Tracker Filter */}
-            <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-              <span className="text-[11px] font-bold text-slate-400 px-2 uppercase tracking-wider flex items-center gap-1">
-                <Globe className="w-3.5 h-3.5 text-cyan-400" /> Region:
+            <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md p-1 rounded-xl border border-white/30">
+              <span className="text-[11px] font-bold text-blue-100 px-2 uppercase tracking-wider flex items-center gap-1">
+                <Globe className="w-3.5 h-3.5 text-white" /> Region:
               </span>
               <button
                 onClick={() => setRegionFilter('All')}
                 className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                  regionFilter === 'All' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+                  regionFilter === 'All' ? 'bg-white text-blue-900 shadow-md' : 'text-blue-100 hover:text-white'
                 }`}
               >
                 All
@@ -126,7 +125,7 @@ export default function TaxonomyExplorerView() {
               <button
                 onClick={() => setRegionFilter('India')}
                 className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1 ${
-                  regionFilter === 'India' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+                  regionFilter === 'India' ? 'bg-emerald-400 text-emerald-950 shadow-md' : 'text-blue-100 hover:text-white'
                 }`}
               >
                 <span>🇮🇳 India</span>
@@ -134,7 +133,7 @@ export default function TaxonomyExplorerView() {
               <button
                 onClick={() => setRegionFilter('GCC')}
                 className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1 ${
-                  regionFilter === 'GCC' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+                  regionFilter === 'GCC' ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-blue-100 hover:text-white'
                 }`}
               >
                 <span>🇦🇪 GCC</span>
@@ -145,8 +144,8 @@ export default function TaxonomyExplorerView() {
               onClick={() => setCsAiOnly(!csAiOnly)}
               className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 border transition-all cursor-pointer ${
                 csAiOnly
-                  ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-lg shadow-cyan-500/30'
-                  : 'bg-slate-800/80 text-cyan-300 border-slate-700 hover:bg-slate-800'
+                  ? 'bg-white text-blue-900 border-white shadow-lg'
+                  : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
               }`}
             >
               <Code2 className="w-4 h-4" />
@@ -157,44 +156,44 @@ export default function TaxonomyExplorerView() {
 
         {/* Search Bar */}
         <div className="mt-6 relative">
-          <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-blue-300 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search across all 5 tiers (e.g. 'CPU Scheduling', 'Machine Learning', 'Fundamental Rights', 'Operating Systems')..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950/90 border border-slate-800 rounded-2xl pl-12 pr-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 shadow-inner"
+            className="w-full bg-white/95 text-slate-900 placeholder-slate-400 border border-white/40 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-md"
           />
         </div>
 
         {/* Live Search Results Dropdown */}
         {searchResults.length > 0 && (
-          <div className="mt-3 bg-slate-900 border border-indigo-500/40 rounded-2xl p-4 shadow-2xl max-h-80 overflow-y-auto space-y-2 divide-y divide-slate-800/80">
-            <div className="text-xs font-semibold text-slate-400 uppercase pb-2">
+          <div className="mt-3 bg-white text-slate-900 border border-blue-200 rounded-2xl p-4 shadow-2xl max-h-80 overflow-y-auto space-y-2 divide-y divide-slate-100">
+            <div className="text-xs font-semibold text-slate-500 uppercase pb-2">
               Found {searchResults.length} Hierarchical Taxonomy Matches:
             </div>
             {searchResults.map((res, i) => (
-              <div key={i} className="pt-2.5 flex items-center justify-between hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
+              <div key={i} className="pt-2.5 flex items-center justify-between hover:bg-blue-50/50 p-2 rounded-xl transition-colors">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
                       {res.level}
                     </span>
-                    <span className="font-bold text-sm text-white">{res.name}</span>
+                    <span className="font-bold text-sm text-slate-900">{res.name}</span>
                   </div>
-                  <div className="text-xs text-slate-400 flex items-center gap-1 mt-1 font-mono">
+                  <div className="text-xs text-slate-500 flex items-center gap-1 mt-1 font-mono">
                     {res.path.map((step, idx) => (
                       <React.Fragment key={idx}>
                         <span>{step}</span>
-                        {idx < res.path.length - 1 && <ChevronRight className="w-3 h-3 text-slate-600 inline" />}
+                        {idx < res.path.length - 1 && <ChevronRight className="w-3 h-3 text-slate-400 inline" />}
                       </React.Fragment>
                     ))}
                   </div>
                   {res.crossApplicableExams && (
                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                      <span className="text-[10px] text-amber-400 font-semibold">Cross-Applicable to:</span>
+                      <span className="text-[10px] text-amber-700 font-semibold">Cross-Applicable to:</span>
                       {res.crossApplicableExams.slice(0, 4).map((ex, exIdx) => (
-                        <span key={exIdx} className="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">
+                        <span key={exIdx} className="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-700 border border-slate-200">
                           {ex}
                         </span>
                       ))}
@@ -206,7 +205,7 @@ export default function TaxonomyExplorerView() {
                   onClick={() => {
                     setView('pyq-archive');
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all"
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all shadow-sm"
                 >
                   <span>Practice Questions</span>
                   <ArrowRight className="w-3 h-3" />
@@ -221,7 +220,7 @@ export default function TaxonomyExplorerView() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* TIER 1: Categories / Exam Families (Cols 4) */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 px-2">
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500 px-2">
             <span>Tier 1: Exam Domain & Family</span>
             <span>{displayedCategories.length} Domains</span>
           </div>
@@ -244,19 +243,19 @@ export default function TaxonomyExplorerView() {
                   }}
                   className={`w-full text-left p-4 rounded-2xl border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-gradient-to-r from-indigo-950 to-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/20 text-white'
-                      : 'bg-slate-900/60 border-slate-800/80 text-slate-300 hover:bg-slate-850 hover:border-slate-700'
+                      ? 'bg-blue-50/80 border-blue-500 text-blue-950 shadow-md ring-1 ring-blue-500'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <h3 className="font-bold text-sm flex items-center gap-2">
+                    <h3 className="font-bold text-sm flex items-center gap-2 text-slate-900">
                       {cat.title}
                     </h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-800 text-cyan-300 border border-slate-700">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
                       {cat.badge}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
                     {cat.description}
                   </p>
                 </button>
@@ -267,7 +266,7 @@ export default function TaxonomyExplorerView() {
 
         {/* TIER 2 & 3: Streams, Papers & Subjects (Cols 4) */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 px-2">
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500 px-2">
             <span>Tier 2 & 3: Papers & Subjects</span>
             <span>{selectedExam?.streamsOrPapers.length || 0} Streams</span>
           </div>
@@ -289,8 +288,8 @@ export default function TaxonomyExplorerView() {
                       }}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
-                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md font-extrabold'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       {stream.code}
@@ -301,11 +300,11 @@ export default function TaxonomyExplorerView() {
 
               {selectedStream ? (
                 <div className="space-y-3">
-                  <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
-                    <span className="text-xs font-bold text-cyan-400 uppercase">Selected Stream</span>
-                    <h4 className="text-sm font-extrabold text-white mt-0.5">{selectedStream.code} - {selectedStream.name}</h4>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 p-4 rounded-xl border border-blue-200 shadow-sm">
+                    <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Selected Stream</span>
+                    <h4 className="text-sm font-extrabold text-slate-900 mt-0.5">{selectedStream.code} - {selectedStream.name}</h4>
                     {selectedStream.eligibleDegrees && (
-                      <p className="text-[11px] text-slate-400 mt-1">
+                      <p className="text-[11px] text-slate-600 mt-1">
                         Eligibility: {selectedStream.eligibleDegrees.join(', ')}
                       </p>
                     )}
@@ -313,9 +312,9 @@ export default function TaxonomyExplorerView() {
 
                   {/* Subjects list */}
                   <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase px-1">Curriculum Subjects</span>
+                    <span className="text-xs font-bold text-slate-500 uppercase px-1">Curriculum Subjects</span>
                     {selectedStream.subjects.length === 0 ? (
-                      <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-500 text-center">
+                      <div className="p-4 rounded-xl bg-white border border-slate-200 text-xs text-slate-500 text-center">
                         Standard official curriculum active for {selectedStream.name}.
                       </div>
                     ) : (
@@ -330,13 +329,13 @@ export default function TaxonomyExplorerView() {
                             }}
                             className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
                               isSubSelected
-                                ? 'bg-indigo-950/80 border-indigo-500 text-white shadow-md'
-                                : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:bg-slate-850'
+                                ? 'bg-blue-50/80 border-blue-500 text-blue-950 font-bold shadow-sm'
+                                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                             }`}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-sm">{subj.name}</span>
-                              <span className="text-xs text-indigo-300 font-semibold">{subj.topics.length} Topics</span>
+                              <span className="font-bold text-sm text-slate-900">{subj.name}</span>
+                              <span className="text-xs text-blue-600 font-semibold">{subj.topics.length} Topics</span>
                             </div>
                           </button>
                         );
@@ -347,10 +346,10 @@ export default function TaxonomyExplorerView() {
               ) : null}
             </div>
           ) : (
-            <div className="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 text-center space-y-2">
-              <Sparkles className="w-8 h-8 text-cyan-400 mx-auto" />
-              <h4 className="text-sm font-bold text-white">{selectedExam?.name || selectedCategory.title}</h4>
-              <p className="text-xs text-slate-400">
+            <div className="p-8 rounded-2xl bg-white border border-slate-200 text-center space-y-2 shadow-sm">
+              <Sparkles className="w-8 h-8 text-blue-600 mx-auto" />
+              <h4 className="text-sm font-bold text-slate-900">{selectedExam?.name || selectedCategory.title}</h4>
+              <p className="text-xs text-slate-500">
                 Official syllabus mappings loaded for all stages & optional subjects.
               </p>
             </div>
@@ -359,20 +358,20 @@ export default function TaxonomyExplorerView() {
 
         {/* TIER 4 & 5: Topics, Subtopics & Cross-Applicability (Cols 4) */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 px-2">
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500 px-2">
             <span>Tier 4 & 5: Topics & Subtopics</span>
-            <span className="text-emerald-400">Knowledge Bank</span>
+            <span className="text-emerald-700">Knowledge Bank</span>
           </div>
 
-          <div className="bg-slate-900/80 rounded-2xl border border-slate-800 p-5 space-y-6 max-h-[680px] overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-blue-100 p-5 space-y-6 max-h-[680px] overflow-y-auto shadow-sm">
             {selectedSubject && selectedSubject.topics.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                   <div>
-                    <span className="text-[10px] font-bold text-indigo-400 uppercase">Subject Focus</span>
-                    <h3 className="text-base font-extrabold text-white">{selectedSubject.name}</h3>
+                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Subject Focus</span>
+                    <h3 className="text-base font-extrabold text-slate-900">{selectedSubject.name}</h3>
                   </div>
-                  <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                     Live Engine
                   </span>
                 </div>
@@ -382,34 +381,34 @@ export default function TaxonomyExplorerView() {
                   {selectedSubject.topics.map(topic => {
                     const crossExams = getCrossApplicableExamsForSubject(selectedSubject.name);
                     return (
-                      <div key={topic.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800/90 space-y-3">
+                      <div key={topic.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 shadow-xs hover:border-blue-200 transition-colors">
                         <div className="flex items-start justify-between">
-                          <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block" />
+                          <h4 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-blue-600 inline-block shadow-sm" />
                             <span>{topic.name}</span>
                           </h4>
                           {topic.weightagePercent && (
-                            <span className="text-[11px] font-mono text-cyan-400 font-bold">
+                            <span className="text-[11px] font-mono text-blue-700 font-bold bg-blue-100 px-2 py-0.5 rounded border border-blue-200">
                               ~{topic.weightagePercent}% Weight
                             </span>
                           )}
                         </div>
 
                         {/* Subtopics */}
-                        <div className="space-y-2 pl-3 border-l-2 border-indigo-500/30">
+                        <div className="space-y-2 pl-3 border-l-2 border-blue-500/40">
                           {topic.subtopics.map(sub => (
-                            <div key={sub.id} className="text-xs text-slate-300 flex items-start gap-2">
-                              <span className="text-indigo-400 mt-0.5">›</span>
+                            <div key={sub.id} className="text-xs text-slate-600 flex items-start gap-2">
+                              <span className="text-blue-600 mt-0.5">›</span>
                               <span className="leading-relaxed">{sub.name}</span>
                             </div>
                           ))}
                         </div>
 
                         {/* Cross-Applicable Exams Badge Cluster */}
-                        <div className="pt-2 border-t border-slate-900 flex flex-wrap items-center gap-1.5">
-                          <span className="text-[10px] font-semibold text-amber-400 uppercase">Many-to-Many Shared With:</span>
+                        <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-1.5">
+                          <span className="text-[10px] font-semibold text-amber-700 uppercase">Shared With:</span>
                           {crossExams.slice(0, 3).map((ex, exIdx) => (
-                            <span key={exIdx} className="px-1.5 py-0.5 rounded text-[10px] bg-slate-900 text-slate-300 border border-slate-800">
+                            <span key={exIdx} className="px-1.5 py-0.5 rounded text-[10px] bg-white text-slate-700 border border-slate-200">
                               {ex}
                             </span>
                           ))}
@@ -423,25 +422,25 @@ export default function TaxonomyExplorerView() {
                 <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
                   <button
                     onClick={() => setView('pyq-archive')}
-                    className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/30"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 transition-all"
                   >
                     <BookOpen className="w-4 h-4" />
                     <span>Practice 10Y PYQs For This Subject</span>
                   </button>
                   <button
                     onClick={() => setView('mock-exam')}
-                    className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm"
                   >
-                    <Zap className="w-4 h-4 text-amber-400" />
+                    <Zap className="w-4 h-4 text-amber-500" />
                     <span>Generate AI Diagnostic Test</span>
                   </button>
                 </div>
               </div>
             ) : (
               <div className="py-12 text-center space-y-3">
-                <Layers className="w-10 h-10 text-slate-600 mx-auto" />
-                <h4 className="text-sm font-bold text-white">Select a Stream & Subject</h4>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                <Layers className="w-10 h-10 text-slate-300 mx-auto" />
+                <h4 className="text-sm font-bold text-slate-700">Select a Stream & Subject</h4>
+                <p className="text-xs text-slate-500 max-w-xs mx-auto">
                   Click any subject on the left to inspect its detailed topics, subtopics, and many-to-many cross-exam mappings.
                 </p>
               </div>

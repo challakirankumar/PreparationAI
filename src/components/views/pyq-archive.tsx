@@ -381,7 +381,7 @@ export function PYQArchiveView() {
 
                   {/* Subjects pill wrap */}
                   <div className="flex flex-wrap gap-1">
-                    {vol.subjects.map((sub) => (
+                    {vol.subjects?.map((sub) => (
                       <span
                         key={sub}
                         className="text-[10px] px-2 py-0.5 rounded bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300 font-medium"
@@ -593,10 +593,10 @@ export function PYQArchiveView() {
                               ) : (
                                 <XCircle className="h-4 w-4 text-rose-600" />
                               )}
-                              Official Answer: Option {String.fromCharCode(65 + q.correctAnswer)} ({q.options[q.correctAnswer]})
+                              Official Answer: {typeof q.correctAnswer === 'number' ? `Option ${String.fromCharCode(65 + q.correctAnswer)} (${q.options[q.correctAnswer] ?? ''})` : 'Provided in solution'}
                             </span>
                             <span className="text-[11px] font-medium text-stone-500 dark:text-slate-400">
-                              +{q.marks} / -{q.negativeMarks} Marks
+                              +{q.marks ?? 1} / -{q.negativeMarks ?? 0} Marks
                             </span>
                           </div>
 

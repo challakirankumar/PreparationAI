@@ -12,6 +12,7 @@
 
 export type AgentId =
   | 'mentor'
+  | 'socratic'
   | 'exam-news'
   | 'academic-analyzer'
   | 'mock-generator'

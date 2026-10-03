@@ -2,6 +2,10 @@
 """End-to-end test of Peer Battle Mode — full battle simulation."""
 import json
 import urllib.request
+import sys
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 BASE = "http://localhost:3000/api/battle"
 

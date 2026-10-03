@@ -39,7 +39,8 @@ export type View =
   | 'pyq-archive'
   | 'superadmin'
   | 'pricing'
-  | 'taxonomy';
+  | 'taxonomy'
+  | 'launch-readiness';
 
 export type UserType = 'school-11' | 'school-12' | 'ug' | 'grad';
 export type UserRole = 'student' | 'admin' | 'superadmin';
@@ -70,6 +71,13 @@ export interface User {
   clockFace?: ClockFace;           // "digital" | "analog"
   clockTheme?: ClockTheme;         // "day" | "dark"
   academicRecords?: AcademicRecord[];
+  targetExam?: string;
+  targetYear?: string;
+  studyHoursPerDay?: number;
+  readinessScore?: number;
+  streak?: number;
+  strongAreas?: string[];
+  weakAreas?: string[];
 }
 
 export interface AcademicRecord {
@@ -151,7 +159,7 @@ export interface ExamPattern {
   name: string;
   fullName: string;
   category: 'school' | 'ug' | 'grad';
-  examType?: 'Government' | 'Entrance' | 'Professional' | 'Defence' | 'Corporate' | 'International';
+  examType?: 'Government' | 'Entrance' | 'Professional' | 'Defence' | 'Corporate' | 'International' | 'Police / Security' | 'Engineering' | 'Law' | string;
   domainCategory?: string;
   conductingBody?: string;
   examFamily?: string;
@@ -162,6 +170,8 @@ export interface ExamPattern {
   notificationYear?: string;
   totalQuestions: number;
   durationSec: number;
+  durationMinutes?: number;
+  negativeMarking?: string;
   totalMarks: number;
   marking: string;
   description: string;
@@ -278,6 +288,8 @@ export interface ExamAttempt {
   attemptNumber?: number;
   behavior?: BehaviorAnalysis;
   questions?: Question[];
+  date?: string;
+  timeTakenSeconds?: number;
 }
 
 export interface ChatMessage {
@@ -477,25 +489,30 @@ export interface IntegrityReport {
 export interface PYQQuestion {
   id: string;
   examId: string;                 // 'upsc', 'gate-cs', 'jee-main', 'neet-ug', etc.
-  examName: string;
+  examName?: string;
   year: number;                   // 2015 - 2025
   volumeId: string;               // 'vol-1', 'vol-2', 'vol-custom', etc.
-  volumeName: string;             // 'Volume I: Core & Foundations (2015-2018)'
+  volumeName?: string;             // 'Volume I: Core & Foundations (2015-2018)'
   paperName?: string;             // 'Paper 1 (GS)', 'Morning Slot', 'Shift 2'
-  questionNumber: number;
+  sessionOrShift?: string;
+  questionNumber?: number;
   subject: string;                // 'Polity', 'Data Structures', 'Physics', etc.
   topic: string;                  // 'Fundamental Rights', 'Binary Trees', 'Thermodynamics'
   subtopic?: string;
-  question: string;
+  question?: string;
+  questionText?: string;
   options: string[];
-  correctAnswer: number;          // 0-indexed option
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  marks: number;
-  negativeMarks: number;
+  correctAnswer?: number;          // 0-indexed option
+  correctOptionIndex?: number;
+  difficulty: 'Easy' | 'Medium' | 'Hard' | 'Moderate' | 'Extreme';
+  marks?: number;
+  negativeMarks?: number;
   explanation: string;            // Detailed official/editorial worked step-by-step
   citation?: string;              // 'UPSC CSE Prelims 2023 Paper 1 Q14', etc.
-  tags: string[];                 // ['High Frequency', 'Repeat Archetype', 'Core']
-  historicalFrequency?: string;   // 'Asked 4 times in last 7 years'
+  officialCitation?: string;
+  tags?: string[];                 // ['High Frequency', 'Repeat Archetype', 'Core']
+  historicalFrequency?: string | number;   // 'Asked 4 times in last 7 years'
+  isRepeatedCore?: boolean;
 }
 
 export interface PYQVolume {
@@ -504,15 +521,18 @@ export interface PYQVolume {
   examName: string;
   volumeNumber: number;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   yearRange: string;              // '2015 - 2018', '2019 - 2022', '2023 - 2025'
   description: string;
   totalQuestions: number;
-  papersCount: number;
-  subjects: string[];
-  color: string;
+  papersCount?: number;
+  subjects?: string[];
+  color?: string;
+  category?: string;
   badge?: string;                 // 'Flagship', 'Reformed Pattern', 'Recent Hot'
   isCustom?: boolean;             // true if dynamically added by SuperAdmin
+  isOfficialNTA_UPSC?: boolean;
+  estimatedTimeMin?: number;
   createdAt?: string;
 }
 

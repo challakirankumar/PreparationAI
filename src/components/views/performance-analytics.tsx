@@ -289,7 +289,7 @@ export function PerformanceAnalytics() {
 
       {/* Strengths & Weaknesses */}
       <div className="grid sm:grid-cols-2 gap-4">
-        <Card className="border-blue-200 bg-blue-50/50">
+        <Card className="border-blue-100 bg-white shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-blue-800">
               <CheckCircle2 className="h-4 w-4" /> Strengths
@@ -297,32 +297,32 @@ export function PerformanceAnalytics() {
           </CardHeader>
           <CardContent className="space-y-1.5">
             {strengths.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No strengths tracked yet — they appear after 1+ attempts.</p>
+              <p className="text-sm text-slate-500">No strengths tracked yet — they appear after 1+ attempts.</p>
             ) : (
               strengths.map(([topic, count]) => (
-                <div key={topic} className="flex items-center justify-between p-2 rounded-lg bg-white border border-emerald-100">
-                  <span className="text-sm font-medium text-stone-800">{topic}</span>
-                  <Badge className="bg-blue-100 text-blue-700 border-blue-200">{count}×</Badge>
+                <div key={topic} className="flex items-center justify-between p-2.5 rounded-lg bg-blue-50/60 border border-blue-100">
+                  <span className="text-sm font-medium text-slate-900">{topic}</span>
+                  <Badge className="bg-blue-600 text-white font-semibold">{count}×</Badge>
                 </div>
               ))
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-rose-200 bg-rose-50/50">
+        <Card className="border-rose-100 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base text-rose-800">
+            <CardTitle className="flex items-center gap-2 text-base text-rose-700">
               <XCircle className="h-4 w-4" /> Weaknesses
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1.5">
             {weaknesses.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No weak topics tracked yet — take mocks to identify them.</p>
+              <p className="text-sm text-slate-500">No weak topics tracked yet — take mocks to identify them.</p>
             ) : (
               weaknesses.map(([topic, count]) => (
-                <div key={topic} className="flex items-center justify-between p-2 rounded-lg bg-white border border-rose-100">
-                  <span className="text-sm font-medium text-stone-800">{topic}</span>
-                  <Badge className="bg-rose-100 text-rose-700 border-rose-200">{count}×</Badge>
+                <div key={topic} className="flex items-center justify-between p-2.5 rounded-lg bg-rose-50/60 border border-rose-100">
+                  <span className="text-sm font-medium text-slate-900">{topic}</span>
+                  <Badge className="bg-rose-100 text-rose-800 border-rose-200 font-semibold">{count}×</Badge>
                 </div>
               ))
             )}
@@ -331,15 +331,15 @@ export function PerformanceAnalytics() {
       </div>
 
       {/* Regional Cohort & Cutoff Tracker */}
-      <Card className="border-indigo-200/80 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30">
+      <Card className="border-slate-200 bg-white shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <CardTitle className="flex items-center gap-2 text-base text-slate-900">
-                <Globe className="h-4 w-4 text-indigo-600" />
+                <Globe className="h-4 w-4 text-blue-600" />
                 Regional Benchmark & Cutoff Tracker
               </CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Compare your percentile, rank, and seat eligibility against India National or GCC NRI applicant pools.
               </p>
             </div>
@@ -352,7 +352,7 @@ export function PerformanceAnalytics() {
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5",
                   regionTracker === 'India'
-                    ? "bg-emerald-600 text-white shadow-sm"
+                    ? "bg-blue-600 text-white shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
                 )}
               >
@@ -377,43 +377,43 @@ export function PerformanceAnalytics() {
         <CardContent>
           {regionTracker === 'India' ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-              <div className="p-3.5 rounded-xl border border-emerald-200 bg-white shadow-2xs space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">India National AIR Projection</span>
+              <div className="p-3.5 rounded-xl border border-blue-100 bg-blue-50/40 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700">India National AIR Projection</span>
                 <p className="text-xl font-black text-slate-900">#{latest.rank ? latest.rank.toLocaleString() : '1,420'}</p>
                 <p className="text-xs text-slate-500">Based on {(avgScorePct * 100).toFixed(1)}% avg score across India cohort</p>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-blue-200 bg-white shadow-2xs space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700">All-India Percentile</span>
+              <div className="p-3.5 rounded-xl border border-indigo-100 bg-indigo-50/40 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700">All-India Percentile</span>
                 <p className="text-xl font-black text-slate-900">{latest.percentile ? latest.percentile.toFixed(1) : (avgAccuracy).toFixed(1)}%ile</p>
                 <p className="text-xs text-slate-500">Exceeds General Cutoff for Tier-1 Institutes</p>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Home State / National Quota</span>
-                <p className="text-xl font-black text-emerald-600">High Probability</p>
+              <div className="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Home State / National Quota</span>
+                <p className="text-xl font-black text-emerald-800">High Probability</p>
                 <p className="text-xs text-slate-500">85% State Quota & All-India Seat Allocation</p>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-              <div className="p-3.5 rounded-xl border border-amber-200 bg-white shadow-2xs space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">GCC NRI Centers Percentile</span>
+              <div className="p-3.5 rounded-xl border border-amber-100 bg-amber-50/40 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700">GCC NRI Centers Percentile</span>
                 <p className="text-xl font-black text-slate-900">
                   {Math.min(99.9, ((latest.percentile || avgAccuracy) + 2.4)).toFixed(1)}%ile
                 </p>
                 <p className="text-xs text-slate-500">Benchmarked against Dubai, Abu Dhabi, Doha & Riyadh centers</p>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-indigo-200 bg-white shadow-2xs space-y-1">
+              <div className="p-3.5 rounded-xl border border-indigo-100 bg-indigo-50/40 shadow-xs space-y-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700">DASA Scheme Eligibility</span>
-                <p className="text-xl font-black text-indigo-700">Top 5% Band</p>
+                <p className="text-xl font-black text-indigo-900">Top 5% Band</p>
                 <p className="text-xs text-slate-500">Direct Admission of Students Abroad for NITs/IIITs</p>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-emerald-200 bg-white shadow-2xs space-y-1">
+              <div className="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 shadow-xs space-y-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">CIWG Quota Status</span>
-                <p className="text-xl font-black text-emerald-600">Qualified (5% Quota)</p>
+                <p className="text-xl font-black text-emerald-800">Qualified (5% Quota)</p>
                 <p className="text-xs text-slate-500">Children of Indian Workers in Gulf (Indian fee structure)</p>
               </div>
             </div>
